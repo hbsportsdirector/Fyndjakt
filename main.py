@@ -79,6 +79,19 @@ def forfiltrera(a: Annons, cfg: dict) -> str | None:
     return None
 
 
+def blanda_kategorier(annonser: list[Annons]) -> list[Annons]:
+    """Varvar kategorierna så att taket per körning inte bara går åt till möbler."""
+    grupper: dict[str, list[Annons]] = {}
+    for a in annonser:
+        grupper.setdefault(a.kategori, []).append(a)
+    ut = []
+    while any(grupper.values()):
+        for lista in grupper.values():
+            if lista:
+                ut.append(lista.pop(0))
+    return ut
+
+
 def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--torr", action="store_true", help="Ingen AI, inga notiser, inget sparas")
@@ -114,7 +127,7 @@ def main() -> int:
     tak = cfg.get("max_bedomningar_per_korning", 150)
     if len(kandidater) > tak:
         print(f"Bedömer {tak} av {len(kandidater)} – resten tas nästa körning.")
-        kandidater = kandidater[:tak]
+    kandidater = blanda_kategorier(kandidater)[:tak]
 
     traffar = []
     if kandidater:

@@ -140,3 +140,14 @@ def test_config_laddas():
     assert "Obsidian Green" in cfg["stilprofil"]          # från stil.md
     assert "Viktigt vid bedömningen" in cfg["stilprofil"]  # från tillagg
     assert set(cfg["sokningar"]) == {"Möbler", "Belysning", "Textilier och mattor", "Konst och dekor"}
+
+
+def test_utlandsk_valuta_raknas_om():
+    a = auctionet.tolka(dict(AUCTIONET_POST, currency="GBP", estimate=100))
+    assert a.pris == 1300 and "≈ 1 300 kr" in a.pris_text
+
+
+def test_blanda_kategorier():
+    ann = [auctionet.tolka(dict(AUCTIONET_POST, id=i), k) for i, k in
+           enumerate(["Möbler", "Möbler", "Möbler", "Belysning", "Konst och dekor"])]
+    assert [a.kategori for a in main.blanda_kategorier(ann)[:3]] == ["Möbler", "Belysning", "Konst och dekor"]

@@ -12,6 +12,9 @@ from . import Annons
 API = "https://auctionet.com/api/v2/items.json"
 HEADERS = {"User-Agent": "Fyndjakt/1.0 (privat bevakning)"}
 
+# Ungefärliga växelkurser till kronor – räcker för prisgränsen och visning.
+KURSER = {"SEK": 1, "EUR": 11.2, "DKK": 1.5, "NOK": 1.0, "GBP": 13.0, "USD": 10.0, "CHF": 12.0}
+
 
 def _rensa_html(text: str | None) -> str:
     if not text:
@@ -32,8 +35,12 @@ def tolka(post: dict, kategori: str = "") -> Annons | None:
     hogsta = max((b.get("amount", 0) for b in bud), default=0)
     utrop = post.get("estimate") or 0
     valuta = post.get("currency", "SEK")
-    pris = hogsta or utrop or None
+    belopp = hogsta or utrop
+    kurs = KURSER.get(valuta)
+    pris = round(belopp * kurs) if belopp and kurs else None
     pris_text = f"Bud {hogsta} {valuta}" if hogsta else f"Utrop {utrop} {valuta}"
+    if valuta != "SEK" and pris:
+        pris_text += f" (≈ {pris:,} kr)".replace(",", " ")
 
     bilder = [b.get("w640") or b.get("hd") for b in post.get("images") or []]
     beskrivning = _rensa_html(post.get("description"))
