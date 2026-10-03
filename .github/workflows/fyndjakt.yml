@@ -1,0 +1,61 @@
+name: Fyndjakt
+
+on:
+  schedule:
+    - cron: "37 5 * * *"   # varje dag 07:37 svensk sommartid (06:37 vintertid)
+  workflow_dispatch:        # gör att du kan köra den manuellt från fliken Actions
+
+permissions:
+  contents: write           # för att spara listan över sedda annonser
+  pages: write              # för att publicera hemsidan
+  id-token: write
+
+concurrency:
+  group: fyndjakt
+  cancel-in-progress: false
+
+jobs:
+  jakt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment:
+      name: github-pages
+      url: ${{ steps.publicera.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Leta fynd och bygg hemsidan
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TRADERA_APP_ID: ${{ secrets.TRADERA_APP_ID }}
+          TRADERA_APP_KEY: ${{ secrets.TRADERA_APP_KEY }}
+          SAJT_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+        run: python main.py
+
+      - name: Spara sedda annonser
+        if: always()
+        run: |
+          git config user.name "fyndjakt-bot"
+          git config user.email "fyndjakt-bot@users.noreply.github.com"
+          git add data/sedda.db
+          git diff --cached --quiet || git commit -m "Uppdatera sedda annonser"
+          git push
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Publicera hemsidan
+        id: publicera
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,100 @@
+# ──────────────────────────────────────────────────────────────
+#  Fyndjakt – inställningar
+#  Ändra fritt. Allt som står här läses in vid varje körning.
+# ──────────────────────────────────────────────────────────────
+
+# Din stil läses från den här filen. Byt ut eller redigera den när du vill.
+stilfil: stil.md
+
+# Extra instruktioner till AI:n utöver stilfilen.
+tillagg: |
+  Jag letar begagnade/vintage-föremål till det här hemmet: möbler, belysning,
+  mattor och textilier, konst och dekor. Fokusera på lösa föremål – inte golv, färg eller lister.
+  Mässing, mörk valnöt, cognacfärgat läder, mörkgrön sammet, burgundy/oxblod och
+  vit/grå marmor med mässing är rätt. Patina är ett plus.
+  Fel: krom, blanka lackytor, kalla grå toner, ljus/vitpigmenterad ek, ljus skandinavisk minimalism.
+
+# Hur bra matchningen måste vara för att du ska få en notis (0–10).
+min_betyg: 7
+
+# Lägsta betyg som syns på hemsidan (du kan filtrera uppåt på sidan).
+sajt_min_betyg: 6
+
+# Prisgräns i kronor (utrop/aktuellt pris/köp nu). 0 = ingen gräns.
+max_pris: 25000
+
+# Max antal NYA annonser som AI-bedöms per körning (styr kostnaden).
+max_bedomningar_per_korning: 150
+
+# AI-modell för bedömningen. Haiku är billig och klarar bilder bra.
+# Byt till claude-sonnet-5-5 om du vill ha skarpare omdömen.
+modell: claude-haiku-4-5-20251001
+
+# Ord som gör att en annons sorteras bort direkt, utan AI (sparar pengar).
+uteslut_ord:
+  - ikea
+  - plast
+  - högglans
+  - krom
+  - vitpigmenterad
+  - reservdel
+  - defekt
+
+# Sökningar per kategori. Bred sökning är bra – AI:n sköter urvalet.
+sokningar:
+  Möbler:
+    - bokhylla valnöt
+    - bokhylla mörkt trä
+    - bibliotekshylla
+    - bokskåp
+    - chesterfield
+    - chesterfield fåtölj
+    - klubbfåtölj läder
+    - wingback
+    - öronlappsfåtölj
+    - fåtölj sammet grön
+    - skrivbord marmor
+    - skrivbord valnöt
+    - partnerskrivbord
+    - sekretär
+    - globbar
+    - barvagn mässing
+    - sidobord marmor
+    - pall läder
+  Belysning:
+    - bankirlampa
+    - grön bankirlampa
+    - tavelbelysning mässing
+    - läslampa mässing
+    - bordslampa mässing
+    - golvlampa mässing
+    - vägglampa mässing
+    - biblioteksbelysning
+  Textilier och mattor:
+    - persisk matta
+    - orientalisk matta röd
+    - matta oxblod
+    - kelim
+    - sammet kudde grön
+    - ullpläd
+  Konst och dekor:
+    - jordglob
+    - himmelsglob
+    - antik karta
+    - sjökort
+    - stjärnkarta
+    - oljemålning
+    - porträtt oljemålning
+    - kopparstick
+    - läderband böcker
+    - klotband
+    - mässing ljusstake
+    - förstoringsglas mässing
+    - teleskop mässing
+    - byst
+    - bokstöd
+
+# Vilka källor som är påslagna.
+kallor:
+  auctionet: true   # Ingen nyckel behövs
+  tradera: true     # Kräver TRADERA_APP_ID och TRADERA_APP_KEY (gratis), annars hoppas den över
