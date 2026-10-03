@@ -4,6 +4,13 @@ on:
   schedule:
     - cron: "37 5 * * *"   # varje dag 07:37 svensk sommartid (06:37 vintertid)
   workflow_dispatch:        # gör att du kan köra den manuellt från fliken Actions
+  push:                     # kör direkt när du ändrar stilen, inställningarna eller koden
+    branches: [main]
+    paths:
+      - "stil.md"
+      - "config.yaml"
+      - "**.py"
+      - ".github/workflows/**"
 
 permissions:
   contents: write           # för att spara listan över sedda annonser
