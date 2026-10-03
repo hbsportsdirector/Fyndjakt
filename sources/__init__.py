@@ -16,6 +16,8 @@ class Annons:
     slutar: str = ""               # läsbar tid
     slutar_ts: int | None = None   # unix-tid när annonsen slutar
     kategori: str = ""             # vilken av dina kategorier sökningen kom från
+    sokord: str = ""               # vilken sökning som hittade annonsen
+    valuta: str = "SEK"
 
     @property
     def nyckel(self) -> str:

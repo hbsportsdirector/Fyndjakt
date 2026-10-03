@@ -68,6 +68,7 @@ def tolka(post: dict, kategori: str = "") -> Annons | None:
         slutar=slutar,
         slutar_ts=slutar_ts,
         kategori=kategori,
+        valuta=valuta,
     )
 
 

@@ -13,7 +13,15 @@ FALT = ["nyckel", "titel", "url", "betyg", "motivering", "kalla", "kategori",
 
 def bygg(db, cfg: dict) -> Path:
     min_betyg = cfg.get("sajt_min_betyg", 6)
-    poster = [{k: r.get(k) for k in FALT} for r in db.traffar(min_betyg)]
+    max_per = cfg.get("sajt_max_per_sokord") or 0
+    per_sokord: dict[str, int] = {}
+    poster = []
+    for r in db.traffar(min_betyg):  # redan sorterade bäst först
+        nyckel = r.get("sokord") or r.get("nyckel")
+        if max_per and per_sokord.get(nyckel, 0) >= max_per:
+            continue
+        per_sokord[nyckel] = per_sokord.get(nyckel, 0) + 1
+        poster.append({k: r.get(k) for k in FALT})
     kategorier = list(cfg.get("sokningar", {}).keys())
     nu = datetime.now(ZoneInfo("Europe/Stockholm")).strftime("%-d/%-m kl %H:%M")
 

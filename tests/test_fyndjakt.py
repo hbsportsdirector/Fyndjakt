@@ -139,7 +139,8 @@ def test_config_laddas():
     cfg = main.las_config()
     assert "Obsidian Green" in cfg["stilprofil"]          # från stil.md
     assert "Viktigt vid bedömningen" in cfg["stilprofil"]  # från tillagg
-    assert set(cfg["sokningar"]) == {"Möbler", "Belysning", "Textilier och mattor", "Konst och dekor"}
+    assert "Kartor, glober och kuriosa" in cfg["sokningar"]
+    assert "HAR REDAN" in cfg["stilprofil"] and "Chesterfield" in cfg["stilprofil"]
 
 
 def test_utlandsk_valuta_raknas_om():
@@ -151,3 +152,26 @@ def test_blanda_kategorier():
     ann = [auctionet.tolka(dict(AUCTIONET_POST, id=i), k) for i, k in
            enumerate(["Möbler", "Möbler", "Möbler", "Belysning", "Konst och dekor"])]
     assert [a.kategori for a in main.blanda_kategorier(ann)[:3]] == ["Möbler", "Belysning", "Konst och dekor"]
+
+
+def test_har_redan_och_bara_sverige():
+    cfg = {"har_redan_ord": ["chesterfield"], "bara_sverige": True}
+    a = auctionet.tolka(AUCTIONET_POST)
+    assert main.forfiltrera(a, cfg) is None
+    a.titel = "SOFFA, Chesterfield"
+    assert "har redan" in main.forfiltrera(a, cfg)
+    b = auctionet.tolka(dict(AUCTIONET_POST, currency="DKK"))
+    assert "utanför Sverige" in main.forfiltrera(b, cfg)
+
+
+def test_sajt_max_per_sokord(tmp_path, monkeypatch):
+    import sajt, json, re
+    monkeypatch.setattr(sajt, "UT", tmp_path)
+    db = Databas(tmp_path / "t.db")
+    for i in range(5):
+        a = auctionet.tolka(dict(AUCTIONET_POST, id=i), "Konst")
+        a.sokord = "persisk matta" if i < 4 else "jordglob"
+        db.spara(a, 9, "x")
+    html = sajt.bygg(db, {"sokningar": {}, "sajt_min_betyg": 8, "sajt_max_per_sokord": 2}).read_text(encoding="utf-8")
+    data = json.loads(re.search(r"const D = (.*?);\n", html).group(1))
+    assert len(data["poster"]) == 3

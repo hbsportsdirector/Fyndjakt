@@ -8,17 +8,46 @@ stilfil: stil.md
 
 # Extra instruktioner till AI:n utöver stilfilen.
 tillagg: |
-  Jag letar begagnade/vintage-föremål till det här hemmet: möbler, belysning,
-  mattor och textilier, konst och dekor. Fokusera på lösa föremål – inte golv, färg eller lister.
-  Mässing, mörk valnöt, cognacfärgat läder, mörkgrön sammet, burgundy/oxblod och
-  vit/grå marmor med mässing är rätt. Patina är ett plus.
+  Jag letar begagnade/vintage-föremål till det här hemmet. Fokusera på lösa föremål –
+  inte golv, färg eller lister.
+  Mest av allt söker jag: stora bokhyllor och bokskåp i mörkt trä, gamla kartor och
+  sjökort, jordglober och vetenskaplig kuriosa (teleskop, kompasser, instrument),
+  konst för väggarna (oljemålningar, porträtt, grafik) och udda detaljer med historia
+  (byster, mässingsobjekt, skrivbordsföremål, naturalier).
+  Mässing, mörk valnöt, mahogny, cognacfärgat läder, mörkgrön sammet, burgundy/oxblod och
+  vit/grå marmor med mässing är rätt. Patina och ålder är ett plus.
   Fel: krom, blanka lackytor, kalla grå toner, ljus/vitpigmenterad ek, ljus skandinavisk minimalism.
 
-# Hur bra matchningen måste vara för att du ska få en notis (0–10).
-min_betyg: 7
+# Saker jag redan har. Annonser som uppenbart är någon av dessa sorteras bort direkt,
+# och AI:n ger låga betyg åt liknande föremål.
+har_redan:
+  - Chesterfield-soffa
+  - bordslampor och bankirlampa
+  - klubbfåtölj i läder
+  - wingback-fåtölj
+har_redan_ord:
+  - chesterfield
+  - bordslampa
+  - bordlampe
+  - bordlampa
+  - bankirlampa
+  - bankerlampa
+  - klubbfåtölj
+  - wingback
+  - öronlappsfåtölj
+  - öronlappsstol
 
-# Lägsta betyg som syns på hemsidan (du kan filtrera uppåt på sidan).
-sajt_min_betyg: 6
+# Bara annonser i Sverige (svenska auktionshus på Auctionet; Tradera är alltid svenskt).
+bara_sverige: true
+
+# Betyg som krävs för Telegram-notis, och standardfiltret på sidan (0–10).
+min_betyg: 8
+
+# Lägsta betyg som syns på hemsidan över huvud taget.
+sajt_min_betyg: 8
+
+# Max antal fynd av samma typ (samma sökord) på sidan – ger variation.
+sajt_max_per_sokord: 3
 
 # Prisgräns i kronor (utrop/aktuellt pris/köp nu). 0 = ingen gräns.
 max_pris: 25000
@@ -39,60 +68,79 @@ uteslut_ord:
   - vitpigmenterad
   - reservdel
   - defekt
+  - reproduktion
+  - affisch
+  - poster
 
 # Sökningar per kategori. Bred sökning är bra – AI:n sköter urvalet.
 sokningar:
-  Möbler:
+  Bokhyllor och möbler:
     - bokhylla valnöt
+    - bokhylla mahogny
     - bokhylla mörkt trä
+    - bokhylla glasdörrar
     - bibliotekshylla
+    - biblioteksskåp
     - bokskåp
-    - chesterfield
-    - chesterfield fåtölj
-    - klubbfåtölj läder
-    - wingback
-    - öronlappsfåtölj
-    - fåtölj sammet grön
+    - engelsk bokhylla
+    - vitrinskåp mahogny
     - skrivbord marmor
-    - skrivbord valnöt
     - partnerskrivbord
-    - sekretär
+    - sekretär mahogny
     - globbar
-    - barvagn mässing
     - sidobord marmor
-    - pall läder
-  Belysning:
-    - bankirlampa
-    - grön bankirlampa
-    - tavelbelysning mässing
-    - läslampa mässing
-    - bordslampa mässing
-    - golvlampa mässing
-    - vägglampa mässing
-    - biblioteksbelysning
-  Textilier och mattor:
-    - persisk matta
-    - orientalisk matta röd
-    - matta oxblod
-    - kelim
-    - sammet kudde grön
-    - ullpläd
-  Konst och dekor:
+  Kartor, glober och kuriosa:
     - jordglob
     - himmelsglob
+    - glob 1800-tal
     - antik karta
+    - karta 1700-tal
+    - karta 1800-tal
+    - världskarta
     - sjökort
     - stjärnkarta
-    - oljemålning
-    - porträtt oljemålning
+    - teleskop mässing
+    - kompass mässing
+    - sextant
+    - mikroskop mässing
+    - vetenskapligt instrument
+    - anatomisk plansch
+    - skolplansch
+  Konst:
+    - oljemålning porträtt
+    - oljemålning interiör
+    - oljemålning stilleben
+    - oljemålning landskap 1800-tal
+    - porträtt förgylld ram
     - kopparstick
+    - gravyr
+    - litografi arkitektur
+    - silhuett
+  Detaljer och dekor:
+    - byst brons
+    - byst gips
+    - skulptur brons
+    - skrivställ
+    - bläckhorn
+    - förstoringsglas mässing
+    - bokstöd
+    - ljusstakar mässing
+    - karaff kristall
+    - cigarrlåda
+    - fjärilar inramade
+    - naturalier
     - läderband böcker
     - klotband
-    - mässing ljusstake
-    - förstoringsglas mässing
-    - teleskop mässing
-    - byst
-    - bokstöd
+  Belysning:
+    - tavelbelysning mässing
+    - golvlampa mässing
+    - läslampa golv mässing
+    - vägglampa mässing
+    - lampett mässing
+  Mattor och textilier:
+    - persisk matta
+    - kelim
+    - sammet kudde grön
 
 # Vilka källor som är påslagna.
 kallor:

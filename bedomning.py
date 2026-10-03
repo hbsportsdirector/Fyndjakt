@@ -16,8 +16,17 @@ Här är kundens stilprofil:
 
 Bedöm annonsen nedan: hur väl passar föremålet in i kundens hem?
 Titta främst på bilderna (material, färg, form, patina, kvalitet), och använd texten för detaljer.
-Var kräsen: 9–10 = exakt rätt och ett fynd, 7–8 = passar bra, 4–6 = kanske, 0–3 = fel stil.
-Räkna ner om föremålet ser massproducerat, trasigt eller felaktigt ut på bilderna.
+
+Var MYCKET kräsen – kunden vill bara se ett fåtal utvalda fynd, inte allt som "passar".
+Ungefär 1 av 10 annonser bör få 8 eller mer, och 9–10 är sällsynt.
+- 10: Ett unikt fynd med karaktär och historia som skulle bli ett blickfång i rummet.
+- 9: Exakt rätt stil, material och kvalitet, och något utöver det vanliga.
+- 8: Mycket bra match, väl värt att titta på.
+- 6–7: Passar stilen men är vardagligt, vanligt förekommande eller utan särskild karaktär.
+- 4–5: Kanske, men något skaver (fel färg, epok, kvalitet eller storlek).
+- 0–3: Fel stil, eller sådant kunden redan har.
+Räkna ner för massproducerat, nytillverkat i gammal stil, trasigt, dåliga bilder,
+och för helt vanliga föremål som det finns tusentals likadana av.
 
 Svara ENBART med JSON, utan annan text:
 {{"betyg": <heltal 0-10>, "motivering": "<en mening på svenska om varför>"}}"""

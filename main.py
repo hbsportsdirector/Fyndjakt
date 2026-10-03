@@ -36,6 +36,13 @@ def bygg_stilprofil(cfg: dict) -> str:
         delar.append(str(cfg["stilprofil"]).strip())
     if cfg.get("tillagg"):
         delar.append("Viktigt vid bedömningen:\n" + str(cfg["tillagg"]).strip())
+    if cfg.get("har_redan"):
+        delar.append("Kunden HAR REDAN följande – ge 0–3 åt samma typ av föremål:\n- "
+                     + "\n- ".join(cfg["har_redan"]))
+    samling = cfg.get("samlingsfil")
+    if samling and (ROT / samling).exists():
+        delar.append("Kundens samling (komplettera den, föreslå inte dubbletter):\n"
+                     + (ROT / samling).read_text(encoding="utf-8").strip())
     if not delar:
         raise SystemExit("Ingen stil angiven – sätt 'stilfil' i config.yaml.")
     return "\n\n".join(delar)
@@ -62,6 +69,7 @@ def hamta_alla(cfg: dict) -> list[Annons]:
                     print(f"  {namn} '{fraga}': fel – {e}")
                     continue
                 for a in traffar:
+                    a.sokord = a.sokord or fraga
                     alla.setdefault(a.nyckel, a)
                 print(f"  {namn:9} {fraga:28} {len(traffar):3} träffar")
     return list(alla.values())
@@ -73,6 +81,12 @@ def forfiltrera(a: Annons, cfg: dict) -> str | None:
     for ord_ in cfg.get("uteslut_ord", []):
         if ord_.lower() in text:
             return f"innehåller '{ord_}'"
+    titel = a.titel.lower()
+    for ord_ in cfg.get("har_redan_ord", []):
+        if ord_.lower() in titel:
+            return f"har redan ('{ord_}')"
+    if cfg.get("bara_sverige") and a.valuta != "SEK":
+        return f"utanför Sverige ({a.valuta})"
     max_pris = cfg.get("max_pris") or 0
     if max_pris and a.pris and a.pris > max_pris:
         return f"pris {a.pris} > {max_pris}"
