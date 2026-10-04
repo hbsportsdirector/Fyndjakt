@@ -1,0 +1,34 @@
+{
+  "tid": "2026-10-04T10:15:22",
+  "annonser_totalt": 4243,
+  "nya": 2998,
+  "bedomda": 350,
+  "nya_traffar": 78,
+  "kallor": {
+    "Auctionet": {
+      "sokningar": 105,
+      "traffar": 4093,
+      "fel": 0,
+      "felexempel": []
+    },
+    "Bukowskis": {
+      "sokningar": 105,
+      "traffar": 146,
+      "fel": 0,
+      "felexempel": []
+    },
+    "Myrorna": {
+      "sokningar": 105,
+      "traffar": 1023,
+      "fel": 0,
+      "felexempel": []
+    },
+    "Stadsmissionen": {
+      "sokningar": 105,
+      "traffar": 91,
+      "fel": 0,
+      "felexempel": []
+    }
+  },
+  "stadsmissionen_katalog": 1368
+}
