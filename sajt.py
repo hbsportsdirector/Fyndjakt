@@ -620,9 +620,11 @@ function renderSmak() {
 }
 
 async function sparaAnteckning(typ, text, spar, sokord) {
+  text = (text || "").trim();
+  if (!text) { visaStatus("foto-status", "Skriv något först."); return false; }
   const rad = { typ, text: text.slice(0, 300), spar: spar || null, sokord: typ === "gillar" && sokord ? sokord.slice(0, 60) : null };
   const { data, error } = await konto.sb.from("fyndjakt_anteckningar").insert(rad).select().single();
-  if (error) { alertFel(error); return false; }
+  if (error) { console.error(error); visaStatus("foto-status", "Kunde inte spara – försök igen."); return false; }
   konto.anteckningar.unshift(data); renderSmak(); return true;
 }
 
@@ -701,7 +703,9 @@ $("f-samtal").onsubmit = async (e) => {
 };
 document.querySelectorAll("[data-spara]").forEach(b => b.onclick = async () => {
   if (!senasteTolkning) return;
-  const ok = await sparaAnteckning(b.dataset.spara, senasteTolkning.beskrivning, $("t-spar").value, $("t-sok").value.trim());
+  const sok = $("t-sok").value.trim();
+  const text = (senasteTolkning.beskrivning || "").trim() || sok || "Fotat föremål";
+  const ok = await sparaAnteckning(b.dataset.spara, text, $("t-spar").value, sok);
   if (ok) {
     $("tolkning").hidden = true; $("foto-forhand").hidden = true; senasteTolkning = null; fotoData = null; samtal = []; visaSamtal();
     visaStatus("foto-status", b.dataset.spara === "gillar" ? "Sparat! Appen letar efter liknande från i morgon." : "Sparat!");

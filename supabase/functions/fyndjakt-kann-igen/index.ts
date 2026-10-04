@@ -100,14 +100,23 @@ Deno.serve(async (req) => {
     return svar({ fel: "Kunde inte analysera bilden just nu" }, 502, origin);
   }
   const data = await r.json();
-  const text: string = data?.content?.[0]?.text ?? "";
+  // Läs alla textblock – svaret kan innehålla andra blocktyper före texten.
+  const text: string = (data?.content ?? []).filter((b: { type: string }) => b.type === "text")
+    .map((b: { text: string }) => b.text).join("\n");
+  if (!text) console.error("Tomt svar från Claude:", JSON.stringify(data).slice(0, 500));
   const match = text.match(/\{[\s\S]*\}/);
   try {
     const res = JSON.parse(match ? match[0] : "{}");
+    const sokord = String(res.sokord ?? res.sökord ?? res.search ?? "").trim();
+    let beskrivning = String(res.beskrivning ?? res.description ?? res.beskrivelse ?? "").trim();
+    if (!beskrivning) {
+      console.error("Svar utan beskrivning:", text.slice(0, 500));
+      beskrivning = sokord ? sokord.charAt(0).toUpperCase() + sokord.slice(1) : "Fotat föremål";
+    }
     return svar({
       svar: String(res.svar ?? "").slice(0, 600),
-      beskrivning: String(res.beskrivning ?? "").slice(0, 300),
-      sokord: String(res.sokord ?? "").slice(0, 60),
+      beskrivning: beskrivning.slice(0, 300),
+      sokord: sokord.slice(0, 60),
       kategori: String(res.kategori ?? ""),
       sakerhet: String(res.sakerhet ?? ""),
     }, 200, origin);
