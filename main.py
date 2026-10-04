@@ -115,10 +115,10 @@ def forfiltrera(a: Annons, cfg: dict, spar: dict | None = None) -> str | None:
 
 
 def blanda_kategorier(annonser: list[Annons]) -> list[Annons]:
-    """Varvar spår och kategorier så att taket per körning inte går åt till en enda sorts sak."""
+    """Varvar källor, spår och kategorier så att taket per körning inte går åt till en enda sorts sak."""
     grupper: dict[tuple, list[Annons]] = {}
     for a in annonser:
-        grupper.setdefault((a.spar, a.kategori), []).append(a)
+        grupper.setdefault((a.kalla, a.spar, a.kategori), []).append(a)
     ut = []
     while any(grupper.values()):
         for lista in grupper.values():

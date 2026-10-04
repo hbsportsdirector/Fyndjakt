@@ -250,3 +250,10 @@ def test_stadsmissionen_huvudord():
     assert stadsmissionen.matchar("bokhylla valnöt", a)
     assert not stadsmissionen.matchar("Erik Höglund", Annons(kalla="s", id="y", titel="Erik Johansson vas", url="u"))
     assert not stadsmissionen.matchar("byst brons", Annons(kalla="s", id="z", titel="Bysthållare", url="u"))
+
+
+def test_blanda_varvar_kallor():
+    ann = [auctionet.tolka(dict(AUCTIONET_POST, id=i), "Möbler") for i in range(5)]
+    from sources import Annons
+    ann.append(Annons(kalla="myrorna", id="m", titel="t", url="u", kategori="Möbler"))
+    assert "myrorna" in [a.kalla for a in main.blanda_kategorier(ann)[:2]]
