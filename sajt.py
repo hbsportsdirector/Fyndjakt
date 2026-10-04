@@ -341,8 +341,11 @@ function jmf(p) {
   if (!p.jmf_median || !p.jmf_antal || p.jmf_antal < 3) return null;
   if (!p.pris) return { kvot: null };
   const kvot = p.pris / p.jmf_median;
-  if (kvot <= 0.5) return { kvot, klass: "fynd", text: "Fyndläge" };
-  if (kvot <= 0.8) return { kvot, klass: "bra", text: "Under typiskt pris" };
+  if (p.jmf_antal < 5) return { kvot };  // för få försäljningar för en säker etikett
+  // En auktion med flera dagar kvar har ofta låga bud som kommer att stiga.
+  const tidig = p.slutar_ts && p.slutar_ts - NU > 2 * 86400;
+  if (kvot <= 0.5) return tidig ? { kvot, klass: "bra", text: "Lågt bud just nu" } : { kvot, klass: "fynd", text: "Fyndläge" };
+  if (kvot <= 0.8) return { kvot, klass: "bra", text: tidig ? "Lågt bud just nu" : "Under typiskt pris" };
   if (kvot >= 1.6) return { kvot, klass: "dyrt", text: "Över typiskt pris" };
   return { kvot };
 }

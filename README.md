@@ -58,8 +58,9 @@ Första körningen hittar många annonser och bedömer max 150 åt gången – r
 
 För varje fynd på sidan söker appen fram jämförbara föremål som **sålts** på Auctionet de senaste fem åren
 (Claude föreslår sökfrasen, t.ex. "Erik Höglund vas"). Kortet visar mittersta hälften av slutpriserna,
-och en etikett när priset nu avviker tydligt: **Fyndläge** (under halva typpriset), **Under typiskt pris**
-eller **Över typiskt pris**. Pågående auktioner kan fortfarande stiga – jämförelsen gäller priset just nu.
+och en etikett när priset nu avviker tydligt (kräver minst 5 jämförbara försäljningar): **Fyndläge** (under halva
+typpriset, för fasta priser och auktioner som slutar inom två dygn), **Lågt bud just nu** (auktioner med flera dagar kvar –
+buden brukar stiga), **Under typiskt pris** eller **Över typiskt pris**.
 Sortera på "Bäst pris mot liknande" för att se de största fynden först.
 
 ## Anpassa
