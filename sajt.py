@@ -57,7 +57,8 @@ def region_for(kalla: str, plats: str) -> tuple[str, str]:
 
 
 FALT = ["nyckel", "titel", "url", "betyg", "motivering", "kalla", "kategori",
-        "pris", "pris_text", "plats", "slutar", "slutar_ts", "bilder", "sedd", "spar"]
+        "pris", "pris_text", "plats", "slutar", "slutar_ts", "bilder", "sedd", "spar",
+        "jamforsok", "jmf_median", "jmf_lag", "jmf_hog", "jmf_antal"]
 
 
 def bygg(db, cfg: dict) -> Path:
@@ -193,6 +194,14 @@ MALL = r"""<!doctype html>
           display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--muted); }
   .price { color: var(--text); font-weight: 600; }
   .soon { color: #e9a77b; }
+  .jmf { font-size: 13px; color: var(--muted); background: var(--panel-2); border: 1px solid var(--line);
+         border-radius: 10px; padding: 8px 10px; display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; }
+  .jmf b { color: var(--text); font-weight: 600; }
+  .lage { font-size: 12px; font-weight: 600; letter-spacing: .03em; border-radius: 999px; padding: 2px 9px; }
+  .lage.fynd { background: #2f5a3c; color: #d9f0de; }
+  .lage.bra { background: #3a4a2e; color: #e2ecc9; }
+  .lage.dyrt { background: #5a2f2f; color: #f3d9d9; }
+  .lage-img { position: absolute; bottom: 10px; left: 10px; }
   .empty { text-align: center; color: var(--muted); padding: 60px 16px; font-family: "Cormorant Garamond", serif; font-size: 24px; font-style: italic; }
   footer { text-align: center; color: var(--muted); font-size: 13px; padding: 0 16px 40px; }
 </style>
@@ -215,6 +224,7 @@ MALL = r"""<!doctype html>
         <option value="ny">Nyast</option>
         <option value="slut">Slutar snart</option>
         <option value="pris">Lägst pris</option>
+        <option value="lage">Bäst pris mot liknande</option>
       </select>
     </label>
     <label>Område
@@ -232,7 +242,7 @@ MALL = r"""<!doctype html>
   <div class="grid" id="grid"></div>
   <div class="empty" id="empty" hidden>Inga fynd med de här filtren ännu.</div>
 </main>
-<footer>Bedömt av Claude mot dina profiler · Länkarna går till auktionen/annonsen</footer>
+<footer>Bedömt av Claude mot dina profiler · "Liknande sålt" är mittersta hälften av slutpriserna för jämförbara föremål på Auctionet de senaste 5 åren – pågående auktioner kan stiga · Länkarna går till auktionen/annonsen</footer>
 
 <script>
 const D = __DATA__;
@@ -307,11 +317,34 @@ function card(p) {
   const m = document.createElement("div"); m.className = "meta";
   const mm = (cls, txt) => { if (!txt) return; const e = document.createElement("span"); e.className = cls; e.textContent = txt; m.appendChild(e); };
   mm("price", p.pris_text);
+  const j = jmf(p);
+  if (j) {
+    const box = document.createElement("div"); box.className = "jmf";
+    const t = document.createElement("span");
+    t.append("Liknande sålt: ");
+    const v = document.createElement("b"); v.textContent = Math.round(p.jmf_lag).toLocaleString("sv-SE") + "–" + kr(p.jmf_hog); t.append(v);
+    t.append(" · " + p.jmf_antal + " st");
+    box.appendChild(t);
+    if (j.klass) { const l = document.createElement("span"); l.className = "lage " + j.klass; l.textContent = j.text; box.appendChild(l); }
+    b.appendChild(box);
+  }
   mm("", p.plats);
   if (p.slutar) mm(p.slutar_ts && p.slutar_ts - NU < 86400 * 2 ? "soon" : "", "Slutar " + p.slutar);
   mm("", KALLNAMN[p.kalla] || p.kalla);
   b.appendChild(m); a.appendChild(b);
   return a;
+}
+
+function kr(n) { return Math.round(n).toLocaleString("sv-SE") + " kr"; }
+// Jämför nuvarande pris med vad liknande föremål sålts för. Pågående auktioner kan fortfarande stiga.
+function jmf(p) {
+  if (!p.jmf_median || !p.jmf_antal || p.jmf_antal < 3) return null;
+  if (!p.pris) return { kvot: null };
+  const kvot = p.pris / p.jmf_median;
+  if (kvot <= 0.5) return { kvot, klass: "fynd", text: "Fyndläge" };
+  if (kvot <= 0.8) return { kvot, klass: "bra", text: "Under typiskt pris" };
+  if (kvot >= 1.6) return { kvot, klass: "dyrt", text: "Över typiskt pris" };
+  return { kvot };
 }
 
 function render() {
@@ -322,6 +355,7 @@ function render() {
     ny: (a, b) => seddTs(b) - seddTs(a),
     slut: (a, b) => (a.slutar_ts || 9e12) - (b.slutar_ts || 9e12),
     pris: (a, b) => (a.pris ?? 9e12) - (b.pris ?? 9e12),
+    lage: (a, b) => ((jmf(a) || {}).kvot ?? 9e12) - ((jmf(b) || {}).kvot ?? 9e12),
   }[st.sort];
   l.sort(s);
   $("grid").replaceChildren(...l.map(card));

@@ -67,7 +67,8 @@ def test_forfilter():
 
 
 def test_tolka_ai_svar():
-    assert bedomning.tolka_svar('{"betyg": 8, "motivering": "Mörk valnöt."}') == (8, "Mörk valnöt.")
+    assert bedomning.tolka_svar('{"betyg": 8, "motivering": "Mörk valnöt.", "jamforsok": "bokskåp valnöt"}') == (8, "Mörk valnöt.", "bokskåp valnöt")
+    assert bedomning.tolka_svar('{"betyg": 8, "motivering": "x"}') == (8, "x", "")
     assert bedomning.tolka_svar('Här: {"betyg": "9", "motivering": "x"}')[0] == 9
     assert bedomning.tolka_svar("nonsens")[0] == 0
 
@@ -80,10 +81,10 @@ def test_bedom_skickar_bilder_och_stil():
             @staticmethod
             def create(**kw):
                 anrop.update(kw)
-                return SimpleNamespace(content=[SimpleNamespace(text='{"betyg":7,"motivering":"ok"}')])
+                return SimpleNamespace(content=[SimpleNamespace(text='{"betyg":7,"motivering":"ok","jamforsok":"teak bokhylla"}')])
 
     a = auctionet.tolka(AUCTIONET_POST)
-    assert bedomning.bedom(a, "MIN STIL", "modell-x", Falsk) == (7, "ok")
+    assert bedomning.bedom(a, "MIN STIL", "modell-x", Falsk) == (7, "ok", "teak bokhylla")
     assert "MIN STIL" in anrop["system"]
     delar = anrop["messages"][0]["content"]
     assert delar[0]["type"] == "image" and delar[0]["source"]["type"] == "url"
@@ -281,3 +282,34 @@ def test_bukowskis_lotsida():
     ort, beskrivning = bukowskis.tolka_lotsida(_las("bukowskis_lot"))
     assert ort == "Hägersten"
     assert "Björk" in beskrivning and "<" not in beskrivning
+
+
+def test_prisjamforelse():
+    import prisjamforelse as pj
+    poster = [
+        {"title": "ERIK HÖGLUND, vas, glas.", "state": "sold", "currency": "SEK", "highest_bid": 200, "ends_at": 2_000_000_000},
+        {"title": "ERIK HÖGLUND, vaser, 2 st", "state": "sold", "currency": "SEK", "highest_bid": 600, "ends_at": 2_000_000_000},
+        {"title": "Erik Höglund vas Boda", "state": "sold", "currency": "SEK", "highest_bid": 400, "ends_at": 2_000_000_000},
+        {"title": "ERIK HÖGLUND, skål", "state": "sold", "currency": "SEK", "highest_bid": 9000, "ends_at": 2_000_000_000},  # fel typ
+        {"title": "Große Vase im Stil von Erik Höglund", "state": "sold", "currency": "EUR", "highest_bid": 80, "ends_at": 2_000_000_000},
+        {"title": "ERIK HÖGLUND, vas", "state": "unsold", "currency": "SEK", "highest_bid": None, "ends_at": 2_000_000_000},
+        {"title": "ERIK HÖGLUND, vas", "state": "sold", "currency": "SEK", "highest_bid": 300, "ends_at": 1},  # för gammal
+    ]
+    priser = pj.tolka(poster, "Erik Höglund vas", gräns=1000)
+    assert sorted(priser) == [200, 400, 600]
+    res = pj.sammanfatta(priser)
+    assert res["median"] == 400 and res["antal"] == 3 and res["lag"] <= 400 <= res["hog"]
+    assert pj.sammanfatta([100, 200]) is None
+
+
+def test_databas_jamforelse(tmp_path):
+    db = Databas(tmp_path / "t.db")
+    a = auctionet.tolka(AUCTIONET_POST, "Möbler")
+    a.jamforsok = "bokhylla teak"
+    db.spara(a, 9, "x")
+    rader = db.behover_jamforelse(8)
+    assert rader[0]["jamforsok"] == "bokhylla teak"
+    db.spara_jamforelse(a.nyckel, "bokhylla teak", {"median": 1500, "lag": 1000, "hog": 2000, "antal": 7})
+    assert db.behover_jamforelse(8) == []
+    t = db.traffar(8)[0]
+    assert t["jmf_median"] == 1500 and t["jmf_antal"] == 7

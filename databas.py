@@ -24,6 +24,12 @@ KOLUMNER = {
     "bilder": "TEXT",
     "sokord": "TEXT",
     "spar": "TEXT",
+    "jamforsok": "TEXT",
+    "jmf_median": "INTEGER",
+    "jmf_lag": "INTEGER",
+    "jmf_hog": "INTEGER",
+    "jmf_antal": "INTEGER",
+    "jmf_tid": "INTEGER",
 }
 
 
@@ -48,11 +54,11 @@ class Databas:
         self.con.execute(
             """INSERT OR REPLACE INTO sedda
                (nyckel, titel, url, betyg, motivering, notifierad, kalla, kategori,
-                pris, pris_text, plats, slutar, slutar_ts, bilder, sokord, spar)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                pris, pris_text, plats, slutar, slutar_ts, bilder, sokord, spar, jamforsok)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (a.nyckel, a.titel, a.url, betyg, motivering, int(notifierad), a.kalla, a.kategori,
              a.pris, a.pris_text, a.plats, a.slutar, a.slutar_ts, json.dumps(a.bilder[:4]),
-             a.sokord, a.spar),
+             a.sokord, a.spar, getattr(a, "jamforsok", "")),
         )
         self.con.commit()
 
@@ -70,6 +76,26 @@ class Databas:
             d["bilder"] = json.loads(d["bilder"] or "[]")
             ut.append(d)
         return ut
+
+    def behover_jamforelse(self, min_betyg: int, max_alder_dagar: int = 14) -> list[dict]:
+        """Aktuella fynd som saknar prisjämförelse, eller där den är gammal."""
+        nu = int(time.time())
+        return [dict(r) for r in self.con.execute(
+            """SELECT nyckel, titel, jamforsok FROM sedda
+               WHERE betyg >= ? AND (slutar_ts IS NULL OR slutar_ts > ?)
+                 AND (jmf_tid IS NULL OR jmf_tid < ?)
+               ORDER BY betyg DESC""",
+            (min_betyg, nu, nu - max_alder_dagar * 86400),
+        )]
+
+    def spara_jamforelse(self, nyckel: str, fras: str, res: dict | None):
+        res = res or {}
+        self.con.execute(
+            """UPDATE sedda SET jamforsok=?, jmf_median=?, jmf_lag=?, jmf_hog=?, jmf_antal=?, jmf_tid=?
+               WHERE nyckel=?""",
+            (fras, res.get("median"), res.get("lag"), res.get("hog"), res.get("antal", 0), int(time.time()), nyckel),
+        )
+        self.con.commit()
 
     def rensa_gamla(self, dagar: int = 120):
         self.con.execute("DELETE FROM sedda WHERE sedd < datetime('now', ?)", (f"-{dagar} days",))

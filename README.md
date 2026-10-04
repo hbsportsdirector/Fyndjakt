@@ -54,6 +54,14 @@ sökmotorer inte listar den.
 
 Första körningen hittar många annonser och bedömer max 150 åt gången – resten tas de närmaste dagarna.
 
+## Prisjämförelse
+
+För varje fynd på sidan söker appen fram jämförbara föremål som **sålts** på Auctionet de senaste fem åren
+(Claude föreslår sökfrasen, t.ex. "Erik Höglund vas"). Kortet visar mittersta hälften av slutpriserna,
+och en etikett när priset nu avviker tydligt: **Fyndläge** (under halva typpriset), **Under typiskt pris**
+eller **Över typiskt pris**. Pågående auktioner kan fortfarande stiga – jämförelsen gäller priset just nu.
+Sortera på "Bäst pris mot liknande" för att se de största fynden först.
+
 ## Anpassa
 
 Det finns två spår, med var sin flik på sidan: **The Reading Room** (profil i `stil.md`) och **Samlingen** (profil i `samlingsprofil.md`). Sökningar och filter per spår finns under `spar:` i `config.yaml`.

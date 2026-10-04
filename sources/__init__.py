@@ -19,6 +19,7 @@ class Annons:
     sokord: str = ""               # vilken sökning som hittade annonsen
     valuta: str = "SEK"
     spar: str = ""                 # vilket spår (profil) annonsen hör till
+    jamforsok: str = ""            # sökfras för prisjämförelse (föreslås av AI:n)
 
     @property
     def nyckel(self) -> str:

@@ -12,6 +12,7 @@ sajt_min_betyg: 8
 sajt_max_per_sokord: 3             # max fynd per sökord på sidan – ger variation
 max_pris: 25000                    # kr, 0 = ingen gräns (kan sättas per spår)
 max_bedomningar_per_korning: 350   # styr kostnaden (ca 1–2 öre per bedömning)
+max_prisjamforelser_per_korning: 120  # sålda föremål på Auctionet hämtas för fynden som visas
 sidor_per_sokning: 4               # hur många resultatsidor per sökning och sajt
 modell: claude-haiku-4-5-20251001  # byt till claude-sonnet-5-5 för skarpare omdömen
 

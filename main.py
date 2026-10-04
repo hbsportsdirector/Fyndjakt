@@ -127,6 +127,33 @@ def blanda_kategorier(annonser: list[Annons]) -> list[Annons]:
     return ut
 
 
+def prisjamfor(db: Databas, cfg: dict) -> None:
+    """Hämtar vad liknande föremål sålts för på Auctionet, för fynden som visas på sidan."""
+    import bedomning
+    import prisjamforelse
+    rader = db.behover_jamforelse(cfg.get("sajt_min_betyg", 8))[: cfg.get("max_prisjamforelser_per_korning", 120)]
+    if not rader:
+        return
+    print(f"\nPrisjämförelse för {len(rader)} fynd …")
+    klient = None
+    cache: dict[str, dict | None] = {}
+    for r in rader:
+        fras = r.get("jamforsok") or ""
+        try:
+            if not fras:
+                klient = klient or bedomning._klient()
+                fras = bedomning.foresla_jamforsok(r["titel"], cfg["modell"], klient)
+            if fras.lower() not in cache:
+                cache[fras.lower()] = prisjamforelse.jamfor(fras)
+            res = cache[fras.lower()]
+            db.spara_jamforelse(r["nyckel"], fras, res)
+            if res:
+                print(f"  {fras:28} median {res['median']} kr ({res['antal']} sålda)")
+        except Exception as e:
+            print(f"  Prisjämförelse misslyckades för {r['titel'][:40]}: {e}")
+    STATISTIK["Prisjämförelse"] = {"fynd": len(rader), "med_data": sum(1 for v in cache.values() if v)}
+
+
 def spara_rapport(totalt: int, nya: int, bedomda: int, traffar: int) -> None:
     """Liten rapport i repot så att man ser hur varje källa gick, utan att läsa loggar."""
     import json
@@ -193,7 +220,7 @@ def main() -> int:
         for i, a in enumerate(kandidater, 1):
             spar = cfg["spar"][a.spar]
             try:
-                betyg, motivering = bedomning.bedom(a, spar["profil"], cfg["modell"], klient)
+                betyg, motivering, a.jamforsok = bedomning.bedom(a, spar["profil"], cfg["modell"], klient)
             except Exception as e:
                 print(f"  [{i}] fel vid bedömning av {a.titel[:50]}: {e}")
                 continue  # sparas inte – försöker igen nästa gång
@@ -203,6 +230,8 @@ def main() -> int:
             if bra:
                 traffar.append((betyg, a, motivering))
             time.sleep(0.3)
+
+    prisjamfor(db, cfg)
 
     # Hemsidan byggs om varje gång, även om inget nytt hittades (utgångna annonser försvinner).
     sajt.bygg(db, cfg)

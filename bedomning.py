@@ -28,15 +28,20 @@ Ungefär 1 av 10 annonser bör få 8 eller mer, och 9–10 är sällsynt.
 Räkna ner för massproducerat, nytillverkat i gammal stil, trasigt, dåliga bilder,
 och för helt vanliga föremål som det finns tusentals likadana av.
 
+Ge också en kort sökfras (2–4 ord, på svenska) som hittar JÄMFÖRBARA föremål på en
+auktionssajt, för prisjämförelse. Använd konstnär/formgivare/tillverkare + föremålstyp om det
+finns, annars föremålstyp + material/epok. Exempel: "Erik Höglund vas", "bokskåp mahogny",
+"jordglob 1930-tal", "Stig Lindberg fat".
+
 Svara ENBART med JSON, utan annan text:
-{{"betyg": <heltal 0-10>, "motivering": "<en mening på svenska om varför>"}}"""
+{{"betyg": <heltal 0-10>, "motivering": "<en mening på svenska om varför>", "jamforsok": "<sökfras>"}}"""
 
 
 def _klient() -> anthropic.Anthropic:
     return anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
 
-def bedom(annons: Annons, stilprofil: str, modell: str, klient=None) -> tuple[int, str]:
+def bedom(annons: Annons, stilprofil: str, modell: str, klient=None) -> tuple[int, str, str]:
     klient = klient or _klient()
     text = (
         f"Titel: {annons.titel}\n"
@@ -65,12 +70,28 @@ def bedom(annons: Annons, stilprofil: str, modell: str, klient=None) -> tuple[in
     return tolka_svar(svar.content[0].text)
 
 
-def tolka_svar(text: str) -> tuple[int, str]:
+def tolka_svar(text: str) -> tuple[int, str, str]:
+    """Returnerar (betyg, motivering, jämförelsesökning)."""
     match = re.search(r"\{.*\}", text, re.S)
     if not match:
-        return 0, "Kunde inte tolka svaret"
+        return 0, "Kunde inte tolka svaret", ""
     try:
         data = json.loads(match.group(0))
-        return int(data.get("betyg", 0)), str(data.get("motivering", "")).strip()
+        return (int(data.get("betyg", 0)), str(data.get("motivering", "")).strip(),
+                str(data.get("jamforsok", "") or "").strip())
     except (ValueError, json.JSONDecodeError):
-        return 0, "Kunde inte tolka svaret"
+        return 0, "Kunde inte tolka svaret", ""
+
+
+def foresla_jamforsok(titel: str, modell: str, klient=None) -> str:
+    """Billig textfråga för äldre fynd som saknar jämförelsesökning."""
+    klient = klient or _klient()
+    svar = klient.messages.create(
+        model=modell,
+        max_tokens=40,
+        messages=[{"role": "user", "content":
+                   "Ge en kort sökfras (2–4 ord, svenska) som hittar jämförbara föremål på en "
+                   "auktionssajt för prisjämförelse – konstnär/tillverkare + föremålstyp om det finns, "
+                   "annars föremålstyp + material/epok. Svara bara med frasen.\n\nTitel: " + titel}],
+    )
+    return svar.content[0].text.strip().strip('"').splitlines()[0][:60]
