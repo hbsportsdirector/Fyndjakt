@@ -1,19 +1,19 @@
 {
-  "tid": "2026-10-04T10:15:22",
-  "annonser_totalt": 4243,
-  "nya": 2998,
+  "tid": "2026-10-04T10:48:24",
+  "annonser_totalt": 4230,
+  "nya": 2655,
   "bedomda": 350,
-  "nya_traffar": 78,
+  "nya_traffar": 38,
   "kallor": {
     "Auctionet": {
       "sokningar": 105,
-      "traffar": 4093,
+      "traffar": 4089,
       "fel": 0,
       "felexempel": []
     },
     "Bukowskis": {
       "sokningar": 105,
-      "traffar": 146,
+      "traffar": 150,
       "fel": 0,
       "felexempel": []
     },
