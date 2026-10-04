@@ -268,6 +268,9 @@ MALL = r"""<!doctype html>
   .lista .etik { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--brass); display: block; }
   .lista .bort { background: none; border: 0; color: var(--muted); font-size: 18px; cursor: pointer; padding: 4px 8px; }
   .tom { color: var(--muted); font-size: 14px; font-style: italic; }
+  .ingen-profil { max-width: 560px; margin: 8px auto 0; padding: 10px 14px; text-align: center; font-size: 14px;
+                  color: var(--text); background: var(--panel); border: 1px solid var(--brass-dim); border-radius: 12px; }
+  .ingen-profil[hidden] { display: none; }
   .status { font-size: 14px; color: var(--brass); min-height: 1.4em; }
   @media (max-width: 560px) { .konto { position: static; justify-content: center; margin-bottom: 10px; } }
 </style>
@@ -283,6 +286,7 @@ MALL = r"""<!doctype html>
   <p class="sub">Utvalt från svenska auktioner och second hand · uppdaterad <span id="upd"></span></p>
 </header>
 
+<p class="ingen-profil" id="ingen-profil" hidden>Du är inloggad men har ingen Fyndjakt-profil än. Be den som bjöd in dig att lägga till dig.</p>
 <nav class="tabs" id="tabs" role="tablist" aria-label="Spår"></nav>
 
 <div class="controls">
@@ -679,9 +683,9 @@ async function uppdateraKonto(session) {
   $("b-smak").hidden = !session;
   if (session) {
     const { data: medlem } = await konto.sb.rpc("fyndjakt_ar_medlem");
-    if (!medlem) { konto.inloggad = false; $("b-smak").hidden = true; }
+    if (!medlem) { konto.inloggad = false; $("b-smak").hidden = true; $("ingen-profil").hidden = false; }
     else await laddaMittData();
-  } else { konto.reakt = new Map(); konto.anteckningar = []; }
+  } else { konto.reakt = new Map(); konto.anteckningar = []; $("ingen-profil").hidden = true; }
   renderTabs(); render();
 }
 
