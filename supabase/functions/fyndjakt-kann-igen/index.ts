@@ -45,8 +45,15 @@ Deno.serve(async (req) => {
   const { data: medlem, error: medlemsfel } = await supabase.rpc("fyndjakt_ar_medlem");
   if (medlemsfel || !medlem) return svar({ fel: "Inte inloggad som Fyndjakt-användare" }, 403, origin);
 
-  const nyckel = Deno.env.get("ANTHROPIC_API_KEY");
-  if (!nyckel) return svar({ fel: "Fotofunktionen är inte aktiverad än (Anthropic-nyckel saknas i Supabase)." }, 503, origin);
+  // Godta vanliga namnvarianter; trimma bort mellanslag som lätt följer med vid inklistring.
+  const NAMN = ["ANTHROPIC_API_KEY", "ANTHROPIC_KEY", "CLAUDE_API_KEY", "CLAUDE_KEY", "ANTHROPIC_APIKEY"];
+  const nyckel = NAMN.map((n) => (Deno.env.get(n) ?? "").trim()).find((v) => v);
+  if (!nyckel) {
+    // Visa bara NAMNEN på hemligheter som liknar en Claude-nyckel – aldrig värdena.
+    const liknande = Object.keys(Deno.env.toObject()).filter((n) => /anthropic|claude|api_?key/i.test(n));
+    return svar({ fel: "Fotofunktionen hittar ingen Anthropic-nyckel. Lägg in den som ANTHROPIC_API_KEY under Edge Functions → Secrets i projektet WORK." +
+      (liknande.length ? " Hittade bara: " + liknande.join(", ") : "") }, 503, origin);
+  }
 
   let kropp: { bild?: string; mediatyp?: string };
   try { kropp = await req.json(); } catch { return svar({ fel: "Ogiltig förfrågan" }, 400, origin); }
