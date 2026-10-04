@@ -4,11 +4,9 @@ UT = pathlib.Path(__file__).parent.parent / "data" / "probe"
 UT.mkdir(parents=True, exist_ok=True)
 H = {"User-Agent": "Mozilla/5.0 (Fyndjakt; privat bevakning)", "Accept-Language": "sv-SE,sv;q=0.9"}
 SIDOR = {
-    "ssm_sok_hem": "https://www.stadsmissionen.se/shop/hem?search_text=glas",
-    "ssm_sok_alla": "https://www.stadsmissionen.se/shop?search_text=kosta",
-    "ssm_sok_hem_p1": "https://www.stadsmissionen.se/shop/hem?search_text=glas&page=1",
-    "bukowskis_sok_stor": "https://www.bukowskis.com/sv/lots/search/silver",
-    "bukowskis_sok_stor_p2": "https://www.bukowskis.com/sv/lots/page/2/search/silver",
+    "myrorna_annons0": "https://www.myrorna.se/shop/annons/teskedar-silver-stamplade-gab-silver-kattfot-5-st/",
+    "myrorna_annons1": "https://www.myrorna.se/shop/annons/armring-sterling-silver-2/",
+    "myrorna_annons_x": "https://www.myrorna.se/shop/annons/kandelabrar-tra-massing-1800-tal-samfraktas-ej/",
 }
 for namn, url in SIDOR.items():
     try:
