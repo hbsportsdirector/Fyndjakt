@@ -19,6 +19,7 @@ import inspect
 from sources import Annons, auctionet, bukowskis, myrorna, stadsmissionen, tradera
 
 ROT = Path(__file__).parent
+STATISTIK: dict = {}
 
 
 def las_config() -> dict:
@@ -74,11 +75,17 @@ def hamta_alla(cfg: dict) -> list[Annons]:
         for namn, sok in aktiva:
             for kategori, fragor in spar["sokningar"].items():
                 for fraga in fragor:
+                    st = STATISTIK.setdefault(namn, {"sokningar": 0, "traffar": 0, "fel": 0, "felexempel": []})
+                    st["sokningar"] += 1
                     try:
                         traffar = sok(fraga, kategori)
                     except Exception as e:  # en trasig sökning ska inte stoppa resten
                         print(f"  {namn} '{fraga}': fel – {e}")
+                        st["fel"] += 1
+                        if len(st["felexempel"]) < 5:
+                            st["felexempel"].append(f"{fraga}: {type(e).__name__}: {str(e)[:200]}")
                         continue
+                    st["traffar"] += len(traffar)
                     for a in traffar:
                         a.sokord = a.sokord or fraga
                         a.spar = sid
@@ -118,6 +125,19 @@ def blanda_kategorier(annonser: list[Annons]) -> list[Annons]:
             if lista:
                 ut.append(lista.pop(0))
     return ut
+
+
+def spara_rapport(totalt: int, nya: int, bedomda: int, traffar: int) -> None:
+    """Liten rapport i repot så att man ser hur varje källa gick, utan att läsa loggar."""
+    import json
+    from datetime import datetime
+    rapport = {
+        "tid": datetime.now().isoformat(timespec="seconds"),
+        "annonser_totalt": totalt, "nya": nya, "bedomda": bedomda, "nya_traffar": traffar,
+        "kallor": STATISTIK,
+        "stadsmissionen_katalog": len(stadsmissionen._katalog or []),
+    }
+    (ROT / "data" / "senaste_korning.json").write_text(json.dumps(rapport, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def main() -> int:
@@ -189,6 +209,7 @@ def main() -> int:
         print("Telegram är inte inställt – hoppar över notiser.")
 
     print(f"\nKlart: {len(kandidater)} bedömda, {len(traffar)} nya träffar.")
+    spara_rapport(len(annonser), len(nya), len(kandidater), len(traffar))
     return 0
 
 

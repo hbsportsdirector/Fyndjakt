@@ -241,3 +241,12 @@ def test_stadsmissionen(monkeypatch):
     assert "Ljusgrön skål med blå fot" in traffar and len(traffar) < 5
     assert stadsmissionen.sok("skål blå", "Glas")[0].kategori == "Glas"
     assert stadsmissionen.sok("jordglob") == []
+
+
+def test_stadsmissionen_huvudord():
+    from sources import stadsmissionen
+    from sources import Annons
+    a = Annons(kalla="stadsmissionen", id="x", titel="Bokhylla i furu", url="u")
+    assert stadsmissionen.matchar("bokhylla valnöt", a)
+    assert not stadsmissionen.matchar("Erik Höglund", Annons(kalla="s", id="y", titel="Erik Johansson vas", url="u"))
+    assert not stadsmissionen.matchar("byst brons", Annons(kalla="s", id="z", titel="Bysthållare", url="u"))

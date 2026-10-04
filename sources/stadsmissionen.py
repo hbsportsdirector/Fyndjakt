@@ -59,6 +59,7 @@ def katalog() -> list[Annons]:
     if _katalog is not None:
         return _katalog
     alla: dict[str, Annons] = {}
+    _katalog = []  # så att ett fel inte gör om hämtningen för varje sökord
     for kat in KATEGORIER:
         for sida in range(MAX_SIDOR):
             r = requests.get(f"{BAS}/shop/{kat}", params={"page": sida}, headers=HEADERS, timeout=30)
@@ -77,9 +78,15 @@ def katalog() -> list[Annons]:
 
 
 def matchar(fraga: str, a: Annons) -> bool:
-    """Alla ord i sökningen måste finnas i titeln (skiftlägesokänsligt)."""
+    """Alla ord i sökningen måste finnas i titeln. För sökningar som "bokhylla valnöt"
+    räcker huvudordet ("bokhylla") – katalogen är liten och AI:n sköter urvalet.
+    Namn (t.ex. "Erik Höglund") måste matcha helt."""
     text = f"{a.titel} {a.beskrivning}".lower()
-    return all(o in text for o in fraga.lower().split())
+    ord_ = fraga.split()
+    if all(o.lower() in text for o in ord_):
+        return True
+    forsta = ord_[0]
+    return len(ord_) > 1 and forsta.islower() and len(forsta) >= 5 and forsta in text
 
 
 def sok(fraga: str, kategori: str = "") -> list[Annons]:
