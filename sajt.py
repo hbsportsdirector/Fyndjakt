@@ -258,7 +258,21 @@ MALL = r"""<!doctype html>
   .kamera input[type=file] { position: absolute; width: 1px; height: 1px; opacity: 0; }
   .forhand { max-width: 100%; max-height: 260px; border-radius: 10px; display: block; margin: 0 auto; }
   .tolkning { background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin-top: 12px; text-align: left; width: 100%; }
-  .tolkning b { font-family: "Cormorant Garamond", Georgia, serif; font-size: 20px; display: block; margin-bottom: 4px; }
+  .t-huvud { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; }
+  .t-huvud b { font-family: "Cormorant Garamond", Georgia, serif; font-size: 23px; line-height: 1.2; }
+  .sak { font-size: 12px; font-weight: 600; border-radius: 999px; padding: 2px 9px; }
+  .sak.hög { background: #2f5a3c; color: #d9f0de; } .sak.medel { background: #4a4425; color: #f0e6c4; }
+  .sak.låg { background: #4a3030; color: #f0d6d6; }
+  .t-alt { color: var(--muted); font-size: 14px; margin-top: 2px; }
+  .t-beskr { color: var(--muted); font-size: 14px; margin: 6px 0 0; }
+  .t-tips { margin-top: 8px; padding: 9px 11px; border-radius: 10px; font-size: 14px;
+            background: #3a3524; border: 1px dashed var(--brass); color: var(--text); }
+  .t-tips[hidden] { display: none; }
+  .tolkning input[type=file] { position: absolute; width: 1px; height: 1px; opacity: 0; }
+  .foto-rad { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .foto-rad[hidden] { display: none; }
+  .foto-rad img { height: 120px; max-width: 46%; object-fit: cover; border-radius: 10px; }
+  .foto-rad img:only-child { height: auto; max-height: 260px; max-width: 100%; }
   .samtal { display: flex; flex-direction: column; gap: 6px; margin: 8px 0 4px; }
   .samtal p { margin: 0; padding: 8px 11px; border-radius: 12px; font-size: 14px; max-width: 90%; }
   .samtal .du { align-self: flex-end; background: #3a3524; color: var(--text); border: 1px solid var(--brass-dim); }
@@ -343,11 +357,18 @@ MALL = r"""<!doctype html>
       <div>📷 <strong>Fota något</strong> – så känner Claude igen föremålet</div>
       <label class="knapp primar" for="foto">Ta foto eller välj bild</label>
       <input type="file" id="foto" accept="image/*" capture="environment">
-      <img class="forhand" id="foto-forhand" alt="Ditt foto" hidden>
+      <div class="foto-rad" id="foto-rad" hidden></div>
       <div class="status" id="foto-status" role="status"></div>
       <div class="tolkning" id="tolkning" hidden>
-        <b id="t-beskr"></b>
+        <div class="t-huvud"><b id="t-gissning"></b> <span class="sak" id="t-sak"></span></div>
+        <div class="t-alt" id="t-alt"></div>
+        <p class="t-beskr" id="t-beskr"></p>
         <div class="samtal" id="t-samtal" aria-live="polite"></div>
+        <div class="t-tips" id="t-tips" hidden></div>
+        <div class="falt">
+          <label class="knapp" for="foto-extra" id="l-extra">📷 Lägg till en bild till</label>
+          <input type="file" id="foto-extra" accept="image/*" capture="environment">
+        </div>
         <form class="falt" id="f-samtal">
           <input type="text" id="t-meddelande" maxlength="500" placeholder="Rätta eller berätta mer …" aria-label="Rätta eller berätta mer för Claude">
           <button class="knapp" type="submit">Skicka</button>
@@ -649,12 +670,26 @@ function skalaNer(fil, max = 1280) {
   });
 }
 let senasteTolkning = null;
-let fotoData = null;
-let samtal = [];  // [{roll: "anvandare"|"claude", text}]
+let fotoBilder = [];  // alla bilder av föremålet (data-URL:er), max 4
+let samtal = [];      // [{roll: "anvandare"|"claude", text, visa}]
 
+function visaBilder() {
+  $("foto-rad").replaceChildren(...fotoBilder.map((src, i) => {
+    const im = document.createElement("img"); im.src = src; im.alt = "Bild " + (i + 1); return im;
+  }));
+  $("foto-rad").hidden = !fotoBilder.length;
+  $("l-extra").hidden = fotoBilder.length >= 4;
+}
 function visaTolkning(svar) {
   senasteTolkning = svar;
-  $("t-beskr").textContent = svar.beskrivning + (svar.sakerhet === "låg" ? " (osäker)" : "");
+  $("t-gissning").textContent = svar.gissning || svar.beskrivning || "Okänt föremål";
+  const sak = (svar.sakerhet || "").toLowerCase();
+  $("t-sak").textContent = { "hög": "Ganska säker", "medel": "Rimlig gissning", "låg": "Osäker" }[sak] || "";
+  $("t-sak").className = "sak " + sak;
+  $("t-alt").textContent = svar.alternativ ? "Kanske också: " + svar.alternativ : "";
+  $("t-beskr").textContent = svar.gissning && svar.beskrivning !== svar.gissning ? svar.beskrivning : "";
+  $("t-tips").textContent = svar.tips ? "💡 " + svar.tips : "";
+  $("t-tips").hidden = !svar.tips;
   $("t-sok").value = svar.sokord || "";
   $("tolkning").hidden = false;
 }
@@ -663,43 +698,54 @@ function visaSamtal() {
     const p = document.createElement("p"); p.className = s.roll === "claude" ? "claude" : "du"; p.textContent = s.visa; return p;
   }));
 }
-async function fragaClaude(body) {
+async function fragaClaude() {
+  const body = { bilder: fotoBilder, mediatyp: "image/jpeg", samtal: samtal.map(s => ({ roll: s.roll, text: s.text })) };
   const { data: svar, error } = await konto.sb.functions.invoke("fyndjakt-kann-igen", { body });
   if (error || !svar || svar.fel) {
     let txt = (svar && svar.fel) || "";
     try { if (!txt && error && error.context) txt = (await error.context.json()).fel; } catch (x) {}
     throw new Error(txt || "Kunde inte känna igen bilden just nu.");
   }
+  samtal.push({ roll: "claude", text: JSON.stringify(svar), visa: svar.svar || "" });
+  visaSamtal(); visaTolkning(svar);
   return svar;
 }
+async function laggTillFoto(fil, forsta) {
+  const data = await skalaNer(fil);
+  if (forsta) { fotoBilder = [data]; samtal = []; }
+  else {
+    fotoBilder.push(data);
+    samtal.push({ roll: "anvandare", text: "Här är en bild till av samma föremål (bild " + fotoBilder.length + ").", visa: "📷 Bild " + fotoBilder.length });
+  }
+  visaBilder(); visaSamtal();
+}
+
 $("foto").onchange = async (e) => {
   const fil = e.target.files[0]; if (!fil) return;
   $("tolkning").hidden = true; visaStatus("foto-status", "Claude tittar på bilden …");
   try {
-    const data = await skalaNer(fil);
-    $("foto-forhand").src = data; $("foto-forhand").hidden = false;
-    fotoData = data; samtal = [];
-    const svar = await fragaClaude({ bild: data, mediatyp: "image/jpeg" });
-    samtal.push({ roll: "claude", text: JSON.stringify(svar) });
-    visaSamtal(); visaTolkning(svar);
+    await laggTillFoto(fil, true);
     sparVal($("t-spar"), st.spar);
+    await fragaClaude();
     visaStatus("foto-status", "");
-
   } catch (x) { console.error(x); visaStatus("foto-status", x.message || "Kunde inte läsa bilden."); }
+  finally { e.target.value = ""; }
+};
+$("foto-extra").onchange = async (e) => {
+  const fil = e.target.files[0]; if (!fil || !fotoBilder.length) return;
+  visaStatus("foto-status", "Claude tittar på den nya bilden …");
+  try { await laggTillFoto(fil, false); await fragaClaude(); visaStatus("foto-status", ""); }
+  catch (x) { console.error(x); visaStatus("foto-status", x.message || "Kunde inte läsa bilden."); }
   finally { e.target.value = ""; }
 };
 $("f-samtal").onsubmit = async (e) => {
   e.preventDefault();
   const text = $("t-meddelande").value.trim();
-  if (!text || !fotoData) return;
+  if (!text || !fotoBilder.length) return;
   samtal.push({ roll: "anvandare", text, visa: text });
   $("t-meddelande").value = ""; visaSamtal();
   visaStatus("foto-status", "Claude funderar …");
-  try {
-    const svar = await fragaClaude({ bild: fotoData, mediatyp: "image/jpeg", samtal: samtal.map(s => ({ roll: s.roll, text: s.text })) });
-    samtal.push({ roll: "claude", text: JSON.stringify(svar), visa: svar.svar || "" });
-    visaSamtal(); visaTolkning(svar); visaStatus("foto-status", "");
-  } catch (x) { visaStatus("foto-status", x.message); }
+  try { await fragaClaude(); visaStatus("foto-status", ""); } catch (x) { visaStatus("foto-status", x.message); }
 };
 document.querySelectorAll("[data-spara]").forEach(b => b.onclick = async () => {
   if (!senasteTolkning) return;
@@ -707,7 +753,7 @@ document.querySelectorAll("[data-spara]").forEach(b => b.onclick = async () => {
   const text = (senasteTolkning.beskrivning || "").trim() || sok || "Fotat föremål";
   const ok = await sparaAnteckning(b.dataset.spara, text, $("t-spar").value, sok);
   if (ok) {
-    $("tolkning").hidden = true; $("foto-forhand").hidden = true; senasteTolkning = null; fotoData = null; samtal = []; visaSamtal();
+    $("tolkning").hidden = true; senasteTolkning = null; fotoBilder = []; samtal = []; visaSamtal(); visaBilder();
     visaStatus("foto-status", b.dataset.spara === "gillar" ? "Sparat! Appen letar efter liknande från i morgon." : "Sparat!");
   }
 });

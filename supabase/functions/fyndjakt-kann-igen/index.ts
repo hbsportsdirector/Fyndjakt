@@ -24,28 +24,37 @@ function svar(data: unknown, status: number, origin: string | null) {
   });
 }
 
-const INSTRUKTION = `Du hjälper en samlare och inredningsintresserad person att identifiera föremål från foton.
-Titta på bilden och beskriv föremålet så exakt du kan: typ, material, färg, stil/epok och – om det går att
-se eller är troligt – tillverkare, formgivare eller konstnär. Gissa inte vilt; säg "troligen" när du är osäker.
-Användaren kan rätta dig eller berätta mer (t.ex. tillverkare, serie, formgivare, ålder). Lita på hens
-kunskap och bygg vidare på den – men säg vänligt till om bilden tydligt talar emot. Använd det du vet om
-föremålet, serien och tillverkaren för att göra beskrivningen och sökorden så träffsäkra som möjligt, och
-gissa inte fakta du inte är säker på. Ställ gärna en kort följdfråga om något skulle förbättra sökningen.
+const INSTRUKTION = `Du är en kunnig värderare av svenskt och nordiskt porslin, glas, keramik, konst, möbler och
+inredning. En samlare visar dig ett eller flera foton av ett föremål (t.ex. framsida, undersida, stämpel, signatur).
+
+Ge ALLTID din bästa gissning på vad det är: tillverkare, serie/modell, formgivare/konstnär och ungefärlig tid –
+även när du inte är säker. Var konkret ("Rörstrand, Swedish Grace, Louise Adelborg") hellre än vag
+("skandinavisk skål"). Ange hur säker du är. Om flera alternativ är rimliga, nämn de två troligaste.
+Hitta inte på fakta: om du är osäker, säg det i säkerheten – men gissa ändå.
+
+Om något skulle avgöra saken (stämpel, signatur, etikett, undersida, detalj, mått) – be om just den bilden i "tips".
+Användaren kan också rätta dig eller berätta mer. Lita på hens kunskap och bygg vidare på den, men säg vänligt
+till om bilderna tydligt talar emot. Använd det du vet om serien och tillverkaren för att göra sökorden träffsäkra.
+
 Svara ENBART med JSON:
-{"svar": "<1–2 meningar på svenska till användaren, t.ex. en bekräftelse, en kort fakta eller en följdfråga; tom sträng vid första tolkningen>",
- "beskrivning": "<en mening på svenska, t.ex. 'Bankirlampa i mässing med grön glaskupa, tidigt 1900-tal'>",
- "sokord": "<2–4 ord som hittar liknande föremål på en svensk auktionssajt, t.ex. 'bankirlampa mässing'>",
- "kategori": "<en av: Möbler, Belysning, Konst, Glas, Keramik, Textil, Dekor, Övrigt>",
- "sakerhet": "<hög|medel|låg>"}`;
+{"gissning": "<din bästa gissning, kort, t.ex. 'Rörstrand, Swedish Grace (Louise Adelborg), 1930-tal–'>",
+ "alternativ": "<näst troligaste gissning, eller tom sträng>",
+ "sakerhet": "<hög|medel|låg>",
+ "beskrivning": "<en mening på svenska om föremålet, inklusive gissningen>",
+ "svar": "<1–2 meningar till användaren: vad du baserar gissningen på, eller bekräftelse/kommentar på det hen skrev>",
+ "tips": "<om du inte är säker: vilken bild eller uppgift som skulle avgöra, t.ex. 'Fota undersidan – Rörstrands stämpel visar årtal.' Annars tom sträng>",
+ "sokord": "<2–4 ord som hittar liknande föremål på en svensk auktionssajt, t.ex. 'Rörstrand Swedish Grace'>",
+ "kategori": "<en av: Möbler, Belysning, Konst, Glas, Keramik, Porslin, Textil, Dekor, Övrigt>"}`;
 
 // Första frågan med bilden, sedan växelvis Claudes tidigare svar och användarens kommentarer.
-function bygg_meddelanden(bild: string, mediatyp: string, samtal: { roll: string; text: string }[]) {
+function bygg_meddelanden(bilder: string[], mediatyp: string, samtal: { roll: string; text: string }[]) {
   const meddelanden: unknown[] = [{ role: "user", content: [
-    { type: "image", source: { type: "base64", media_type: mediatyp, data: bild } },
-    { type: "text", text: "Vad är det här för föremål?" },
+    ...bilder.map((data) => ({ type: "image", source: { type: "base64", media_type: mediatyp, data } })),
+    { type: "text", text: bilder.length > 1
+      ? `Här är ${bilder.length} bilder av samma föremål. Vad är det?` : "Vad är det här för föremål?" },
   ] }];
   for (const s of samtal.slice(-10)) {
-    const text = String(s?.text ?? "").slice(0, 800);
+    const text = String(s?.text ?? "").slice(0, 1500);
     if (!text) continue;
     const roll = s.roll === "claude" ? "assistant" : "user";
     const sista = meddelanden[meddelanden.length - 1] as { role: string };
@@ -79,20 +88,21 @@ Deno.serve(async (req) => {
       (liknande.length ? " Hittade bara: " + liknande.join(", ") : "") }, 503, origin);
   }
 
-  let kropp: { bild?: string; mediatyp?: string; samtal?: { roll: string; text: string }[] };
+  let kropp: { bild?: string; bilder?: string[]; mediatyp?: string; samtal?: { roll: string; text: string }[] };
   try { kropp = await req.json(); } catch { return svar({ fel: "Ogiltig förfrågan" }, 400, origin); }
-  const bild = (kropp.bild ?? "").replace(/^data:image\/\w+;base64,/, "");
+  const bilder = (kropp.bilder?.length ? kropp.bilder : [kropp.bild ?? ""])
+    .map((b) => String(b ?? "").replace(/^data:image\/\w+;base64,/, "")).filter((b) => b).slice(0, 4);
   const mediatyp = ["image/jpeg", "image/png", "image/webp"].includes(kropp.mediatyp ?? "") ? kropp.mediatyp! : "image/jpeg";
-  if (!bild || bild.length > MAX_BILD) return svar({ fel: "Bilden saknas eller är för stor" }, 400, origin);
+  if (!bilder.length || bilder.some((b) => b.length > MAX_BILD)) return svar({ fel: "Bilden saknas eller är för stor" }, 400, origin);
 
   const r = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "x-api-key": nyckel, "anthropic-version": "2023-06-01", "content-type": "application/json" },
     body: JSON.stringify({
       model: MODELL,
-      max_tokens: 500,
+      max_tokens: 700,
       system: INSTRUKTION,
-      messages: bygg_meddelanden(bild, mediatyp, kropp.samtal ?? []),
+      messages: bygg_meddelanden(bilder, mediatyp, kropp.samtal ?? []),
     }),
   });
   if (!r.ok) {
@@ -108,13 +118,17 @@ Deno.serve(async (req) => {
   try {
     const res = JSON.parse(match ? match[0] : "{}");
     const sokord = String(res.sokord ?? res.sökord ?? res.search ?? "").trim();
-    let beskrivning = String(res.beskrivning ?? res.description ?? res.beskrivelse ?? "").trim();
+    const gissning = String(res.gissning ?? "").trim();
+    let beskrivning = String(res.beskrivning ?? res.description ?? res.beskrivelse ?? gissning).trim();
     if (!beskrivning) {
       console.error("Svar utan beskrivning:", text.slice(0, 500));
       beskrivning = sokord ? sokord.charAt(0).toUpperCase() + sokord.slice(1) : "Fotat föremål";
     }
     return svar({
       svar: String(res.svar ?? "").slice(0, 600),
+      gissning: gissning.slice(0, 200),
+      alternativ: String(res.alternativ ?? "").slice(0, 200),
+      tips: String(res.tips ?? "").slice(0, 300),
       beskrivning: beskrivning.slice(0, 300),
       sokord: sokord.slice(0, 60),
       kategori: String(res.kategori ?? ""),
