@@ -102,3 +102,25 @@ def sok(fraga: str, kategori: str = "", sidor: int = 3) -> list[Annons]:
             break
         time.sleep(1.5)
     return resultat
+
+
+def tolka_lotsida(html: str) -> tuple[str, str]:
+    """Returnerar (ort, beskrivning) från en lot-sida.
+    Placering ser ut som 'Västberga Allé 3, Hägersten - H138'."""
+    soup = BeautifulSoup(html, "lxml")
+    placering = _text(soup.select_one(".c-lot-placement__value"))
+    ort = placering.split(" - ")[0].split(",")[-1].strip() if placering else ""
+    beskrivning = _text(soup.select_one(".c-lot-description"))
+    return ort, beskrivning
+
+
+def berika(a: Annons) -> None:
+    """Hämtar lot-sidan för ort och beskrivning (görs bara för annonser som ska bedömas)."""
+    r = requests.get(a.url, headers=HEADERS, timeout=30)
+    r.raise_for_status()
+    ort, beskrivning = tolka_lotsida(r.text)
+    if ort:
+        a.plats = f"Bukowskis, {ort}"
+    if beskrivning:
+        a.beskrivning = beskrivning[:1500]
+    time.sleep(1)

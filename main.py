@@ -177,6 +177,16 @@ def main() -> int:
         print(f"Bedömer {tak} av {len(kandidater)} – resten tas nästa körning.")
     kandidater = blanda_kategorier(kandidater)[:tak]
 
+    # Vissa källor visar ort och beskrivning bara på annonssidan – hämta dem för de som ska bedömas.
+    moduler = {"bukowskis": bukowskis}
+    for a in kandidater:
+        modul = moduler.get(a.kalla)
+        if modul and hasattr(modul, "berika"):
+            try:
+                modul.berika(a)
+            except Exception as e:
+                print(f"  Kunde inte läsa annonssidan för {a.titel[:40]}: {e}")
+
     traffar = []
     if kandidater:
         klient = bedomning._klient()

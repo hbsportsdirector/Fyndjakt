@@ -9,7 +9,7 @@ UT = ROT / "site"
 
 # Ort → region. Orter som saknas hamnar i "Övriga Sverige".
 REGIONER = {
-    "Stockholm": ["stockholm", "norrtälje", "järna", "jarna", "södertälje", "nacka", "täby", "lidingö",
+    "Stockholm": ["stockholm", "hägersten", "västberga", "ropsten", "norrtälje", "järna", "jarna", "södertälje", "nacka", "täby", "lidingö",
                   "sollentuna", "solna", "sundbyberg", "huddinge", "haninge", "värmdö", "sigtuna", "danderyd",
                   "upplands väsby", "vallentuna", "österåker", "tyresö", "botkyrka", "ekerö", "sickla", "bromma"],
     "Uppsala och Mälardalen": ["uppsala", "västerås", "örebro", "eskilstuna", "katrineholm", "nyköping",
@@ -33,11 +33,15 @@ _ORT_TILL_REGION = {ort: region for region, orter in REGIONER.items() for ort in
 
 def region_for(kalla: str, plats: str) -> tuple[str, str]:
     """Returnerar (ort, region) för en annons."""
-    if kalla in ("stadsmissionen", "bukowskis"):
+    if kalla == "stadsmissionen":
         return "Stockholm", "Stockholm"
-    if kalla in ("myrorna", "tradera"):
-        return "", "Webbutik med frakt"
+    if kalla == "myrorna":
+        return "Stockholm (Ropsten)", "Stockholm"
+    if kalla == "tradera":
+        return "", "Okänd ort"
     ort = (plats or "").split(", ")[-1].strip()
+    if kalla == "bukowskis" and ort.lower() == "bukowskis":
+        return "Stockholm", "Stockholm"  # äldre annonser utan läst placering; huvudlagret ligger i Stockholm
     if not ort:
         return "", "Övriga Sverige"
     return ort, _ORT_TILL_REGION.get(ort.lower(), "Övriga Sverige")
@@ -229,7 +233,7 @@ const $ = (id) => document.getElementById(id);
 const NU = Date.now() / 1000;
 const KALLNAMN = { auctionet: "Auctionet", tradera: "Tradera", bukowskis: "Bukowskis", myrorna: "Myrorna", stadsmissionen: "Stadsmissionen" };
 const REGORDNING = ["Stockholm", "Uppsala och Mälardalen", "Östergötland, Småland och Blekinge", "Västsverige och Värmland",
-  "Skåne", "Norrland och Dalarna", "Övriga Sverige", "Webbutik med frakt"];
+  "Skåne", "Norrland och Dalarna", "Övriga Sverige", "Okänd ort"];
 const finns = new Set(D.poster.map(p => p.region));
 REGORDNING.filter(r => finns.has(r)).forEach(r => {
   const o = document.createElement("option"); o.value = r; o.textContent = r; $("reg").appendChild(o);

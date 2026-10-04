@@ -266,4 +266,14 @@ def test_region():
     assert sajt.region_for("auctionet", "Hus, Gothenburg")[1] == "Västsverige och Värmland"
     assert sajt.region_for("auctionet", "Hus, Okändstad")[1] == "Övriga Sverige"
     assert sajt.region_for("stadsmissionen", "x")[1] == "Stockholm"
-    assert sajt.region_for("myrorna", "x")[1] == "Webbutik med frakt"
+    assert sajt.region_for("myrorna", "Myrorna, Ropsten")[1] == "Stockholm"
+    assert sajt.region_for("bukowskis", "Bukowskis, Hägersten") == ("Hägersten", "Stockholm")
+    assert sajt.region_for("bukowskis", "Bukowskis, Göteborg")[1] == "Västsverige och Värmland"
+    assert sajt.region_for("bukowskis", "Bukowskis") == ("Stockholm", "Stockholm")
+
+
+def test_bukowskis_lotsida():
+    from sources import bukowskis
+    ort, beskrivning = bukowskis.tolka_lotsida(_las("bukowskis_lot"))
+    assert ort == "Hägersten"
+    assert "Björk" in beskrivning and "<" not in beskrivning
