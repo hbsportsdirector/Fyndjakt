@@ -4,14 +4,11 @@ UT = pathlib.Path(__file__).parent.parent / "data" / "probe"
 UT.mkdir(parents=True, exist_ok=True)
 H = {"User-Agent": "Mozilla/5.0 (Fyndjakt; privat bevakning)", "Accept-Language": "sv-SE,sv;q=0.9"}
 SIDOR = {
-    "bukowskis_sok": "https://www.bukowskis.com/sv/lots/search/bokhylla",
-    "bukowskis_sok2": "https://www.bukowskis.com/sv/lots/search/erik%20h%C3%B6glund",
-    "bukowskis_lot": "https://www.bukowskis.com/sv/lots/1745512-bokhylla-med-skap-funkis-1930-tal",
-    "myrorna_sok": "https://www.myrorna.se/shop/?s=silver",
-    "myrorna_sok_p2": "https://www.myrorna.se/shop/sida/2/?s=glas",
-    "stadsmissionen_hem": "https://www.stadsmissionen.se/shop/hem",
-    "stadsmissionen_vintage": "https://www.stadsmissionen.se/shop/premium-vintage",
-    "stadsmissionen_hem_p2": "https://www.stadsmissionen.se/shop/hem?page=2",
+    "ssm_sok_hem": "https://www.stadsmissionen.se/shop/hem?search_text=glas",
+    "ssm_sok_alla": "https://www.stadsmissionen.se/shop?search_text=kosta",
+    "ssm_sok_hem_p1": "https://www.stadsmissionen.se/shop/hem?search_text=glas&page=1",
+    "bukowskis_sok_stor": "https://www.bukowskis.com/sv/lots/search/silver",
+    "bukowskis_sok_stor_p2": "https://www.bukowskis.com/sv/lots/page/2/search/silver",
 }
 for namn, url in SIDOR.items():
     try:
