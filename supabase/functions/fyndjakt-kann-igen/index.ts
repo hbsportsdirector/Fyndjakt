@@ -27,11 +27,35 @@ function svar(data: unknown, status: number, origin: string | null) {
 const INSTRUKTION = `Du hjälper en samlare och inredningsintresserad person att identifiera föremål från foton.
 Titta på bilden och beskriv föremålet så exakt du kan: typ, material, färg, stil/epok och – om det går att
 se eller är troligt – tillverkare, formgivare eller konstnär. Gissa inte vilt; säg "troligen" när du är osäker.
+Användaren kan rätta dig eller berätta mer (t.ex. tillverkare, serie, formgivare, ålder). Lita på hens
+kunskap och bygg vidare på den – men säg vänligt till om bilden tydligt talar emot. Använd det du vet om
+föremålet, serien och tillverkaren för att göra beskrivningen och sökorden så träffsäkra som möjligt, och
+gissa inte fakta du inte är säker på. Ställ gärna en kort följdfråga om något skulle förbättra sökningen.
 Svara ENBART med JSON:
-{"beskrivning": "<en mening på svenska, t.ex. 'Bankirlampa i mässing med grön glaskupa, tidigt 1900-tal'>",
+{"svar": "<1–2 meningar på svenska till användaren, t.ex. en bekräftelse, en kort fakta eller en följdfråga; tom sträng vid första tolkningen>",
+ "beskrivning": "<en mening på svenska, t.ex. 'Bankirlampa i mässing med grön glaskupa, tidigt 1900-tal'>",
  "sokord": "<2–4 ord som hittar liknande föremål på en svensk auktionssajt, t.ex. 'bankirlampa mässing'>",
  "kategori": "<en av: Möbler, Belysning, Konst, Glas, Keramik, Textil, Dekor, Övrigt>",
  "sakerhet": "<hög|medel|låg>"}`;
+
+// Första frågan med bilden, sedan växelvis Claudes tidigare svar och användarens kommentarer.
+function bygg_meddelanden(bild: string, mediatyp: string, samtal: { roll: string; text: string }[]) {
+  const meddelanden: unknown[] = [{ role: "user", content: [
+    { type: "image", source: { type: "base64", media_type: mediatyp, data: bild } },
+    { type: "text", text: "Vad är det här för föremål?" },
+  ] }];
+  for (const s of samtal.slice(-10)) {
+    const text = String(s?.text ?? "").slice(0, 800);
+    if (!text) continue;
+    const roll = s.roll === "claude" ? "assistant" : "user";
+    const sista = meddelanden[meddelanden.length - 1] as { role: string };
+    if (sista.role === roll) continue;  // API:t kräver växelvisa roller
+    meddelanden.push({ role: roll, content: text });
+  }
+  const sista = meddelanden[meddelanden.length - 1] as { role: string };
+  if (sista.role === "assistant") meddelanden.pop();
+  return meddelanden;
+}
 
 Deno.serve(async (req) => {
   const origin = req.headers.get("origin");
@@ -55,7 +79,7 @@ Deno.serve(async (req) => {
       (liknande.length ? " Hittade bara: " + liknande.join(", ") : "") }, 503, origin);
   }
 
-  let kropp: { bild?: string; mediatyp?: string };
+  let kropp: { bild?: string; mediatyp?: string; samtal?: { roll: string; text: string }[] };
   try { kropp = await req.json(); } catch { return svar({ fel: "Ogiltig förfrågan" }, 400, origin); }
   const bild = (kropp.bild ?? "").replace(/^data:image\/\w+;base64,/, "");
   const mediatyp = ["image/jpeg", "image/png", "image/webp"].includes(kropp.mediatyp ?? "") ? kropp.mediatyp! : "image/jpeg";
@@ -66,12 +90,9 @@ Deno.serve(async (req) => {
     headers: { "x-api-key": nyckel, "anthropic-version": "2023-06-01", "content-type": "application/json" },
     body: JSON.stringify({
       model: MODELL,
-      max_tokens: 300,
+      max_tokens: 500,
       system: INSTRUKTION,
-      messages: [{ role: "user", content: [
-        { type: "image", source: { type: "base64", media_type: mediatyp, data: bild } },
-        { type: "text", text: "Vad är det här för föremål?" },
-      ] }],
+      messages: bygg_meddelanden(bild, mediatyp, kropp.samtal ?? []),
     }),
   });
   if (!r.ok) {
@@ -84,6 +105,7 @@ Deno.serve(async (req) => {
   try {
     const res = JSON.parse(match ? match[0] : "{}");
     return svar({
+      svar: String(res.svar ?? "").slice(0, 600),
       beskrivning: String(res.beskrivning ?? "").slice(0, 300),
       sokord: String(res.sokord ?? "").slice(0, 60),
       kategori: String(res.kategori ?? ""),
