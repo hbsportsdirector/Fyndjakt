@@ -23,6 +23,12 @@ uteslut_ord:
   - defekt
   - reproduktion
 
+# Databasen för inloggning, reaktioner och Min smak (Supabase, projektet WORK).
+# Nyckeln är den publika "publishable"-nyckeln – den får synas. Åtkomsten styrs av databasens regler.
+supabase:
+  url: https://abwmdhvaxqlpyzgvuedj.supabase.co
+  nyckel: sb_publishable_R1OuxhyY7HJq68XcEoFnSw_Zl16Gux9
+
 kallor:
   auctionet: true       # 500+ auktionshus, bl.a. Uppsala Auktionskammare och Stockholms Auktionsverk
   bukowskis: true       # Bukowskis egna nätauktioner

@@ -45,6 +45,7 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TRADERA_APP_ID: ${{ secrets.TRADERA_APP_ID }}
           TRADERA_APP_KEY: ${{ secrets.TRADERA_APP_KEY }}
+          FYNDJAKT_BOT_TOKEN: ${{ secrets.FYNDJAKT_BOT_TOKEN }}
           SAJT_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
         run: python main.py
 

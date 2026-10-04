@@ -173,6 +173,12 @@ def main() -> int:
     args = p.parse_args()
 
     cfg = las_config()
+    try:
+        import smak
+        smak.tillampa(cfg, smak.hamta(cfg))
+    except Exception as e:  # lärandet får aldrig stoppa körningen
+        print(f"Min smak: kunde inte läsa reaktioner – {e}")
+        STATISTIK["Min smak"] = {"fel": str(e)[:200]}
     db = Databas()
     db.rensa_gamla()
 

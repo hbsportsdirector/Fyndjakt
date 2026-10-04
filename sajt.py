@@ -84,7 +84,8 @@ def bygg(db, cfg: dict) -> Path:
 
     data = json.dumps(
         {"poster": poster, "spar": spar, "uppdaterad": nu,
-         "standard": cfg.get("min_betyg", 7), "golv": min_betyg},
+         "standard": cfg.get("min_betyg", 7), "golv": min_betyg,
+         "supabase": cfg.get("supabase") or None},
         ensure_ascii=False,
     ).replace("</", "<\\/")
 
@@ -104,6 +105,7 @@ MALL = r"""<!doctype html>
 <title>Fyndjakt · The Reading Room</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -204,10 +206,67 @@ MALL = r"""<!doctype html>
   .lage-img { position: absolute; bottom: 10px; left: 10px; }
   .empty { text-align: center; color: var(--muted); padding: 60px 16px; font-family: "Cormorant Garamond", serif; font-size: 24px; font-style: italic; }
   footer { text-align: center; color: var(--muted); font-size: 13px; padding: 0 16px 40px; }
+
+  /* Konto och reaktioner */
+  .konto { position: absolute; top: 14px; right: 16px; display: flex; gap: 8px; }
+  header { position: relative; }
+  .knapp {
+    border: 1px solid var(--line); background: var(--panel); color: var(--text); font: inherit; font-size: 14px;
+    padding: 7px 14px; border-radius: 999px; cursor: pointer;
+  }
+  .knapp.primar { background: var(--brass); color: #1b1a14; border-color: var(--brass); font-weight: 600; }
+  .knapp:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+  .reakt { display: flex; gap: 6px; padding-top: 10px; }
+  .reakt button {
+    flex: 1; border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); font: inherit;
+    font-size: 13px; padding: 7px 4px; border-radius: 10px; cursor: pointer; white-space: nowrap;
+  }
+  .reakt button[aria-pressed="true"] { color: var(--text); border-color: var(--brass); background: #3a3524; }
+  .reakt button:focus-visible { outline: 2px solid var(--brass); outline-offset: 1px; }
+  .card.borta { opacity: 0; transform: scale(.97); transition: opacity .35s, transform .35s; }
+
+  /* Panel: logga in / Min smak */
+  .panel-bak { position: fixed; inset: 0; background: rgba(8,12,10,.7); z-index: 20; display: flex;
+               justify-content: center; align-items: flex-start; overflow-y: auto; padding: 24px 12px; }
+  .panel-bak[hidden] { display: none; }
+  .panel { background: var(--bg); border: 1px solid var(--line); border-radius: 18px; width: min(680px, 100%);
+           padding: 22px 18px 26px; box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+  .panel h2 { font-family: "Cormorant Garamond", Georgia, serif; font-size: 30px; margin: 0 0 4px; }
+  .panel h3 { font-family: "Cormorant Garamond", Georgia, serif; font-size: 22px; margin: 26px 0 8px;
+              border-top: 1px solid var(--line); padding-top: 18px; }
+  .panel p.hj { color: var(--muted); margin: 0 0 12px; font-size: 14px; }
+  .panel .stang { float: right; }
+  .falt { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0; }
+  .falt input[type=text], .falt input[type=email], .falt select {
+    flex: 1 1 200px; background: var(--panel); color: var(--text); border: 1px solid var(--line);
+    border-radius: 10px; padding: 9px 11px; font: inherit; font-size: 15px; min-width: 0;
+  }
+  .kamera { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center;
+            border: 1px dashed var(--brass-dim); border-radius: 14px; padding: 18px; background: var(--panel); }
+  .kamera label.knapp { display: inline-block; }
+  .kamera input[type=file] { position: absolute; width: 1px; height: 1px; opacity: 0; }
+  .forhand { max-width: 100%; max-height: 260px; border-radius: 10px; display: block; margin: 0 auto; }
+  .tolkning { background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin-top: 12px; text-align: left; width: 100%; }
+  .tolkning b { font-family: "Cormorant Garamond", Georgia, serif; font-size: 20px; display: block; margin-bottom: 4px; }
+  .lista { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+  .lista li { display: flex; gap: 10px; align-items: center; background: var(--panel); border: 1px solid var(--line);
+              border-radius: 10px; padding: 7px 8px; font-size: 14px; }
+  .lista img { width: 44px; height: 44px; object-fit: cover; border-radius: 6px; flex: none; background: var(--panel-2); }
+  .lista .txt { flex: 1; min-width: 0; }
+  .lista .txt a { color: var(--text); }
+  .lista .etik { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--brass); display: block; }
+  .lista .bort { background: none; border: 0; color: var(--muted); font-size: 18px; cursor: pointer; padding: 4px 8px; }
+  .tom { color: var(--muted); font-size: 14px; font-style: italic; }
+  .status { font-size: 14px; color: var(--brass); min-height: 1.4em; }
+  @media (max-width: 560px) { .konto { position: static; justify-content: center; margin-bottom: 10px; } }
 </style>
 </head>
 <body>
 <header>
+  <div class="konto" id="konto" hidden>
+    <button class="knapp" id="b-smak" type="button" hidden>Min smak</button>
+    <button class="knapp" id="b-logga" type="button">Logga in</button>
+  </div>
   <div class="ornament">✦ Fyndjakt ✦</div>
   <h1>Dagens <em>fynd</em></h1>
   <p class="sub">Utvalt från svenska auktioner och second hand · uppdaterad <span id="upd"></span></p>
@@ -242,6 +301,66 @@ MALL = r"""<!doctype html>
   <div class="grid" id="grid"></div>
   <div class="empty" id="empty" hidden>Inga fynd med de här filtren ännu.</div>
 </main>
+<div class="panel-bak" id="p-login" hidden>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="login-rubrik">
+    <button class="knapp stang" type="button" data-stang>Stäng</button>
+    <h2 id="login-rubrik">Logga in</h2>
+    <p class="hj">Du får en inloggningslänk till din e-post. Inget lösenord behövs.</p>
+    <form class="falt" id="f-login">
+      <input type="email" id="login-epost" required placeholder="din@epost.se" autocomplete="email">
+      <button class="knapp primar" type="submit">Skicka länk</button>
+    </form>
+    <div class="status" id="login-status" role="status"></div>
+  </div>
+</div>
+
+<div class="panel-bak" id="p-smak" hidden>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="smak-rubrik">
+    <button class="knapp stang" type="button" data-stang>Stäng</button>
+    <h2 id="smak-rubrik">Min smak</h2>
+    <p class="hj">Det här lär sig appen av. Allt du lägger till eller tar bort här används från nästa morgon.</p>
+
+    <div class="kamera">
+      <div>📷 <strong>Fota något</strong> – så känner Claude igen föremålet</div>
+      <label class="knapp primar" for="foto">Ta foto eller välj bild</label>
+      <input type="file" id="foto" accept="image/*" capture="environment">
+      <img class="forhand" id="foto-forhand" alt="Ditt foto" hidden>
+      <div class="status" id="foto-status" role="status"></div>
+      <div class="tolkning" id="tolkning" hidden>
+        <b id="t-beskr"></b>
+        <div class="falt"><label for="t-sok" style="color:var(--muted);font-size:14px">Söker efter</label><input type="text" id="t-sok"></div>
+        <div class="falt"><select id="t-spar"></select></div>
+        <div class="falt">
+          <button class="knapp primar" type="button" data-spara="gillar">👍 Gillar sånt här</button>
+          <button class="knapp" type="button" data-spara="har">🏠 Har redan</button>
+          <button class="knapp" type="button" data-spara="ogillar">👎 Inte min stil</button>
+        </div>
+      </div>
+    </div>
+
+    <h3>Säg det med egna ord</h3>
+    <form class="falt" id="f-anteckning">
+      <select id="a-typ">
+        <option value="gillar">Jag gillar</option>
+        <option value="ogillar">Jag vill inte ha</option>
+        <option value="har">Jag har redan</option>
+      </select>
+      <input type="text" id="a-text" maxlength="300" required placeholder="t.ex. gamla sjökort i ram">
+      <select id="a-spar"></select>
+      <button class="knapp primar" type="submit">Lägg till</button>
+    </form>
+
+    <h3>Mina anteckningar</h3>
+    <ul class="lista" id="l-anteckningar"></ul>
+    <h3>👍 Gillade fynd</h3>
+    <ul class="lista" id="l-gillar"></ul>
+    <h3>🛒 Köpt</h3>
+    <ul class="lista" id="l-kopt"></ul>
+    <h3>👎 Inte min stil</h3>
+    <ul class="lista" id="l-ogillar"></ul>
+  </div>
+</div>
+
 <footer>Bedömt av Claude mot dina profiler · "Liknande sålt" är mittersta hälften av slutpriserna för jämförbara föremål på Auctionet de senaste 5 åren – pågående auktioner kan stiga · Länkarna går till auktionen/annonsen</footer>
 
 <script>
@@ -331,7 +450,9 @@ function card(p) {
   mm("", p.plats);
   if (p.slutar) mm(p.slutar_ts && p.slutar_ts - NU < 86400 * 2 ? "soon" : "", "Slutar " + p.slutar);
   mm("", KALLNAMN[p.kalla] || p.kalla);
-  b.appendChild(m); a.appendChild(b);
+  b.appendChild(m);
+  if (konto.inloggad) b.appendChild(reaktionsknappar(p, a));
+  a.appendChild(b);
   return a;
 }
 
@@ -352,7 +473,7 @@ function jmf(p) {
 
 function render() {
   let l = D.poster.filter(p =>
-    p.spar === st.spar && (!st.reg || p.region === st.reg) && (!st.cat || p.kategori === st.cat) && (!st.src || p.kalla === st.src) && p.betyg >= st.min);
+    p.spar === st.spar && !dold(p) && (!st.reg || p.region === st.reg) && (!st.cat || p.kategori === st.cat) && (!st.src || p.kalla === st.src) && p.betyg >= st.min);
   const s = {
     betyg: (a, b) => b.betyg - a.betyg || seddTs(b) - seddTs(a),
     ny: (a, b) => seddTs(b) - seddTs(a),
@@ -373,6 +494,196 @@ $("reg").onchange = e => {
   try { localStorage.setItem("fyndjakt-omrade", st.reg); } catch (e) {}
 };
 $("min").oninput = e => { st.min = +e.target.value; $("minv").textContent = st.min; renderTabs(); render(); };
+// ── Konto, reaktioner och Min smak (Supabase) ─────────────────────────
+const konto = { sb: null, inloggad: false, reakt: new Map(), anteckningar: [] };
+const TYPNAMN = { gillar: "👍 Gillar", ogillar: "👎 Inte min stil", kopt: "🛒 Köpt" };
+const ANT_NAMN = { gillar: "Gillar", ogillar: "Vill inte ha", har: "Har redan" };
+
+function dold(p) { const r = konto.reakt.get(p.nyckel); return r && (r.typ === "ogillar" || r.typ === "kopt"); }
+
+function reaktionsknappar(p, kortEl) {
+  const rad = document.createElement("div"); rad.className = "reakt";
+  for (const typ of ["gillar", "ogillar", "kopt"]) {
+    const btn = document.createElement("button"); btn.type = "button";
+    btn.textContent = TYPNAMN[typ];
+    btn.setAttribute("aria-pressed", String((konto.reakt.get(p.nyckel) || {}).typ === typ));
+    btn.onclick = async (e) => {
+      e.preventDefault(); e.stopPropagation();
+      const nu = (konto.reakt.get(p.nyckel) || {}).typ;
+      if (nu === typ) await taBortReaktion(p.nyckel);
+      else await sparaReaktion(p, typ);
+      if (typ !== "gillar" && nu !== typ) {
+        kortEl.classList.add("borta");
+        setTimeout(() => { renderTabs(); render(); }, 380);
+      } else { renderTabs(); render(); }
+    };
+    rad.appendChild(btn);
+  }
+  return rad;
+}
+
+async function sparaReaktion(p, typ) {
+  const rad = { nyckel: p.nyckel, typ, spar: p.spar, kategori: p.kategori, titel: p.titel, url: p.url,
+                bild: (p.bilder || [])[0] || null, pris_text: p.pris_text, motivering: p.motivering };
+  konto.reakt.set(p.nyckel, rad);
+  const { error } = await konto.sb.from("fyndjakt_reaktioner").upsert(rad, { onConflict: "user_id,nyckel" });
+  if (error) { alertFel(error); konto.reakt.delete(p.nyckel); }
+}
+async function taBortReaktion(nyckel) {
+  const gammal = konto.reakt.get(nyckel);
+  konto.reakt.delete(nyckel);
+  const { error } = await konto.sb.from("fyndjakt_reaktioner").delete().eq("nyckel", nyckel);
+  if (error) { alertFel(error); if (gammal) konto.reakt.set(nyckel, gammal); }
+}
+function alertFel(error) { console.error(error); visaStatus("foto-status", "Något gick fel – försök igen."); }
+function visaStatus(id, text) { const e = $(id); if (e) e.textContent = text; }
+
+async function laddaMittData() {
+  const [r, a] = await Promise.all([
+    konto.sb.from("fyndjakt_reaktioner").select("*").order("skapad", { ascending: false }),
+    konto.sb.from("fyndjakt_anteckningar").select("*").order("skapad", { ascending: false }),
+  ]);
+  konto.reakt = new Map((r.data || []).map(x => [x.nyckel, x]));
+  konto.anteckningar = a.data || [];
+}
+
+function oppna(id) { $(id).hidden = false; const f = $(id).querySelector("input,button"); if (f) f.focus(); }
+function stang(id) { $(id).hidden = true; }
+document.querySelectorAll("[data-stang]").forEach(b => b.onclick = () => stang(b.closest(".panel-bak").id));
+document.querySelectorAll(".panel-bak").forEach(bak => bak.addEventListener("click", e => { if (e.target === bak) stang(bak.id); }));
+document.addEventListener("keydown", e => { if (e.key === "Escape") document.querySelectorAll(".panel-bak").forEach(b => b.hidden = true); });
+
+function sparVal(select, standard) {
+  select.replaceChildren(new Option("Alla flikar", ""), ...D.spar.map(s => new Option(s.namn, s.id)));
+  select.value = standard || "";
+}
+
+function listrad({ bild, etikett, titel, url, onBort }) {
+  const li = document.createElement("li");
+  if (bild !== undefined) { const i = document.createElement("img"); if (bild) i.src = bild; i.alt = ""; i.referrerPolicy = "no-referrer"; li.appendChild(i); }
+  const t = document.createElement("div"); t.className = "txt";
+  if (etikett) { const s = document.createElement("span"); s.className = "etik"; s.textContent = etikett; t.appendChild(s); }
+  if (url) { const a = document.createElement("a"); a.href = url; a.target = "_blank"; a.rel = "noopener"; a.textContent = titel; t.appendChild(a); }
+  else t.append(titel);
+  li.appendChild(t);
+  const x = document.createElement("button"); x.className = "bort"; x.type = "button"; x.textContent = "✕";
+  x.setAttribute("aria-label", "Ta bort " + titel); x.onclick = onBort; li.appendChild(x);
+  return li;
+}
+
+function renderSmak() {
+  const sparNamn = id => (D.spar.find(s => s.id === id) || {}).namn || "Alla flikar";
+  const ant = $("l-anteckningar");
+  ant.replaceChildren(...konto.anteckningar.map(a => listrad({
+    etikett: ANT_NAMN[a.typ] + " · " + sparNamn(a.spar) + (a.sokord ? " · söker ”" + a.sokord + "”" : ""),
+    titel: a.text,
+    onBort: async () => {
+      konto.anteckningar = konto.anteckningar.filter(x => x.id !== a.id);
+      await konto.sb.from("fyndjakt_anteckningar").delete().eq("id", a.id);
+      renderSmak();
+    },
+  })));
+  if (!konto.anteckningar.length) ant.innerHTML = '<li class="tom">Inga ännu – fota något eller skriv med egna ord.</li>';
+  for (const typ of ["gillar", "kopt", "ogillar"]) {
+    const ul = $("l-" + typ);
+    const rader = [...konto.reakt.values()].filter(r => r.typ === typ);
+    ul.replaceChildren(...rader.map(r => listrad({
+      bild: r.bild || "", etikett: sparNamn(r.spar), titel: r.titel, url: r.url,
+      onBort: async () => { await taBortReaktion(r.nyckel); renderSmak(); renderTabs(); render(); },
+    })));
+    if (!rader.length) ul.innerHTML = '<li class="tom">Inget här ännu.</li>';
+  }
+}
+
+async function sparaAnteckning(typ, text, spar, sokord) {
+  const rad = { typ, text: text.slice(0, 300), spar: spar || null, sokord: typ === "gillar" && sokord ? sokord.slice(0, 60) : null };
+  const { data, error } = await konto.sb.from("fyndjakt_anteckningar").insert(rad).select().single();
+  if (error) { alertFel(error); return false; }
+  konto.anteckningar.unshift(data); renderSmak(); return true;
+}
+
+$("f-anteckning").onsubmit = async (e) => {
+  e.preventDefault();
+  const text = $("a-text").value.trim(); if (!text) return;
+  if (await sparaAnteckning($("a-typ").value, text, $("a-spar").value, $("a-typ").value === "gillar" ? text.split(/\s+/).slice(0, 4).join(" ") : null))
+    $("a-text").value = "";
+};
+
+// Foto → nedskalad JPEG → Claude känner igen föremålet
+function skalaNer(fil, max = 1280) {
+  return new Promise((ok, fel) => {
+    const img = new Image();
+    img.onload = () => {
+      const k = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement("canvas"); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(img.src); ok(c.toDataURL("image/jpeg", 0.85));
+    };
+    img.onerror = fel; img.src = URL.createObjectURL(fil);
+  });
+}
+let senasteTolkning = null;
+$("foto").onchange = async (e) => {
+  const fil = e.target.files[0]; if (!fil) return;
+  $("tolkning").hidden = true; visaStatus("foto-status", "Claude tittar på bilden …");
+  try {
+    const data = await skalaNer(fil);
+    $("foto-forhand").src = data; $("foto-forhand").hidden = false;
+    const { data: svar, error } = await konto.sb.functions.invoke("fyndjakt-kann-igen", { body: { bild: data, mediatyp: "image/jpeg" } });
+    if (error || !svar || svar.fel) {
+      let txt = (svar && svar.fel) || "";
+      try { if (!txt && error && error.context) txt = (await error.context.json()).fel; } catch (x) {}
+      visaStatus("foto-status", txt || "Kunde inte känna igen bilden just nu."); return;
+    }
+    senasteTolkning = svar;
+    $("t-beskr").textContent = svar.beskrivning + (svar.sakerhet === "låg" ? " (osäker)" : "");
+    $("t-sok").value = svar.sokord || "";
+    sparVal($("t-spar"), st.spar);
+    $("tolkning").hidden = false; visaStatus("foto-status", "");
+  } catch (x) { console.error(x); visaStatus("foto-status", "Kunde inte läsa bilden."); }
+  finally { e.target.value = ""; }
+};
+document.querySelectorAll("[data-spara]").forEach(b => b.onclick = async () => {
+  if (!senasteTolkning) return;
+  const ok = await sparaAnteckning(b.dataset.spara, senasteTolkning.beskrivning, $("t-spar").value, $("t-sok").value.trim());
+  if (ok) {
+    $("tolkning").hidden = true; $("foto-forhand").hidden = true; senasteTolkning = null;
+    visaStatus("foto-status", b.dataset.spara === "gillar" ? "Sparat! Appen letar efter liknande från i morgon." : "Sparat!");
+  }
+});
+
+$("f-login").onsubmit = async (e) => {
+  e.preventDefault();
+  visaStatus("login-status", "Skickar …");
+  const { error } = await konto.sb.auth.signInWithOtp({
+    email: $("login-epost").value.trim(),
+    options: { emailRedirectTo: location.origin + location.pathname, shouldCreateUser: false },
+  });
+  visaStatus("login-status", error ? "Det gick inte – är det rätt e-post?" : "Klart! Öppna länken i mejlet på den här enheten.");
+};
+
+async function uppdateraKonto(session) {
+  konto.inloggad = !!session;
+  $("b-logga").textContent = session ? "Logga ut" : "Logga in";
+  $("b-smak").hidden = !session;
+  if (session) {
+    const { data: medlem } = await konto.sb.rpc("fyndjakt_ar_medlem");
+    if (!medlem) { konto.inloggad = false; $("b-smak").hidden = true; }
+    else await laddaMittData();
+  } else { konto.reakt = new Map(); konto.anteckningar = []; }
+  renderTabs(); render();
+}
+
+if (D.supabase && window.supabase) {
+  konto.sb = window.supabase.createClient(D.supabase.url, D.supabase.nyckel);
+  $("konto").hidden = false;
+  $("b-logga").onclick = async () => {
+    if (konto.inloggad) { await konto.sb.auth.signOut(); } else oppna("p-login");
+  };
+  $("b-smak").onclick = () => { sparVal($("a-spar"), st.spar); renderSmak(); oppna("p-smak"); };
+  konto.sb.auth.onAuthStateChange((_ev, session) => { setTimeout(() => uppdateraKonto(session), 0); });
+}
+
 renderTabs(); renderChips(); render();
 </script>
 </body>

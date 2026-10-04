@@ -313,3 +313,52 @@ def test_databas_jamforelse(tmp_path):
     assert db.behover_jamforelse(8) == []
     t = db.traffar(8)[0]
     assert t["jmf_median"] == 1500 and t["jmf_antal"] == 7
+
+
+EXPORT = {
+    "anvandare": [{"user_id": "u1", "namn": "Per"}],
+    "reaktioner": [
+        {"user_id": "u1", "nyckel": "a:1", "typ": "gillar", "spar": "hemmet", "titel": "BOKSKÅP, mahogny"},
+        {"user_id": "u1", "nyckel": "a:2", "typ": "ogillar", "spar": "hemmet", "titel": "MATTA, persisk"},
+        {"user_id": "u1", "nyckel": "a:3", "typ": "kopt", "spar": "samlingen", "titel": "ERIK HÖGLUND, vas"},
+    ],
+    "anteckningar": [
+        {"user_id": "u1", "typ": "gillar", "spar": None, "text": "Bankirlampa i mässing med grön kupa", "sokord": "bankirlampa mässing"},
+        {"user_id": "u1", "typ": "har", "spar": "hemmet", "text": "Chesterfield-soffa", "sokord": None},
+        {"user_id": "u1", "typ": "gillar", "spar": "samlingen", "text": "Lisa Larson", "sokord": "Lisa Larson"},
+    ],
+}
+
+
+def test_smak_profil_och_sokningar():
+    import smak
+    cfg = {"spar": {
+        "hemmet": {"profil": "BAS", "sokningar": {"Möbler": ["bokhylla"]}},
+        "samlingen": {"profil": "BAS2", "sokningar": {"Glas": ["Lisa Larson"]}},
+    }}
+    smak.tillampa(cfg, EXPORT)
+    hem, saml = cfg["spar"]["hemmet"], cfg["spar"]["samlingen"]
+    assert "BOKSKÅP, mahogny" in hem["profil"] and "MATTA, persisk" in hem["profil"]
+    assert "Chesterfield-soffa" in hem["profil"] and "ERIK HÖGLUND" not in hem["profil"]
+    assert "Bankirlampa" in hem["profil"] and "Bankirlampa" in saml["profil"]  # utan spår gäller alla
+    assert "ERIK HÖGLUND, vas" in saml["profil"]
+    assert hem["sokningar"]["Från Min smak"] == ["bankirlampa mässing"]
+    assert saml["sokningar"]["Från Min smak"] == ["bankirlampa mässing"]  # Lisa Larson fanns redan
+    smak.tillampa(cfg, None)  # ingen data – inget händer
+
+
+def test_smak_utan_token(monkeypatch):
+    import smak
+    monkeypatch.delenv("FYNDJAKT_BOT_TOKEN", raising=False)
+    assert smak.hamta({"supabase": {"url": "u", "nyckel": "k"}}) is None
+
+
+def test_sajt_med_konto(tmp_path, monkeypatch):
+    import sajt, json, re
+    monkeypatch.setattr(sajt, "UT", tmp_path)
+    db = Databas(tmp_path / "t.db")
+    db.spara(auctionet.tolka(AUCTIONET_POST, "Möbler"), 9, "x")
+    html = sajt.bygg(db, {"sajt_min_betyg": 8, "supabase": {"url": "https://x.supabase.co", "nyckel": "sb_publishable_x"}}).read_text(encoding="utf-8")
+    data = json.loads(re.search(r"const D = (.*?);\n", html).group(1))
+    assert data["supabase"]["url"] == "https://x.supabase.co"
+    assert "fyndjakt-kann-igen" in html and 'id="p-smak"' in html

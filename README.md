@@ -63,6 +63,19 @@ typpriset, för fasta priser och auktioner som slutar inom två dygn), **Lågt b
 buden brukar stiga), **Under typiskt pris** eller **Över typiskt pris**.
 Sortera på "Bäst pris mot liknande" för att se de största fynden först.
 
+## Min smak – appen lär sig
+
+Logga in på sidan med din e-post (en inloggningslänk skickas, inget lösenord). Då får varje kort tre knappar:
+**👍 Gillar**, **👎 Inte min stil** och **🛒 Köpt**. Ogillade och köpta fynd döljs direkt.
+Under **Min smak** kan du **fota ett föremål** – Claude känner igen det – och säga att du gillar sånt, redan har det
+eller inte vill ha det. Du kan också skriva med egna ord, och ta bort allt med ett klick.
+
+Varje morgon läser den dagliga körningen in dina reaktioner och anteckningar: Claude får dem som exempel vid
+bedömningen, köpta saker räknas som "har redan", och sökfraser från saker du gillar läggs till bland sökningarna.
+
+Tekniskt: reaktionerna ligger i Supabase (tabellerna `fyndjakt_*` i projektet WORK) och är låsta per användare.
+Fotoigenkänningen är Supabase-funktionen `fyndjakt-kann-igen` (källkod i `supabase/functions/`).
+
 ## Anpassa
 
 Det finns två spår, med var sin flik på sidan: **The Reading Room** (profil i `stil.md`) och **Samlingen** (profil i `samlingsprofil.md`). Sökningar och filter per spår finns under `spar:` i `config.yaml`.
