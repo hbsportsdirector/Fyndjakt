@@ -1,4 +1,7 @@
-"""Fyndjakt – letar begagnade fynd som passar din stil och skickar dem till Telegram.
+"""Fyndjakt – letar begagnade fynd som passar dina profiler och samlar dem på en hemsida.
+
+Varje "spår" i config.yaml (t.ex. inredningen och konstsamlingen) har egen profil,
+egna sökningar och egna filter.
 
 Kör:  python main.py            (vanlig körning)
       python main.py --torr     (hämtar annonser och skriver ut, utan AI och utan notiser)
@@ -19,32 +22,30 @@ ROT = Path(__file__).parent
 def las_config() -> dict:
     with open(ROT / "config.yaml", encoding="utf-8") as f:
         cfg = yaml.safe_load(f)
-    cfg["stilprofil"] = bygg_stilprofil(cfg)
+    if not cfg.get("spar"):
+        raise SystemExit("config.yaml saknar 'spar'.")
+    for sid, spar in cfg["spar"].items():
+        spar.setdefault("namn", sid)
+        spar["profil"] = bygg_profil(spar)
     return cfg
 
 
-def bygg_stilprofil(cfg: dict) -> str:
-    """Stilen hämtas från stilfilen (t.ex. stil.md) plus eventuella tillägg i config."""
+def bygg_profil(spar: dict) -> str:
+    """Profilen = profilfilen (t.ex. stil.md) + tillägg + det kunden redan har."""
     delar = []
-    stilfil = cfg.get("stilfil")
-    if stilfil:
-        sokvag = ROT / stilfil
+    fil = spar.get("profilfil")
+    if fil:
+        sokvag = ROT / fil
         if not sokvag.exists():
-            raise SystemExit(f"Hittar inte stilfilen {stilfil} – lägg den bredvid config.yaml.")
+            raise SystemExit(f"Hittar inte profilfilen {fil} – lägg den bredvid config.yaml.")
         delar.append(sokvag.read_text(encoding="utf-8").strip())
-    if cfg.get("stilprofil"):
-        delar.append(str(cfg["stilprofil"]).strip())
-    if cfg.get("tillagg"):
-        delar.append("Viktigt vid bedömningen:\n" + str(cfg["tillagg"]).strip())
-    if cfg.get("har_redan"):
+    if spar.get("tillagg"):
+        delar.append("Viktigt vid bedömningen:\n" + str(spar["tillagg"]).strip())
+    if spar.get("har_redan"):
         delar.append("Kunden HAR REDAN följande – ge 0–3 åt samma typ av föremål:\n- "
-                     + "\n- ".join(cfg["har_redan"]))
-    samling = cfg.get("samlingsfil")
-    if samling and (ROT / samling).exists():
-        delar.append("Kundens samling (komplettera den, föreslå inte dubbletter):\n"
-                     + (ROT / samling).read_text(encoding="utf-8").strip())
+                     + "\n- ".join(spar["har_redan"]))
     if not delar:
-        raise SystemExit("Ingen stil angiven – sätt 'stilfil' i config.yaml.")
+        raise SystemExit(f"Spåret {spar.get('namn')} saknar profil.")
     return "\n\n".join(delar)
 
 
@@ -60,44 +61,48 @@ def hamta_alla(cfg: dict) -> list[Annons]:
             print("Tradera: ingen nyckel satt (TRADERA_APP_ID/TRADERA_APP_KEY) – hoppar över.")
 
     alla: dict[str, Annons] = {}
-    for namn, sok in aktiva:
-        for kategori, fragor in cfg["sokningar"].items():
-            for fraga in fragor:
-                try:
-                    traffar = sok(fraga, kategori)
-                except Exception as e:  # en trasig sökning ska inte stoppa resten
-                    print(f"  {namn} '{fraga}': fel – {e}")
-                    continue
-                for a in traffar:
-                    a.sokord = a.sokord or fraga
-                    alla.setdefault(a.nyckel, a)
-                print(f"  {namn:9} {fraga:28} {len(traffar):3} träffar")
+    for sid, spar in cfg["spar"].items():
+        print(f"\n— {spar['namn']} —")
+        for namn, sok in aktiva:
+            for kategori, fragor in spar["sokningar"].items():
+                for fraga in fragor:
+                    try:
+                        traffar = sok(fraga, kategori)
+                    except Exception as e:  # en trasig sökning ska inte stoppa resten
+                        print(f"  {namn} '{fraga}': fel – {e}")
+                        continue
+                    for a in traffar:
+                        a.sokord = a.sokord or fraga
+                        a.spar = sid
+                        alla.setdefault(a.nyckel, a)  # första spåret som hittar den äger den
+                    print(f"  {namn:9} {fraga:32} {len(traffar):3} träffar")
     return list(alla.values())
 
 
-def forfiltrera(a: Annons, cfg: dict) -> str | None:
+def forfiltrera(a: Annons, cfg: dict, spar: dict | None = None) -> str | None:
     """Returnerar en anledning om annonsen ska sorteras bort utan AI."""
+    spar = spar or {}
     text = f"{a.titel} {a.beskrivning}".lower()
-    for ord_ in cfg.get("uteslut_ord", []):
+    for ord_ in cfg.get("uteslut_ord", []) + spar.get("uteslut_ord", []):
         if ord_.lower() in text:
             return f"innehåller '{ord_}'"
     titel = a.titel.lower()
-    for ord_ in cfg.get("har_redan_ord", []):
+    for ord_ in spar.get("har_redan_ord", []):
         if ord_.lower() in titel:
             return f"har redan ('{ord_}')"
     if cfg.get("bara_sverige") and a.valuta != "SEK":
         return f"utanför Sverige ({a.valuta})"
-    max_pris = cfg.get("max_pris") or 0
+    max_pris = spar.get("max_pris", cfg.get("max_pris")) or 0
     if max_pris and a.pris and a.pris > max_pris:
         return f"pris {a.pris} > {max_pris}"
     return None
 
 
 def blanda_kategorier(annonser: list[Annons]) -> list[Annons]:
-    """Varvar kategorierna så att taket per körning inte bara går åt till möbler."""
-    grupper: dict[str, list[Annons]] = {}
+    """Varvar spår och kategorier så att taket per körning inte går åt till en enda sorts sak."""
+    grupper: dict[tuple, list[Annons]] = {}
     for a in annonser:
-        grupper.setdefault(a.kategori, []).append(a)
+        grupper.setdefault((a.spar, a.kategori), []).append(a)
     ut = []
     while any(grupper.values()):
         for lista in grupper.values():
@@ -122,7 +127,7 @@ def main() -> int:
 
     if args.torr:
         for a in nya[:25]:
-            print(f"- [{a.kalla}] {a.titel[:70]} | {a.pris_text} | {a.url}")
+            print(f"- [{a.spar}/{a.kalla}] {a.titel[:70]} | {a.pris_text} | {a.url}")
         return 0
 
     # Importeras här så att torrkörning fungerar utan nycklar.
@@ -132,7 +137,7 @@ def main() -> int:
 
     kandidater = []
     for a in nya:
-        skal = forfiltrera(a, cfg)
+        skal = forfiltrera(a, cfg, cfg["spar"][a.spar])
         if skal:
             db.spara(a, -1, skal)
         else:
@@ -147,14 +152,15 @@ def main() -> int:
     if kandidater:
         klient = bedomning._klient()
         for i, a in enumerate(kandidater, 1):
+            spar = cfg["spar"][a.spar]
             try:
-                betyg, motivering = bedomning.bedom(a, cfg["stilprofil"], cfg["modell"], klient)
+                betyg, motivering = bedomning.bedom(a, spar["profil"], cfg["modell"], klient)
             except Exception as e:
                 print(f"  [{i}] fel vid bedömning av {a.titel[:50]}: {e}")
                 continue  # sparas inte – försöker igen nästa gång
-            bra = betyg >= cfg.get("min_betyg", 7)
+            bra = betyg >= cfg.get("min_betyg", 8)
             db.spara(a, betyg, motivering, bra)
-            print(f"  [{i:3}] {betyg:2}/10 {a.titel[:60]}")
+            print(f"  [{i:3}] {betyg:2}/10 [{a.spar}] {a.titel[:60]}")
             if bra:
                 traffar.append((betyg, a, motivering))
             time.sleep(0.3)
@@ -170,11 +176,6 @@ def main() -> int:
                 time.sleep(1)
             except Exception as e:
                 print(f"  Kunde inte skicka notis: {e}")
-        if not traffar and kandidater:
-            try:
-                notis.skicka_text(f"🔎 Fyndjakt: {len(kandidater)} nya annonser granskade idag – inget som passade riktigt.")
-            except Exception:
-                pass
     else:
         print("Telegram är inte inställt – hoppar över notiser.")
 

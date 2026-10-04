@@ -137,10 +137,13 @@ def test_sajt_byggs(tmp_path, monkeypatch):
 
 def test_config_laddas():
     cfg = main.las_config()
-    assert "Obsidian Green" in cfg["stilprofil"]          # från stil.md
-    assert "Viktigt vid bedömningen" in cfg["stilprofil"]  # från tillagg
-    assert "Kartor, glober och kuriosa" in cfg["sokningar"]
-    assert "HAR REDAN" in cfg["stilprofil"] and "Chesterfield" in cfg["stilprofil"]
+    hem, saml = cfg["spar"]["hemmet"], cfg["spar"]["samlingen"]
+    assert "Obsidian Green" in hem["profil"]            # från stil.md
+    assert "Viktigt vid bedömningen" in hem["profil"]   # från tillagg
+    assert "HAR REDAN" in hem["profil"] and "Chesterfield" in hem["profil"]
+    assert "Kartor, glober och kuriosa" in hem["sokningar"]
+    assert "Evert Lundquist" in saml["profil"]          # från samlingsprofil.md
+    assert "Glas" in saml["sokningar"]
 
 
 def test_utlandsk_valuta_raknas_om():
@@ -155,13 +158,15 @@ def test_blanda_kategorier():
 
 
 def test_har_redan_och_bara_sverige():
-    cfg = {"har_redan_ord": ["chesterfield"], "bara_sverige": True}
-    a = auctionet.tolka(AUCTIONET_POST)
-    assert main.forfiltrera(a, cfg) is None
+    cfg = {"bara_sverige": True, "max_pris": 1000}
+    spar = {"har_redan_ord": ["chesterfield"], "max_pris": 5000}
+    a = auctionet.tolka(AUCTIONET_POST)  # 2000 kr: över gemensam gräns, under spårets
+    assert main.forfiltrera(a, cfg, spar) is None
+    assert "pris" in main.forfiltrera(a, cfg)
     a.titel = "SOFFA, Chesterfield"
-    assert "har redan" in main.forfiltrera(a, cfg)
+    assert "har redan" in main.forfiltrera(a, cfg, spar)
     b = auctionet.tolka(dict(AUCTIONET_POST, currency="DKK"))
-    assert "utanför Sverige" in main.forfiltrera(b, cfg)
+    assert "utanför Sverige" in main.forfiltrera(b, cfg, spar)
 
 
 def test_sajt_max_per_sokord(tmp_path, monkeypatch):
@@ -175,3 +180,18 @@ def test_sajt_max_per_sokord(tmp_path, monkeypatch):
     html = sajt.bygg(db, {"sokningar": {}, "sajt_min_betyg": 8, "sajt_max_per_sokord": 2}).read_text(encoding="utf-8")
     data = json.loads(re.search(r"const D = (.*?);\n", html).group(1))
     assert len(data["poster"]) == 3
+
+
+def test_sajt_har_flikar_per_spar(tmp_path, monkeypatch):
+    import sajt, json, re
+    monkeypatch.setattr(sajt, "UT", tmp_path)
+    db = Databas(tmp_path / "t.db")
+    for i, sp in enumerate(["hemmet", "samlingen", "samlingen"]):
+        a = auctionet.tolka(dict(AUCTIONET_POST, id=i), "Glas")
+        a.spar, a.sokord = sp, f"s{i}"
+        db.spara(a, 9, "x")
+    cfg = {"sajt_min_betyg": 8, "spar": {"hemmet": {"namn": "The Reading Room", "sokningar": {"Möbler": []}},
+                                         "samlingen": {"namn": "Samlingen", "sokningar": {"Glas": []}}}}
+    data = json.loads(re.search(r"const D = (.*?);\n", sajt.bygg(db, cfg).read_text(encoding="utf-8")).group(1))
+    assert [s["namn"] for s in data["spar"]] == ["The Reading Room", "Samlingen"]
+    assert sorted(p["spar"] for p in data["poster"]) == ["hemmet", "samlingen", "samlingen"]

@@ -23,6 +23,7 @@ KOLUMNER = {
     "slutar_ts": "INTEGER",
     "bilder": "TEXT",
     "sokord": "TEXT",
+    "spar": "TEXT",
 }
 
 
@@ -47,11 +48,11 @@ class Databas:
         self.con.execute(
             """INSERT OR REPLACE INTO sedda
                (nyckel, titel, url, betyg, motivering, notifierad, kalla, kategori,
-                pris, pris_text, plats, slutar, slutar_ts, bilder, sokord)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                pris, pris_text, plats, slutar, slutar_ts, bilder, sokord, spar)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (a.nyckel, a.titel, a.url, betyg, motivering, int(notifierad), a.kalla, a.kategori,
              a.pris, a.pris_text, a.plats, a.slutar, a.slutar_ts, json.dumps(a.bilder[:4]),
-             a.sokord),
+             a.sokord, a.spar),
         )
         self.con.commit()
 

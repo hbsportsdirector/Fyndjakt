@@ -18,6 +18,7 @@ class Annons:
     kategori: str = ""             # vilken av dina kategorier sökningen kom från
     sokord: str = ""               # vilken sökning som hittade annonsen
     valuta: str = "SEK"
+    spar: str = ""                 # vilket spår (profil) annonsen hör till
 
     @property
     def nyckel(self) -> str:

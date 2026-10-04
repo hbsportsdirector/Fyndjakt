@@ -56,6 +56,8 @@ Första körningen hittar många annonser och bedömer max 150 åt gången – r
 
 ## Anpassa
 
+Det finns två spår, med var sin flik på sidan: **The Reading Room** (profil i `stil.md`) och **Samlingen** (profil i `samlingsprofil.md`). Sökningar och filter per spår finns under `spar:` i `config.yaml`.
+
 Din stil ligger i **`stil.md`**. Redigera den direkt i GitHub (pennikonen) eller ladda upp en ny version med samma namn – nästa körning använder den.
 
 Resten styrs från `config.yaml`:

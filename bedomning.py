@@ -7,14 +7,14 @@ import anthropic
 
 from sources import Annons
 
-INSTRUKTION = """Du är en erfaren inredare som letar begagnade fynd åt en kund.
-Här är kundens stilprofil:
+INSTRUKTION = """Du är en erfaren inredare och samlingsrådgivare som letar begagnade fynd åt en kund.
+Här är kundens profil:
 
 <stilprofil>
 {stil}
 </stilprofil>
 
-Bedöm annonsen nedan: hur väl passar föremålet in i kundens hem?
+Bedöm annonsen nedan: hur väl passar föremålet kundens profil?
 Titta främst på bilderna (material, färg, form, patina, kvalitet), och använd texten för detaljer.
 
 Var MYCKET kräsen – kunden vill bara se ett fåtal utvalda fynd, inte allt som "passar".

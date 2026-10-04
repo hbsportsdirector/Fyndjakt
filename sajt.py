@@ -8,7 +8,7 @@ ROT = Path(__file__).parent
 UT = ROT / "site"
 
 FALT = ["nyckel", "titel", "url", "betyg", "motivering", "kalla", "kategori",
-        "pris", "pris_text", "plats", "slutar", "slutar_ts", "bilder", "sedd"]
+        "pris", "pris_text", "plats", "slutar", "slutar_ts", "bilder", "sedd", "spar"]
 
 
 def bygg(db, cfg: dict) -> Path:
@@ -22,11 +22,16 @@ def bygg(db, cfg: dict) -> Path:
             continue
         per_sokord[nyckel] = per_sokord.get(nyckel, 0) + 1
         poster.append({k: r.get(k) for k in FALT})
-    kategorier = list(cfg.get("sokningar", {}).keys())
+    spar_cfg = cfg.get("spar") or {"": {"namn": "Fynd", "sokningar": cfg.get("sokningar", {})}}
+    forsta = next(iter(spar_cfg))
+    for p in poster:
+        p["spar"] = p.get("spar") or forsta
+    spar = [{"id": sid, "namn": s.get("namn", sid), "kategorier": list(s.get("sokningar", {}).keys())}
+            for sid, s in spar_cfg.items()]
     nu = datetime.now(ZoneInfo("Europe/Stockholm")).strftime("%-d/%-m kl %H:%M")
 
     data = json.dumps(
-        {"poster": poster, "kategorier": kategorier, "uppdaterad": nu,
+        {"poster": poster, "spar": spar, "uppdaterad": nu,
          "standard": cfg.get("min_betyg", 7), "golv": min_betyg},
         ensure_ascii=False,
     ).replace("</", "<\\/")
@@ -71,6 +76,16 @@ MALL = r"""<!doctype html>
     min-height: 100vh;
   }
   header { padding: 40px 16px 8px; text-align: center; }
+  .tabs { display: flex; justify-content: center; gap: 4px; padding: 18px 16px 0; border-bottom: 1px solid var(--line); }
+  .tab {
+    background: none; border: 0; border-bottom: 2px solid transparent; color: var(--muted);
+    font-family: "Cormorant Garamond", Georgia, serif; font-size: 22px; font-weight: 600;
+    padding: 6px 16px 10px; cursor: pointer;
+  }
+  .tab[aria-selected="true"] { color: var(--text); border-bottom-color: var(--brass); }
+  .tab .n { font-family: Inter, sans-serif; font-size: 12px; color: var(--brass); margin-left: 6px; font-weight: 500; }
+  @media (max-width: 480px) { .tab { font-size: 19px; padding: 6px 10px 10px; } }
+  .tab:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
   .ornament { color: var(--brass); letter-spacing: .5em; font-size: 12px; text-transform: uppercase; }
   h1 {
     font-family: "Cormorant Garamond", Georgia, serif; font-weight: 600;
@@ -134,9 +149,11 @@ MALL = r"""<!doctype html>
 <body>
 <header>
   <div class="ornament">✦ Fyndjakt ✦</div>
-  <h1>The <em>Reading</em> Room</h1>
-  <p class="sub">Begagnade fynd som passar hemmet · uppdaterad <span id="upd"></span></p>
+  <h1>Dagens <em>fynd</em></h1>
+  <p class="sub">Utvalt från Auctionet och Tradera · uppdaterad <span id="upd"></span></p>
 </header>
+
+<nav class="tabs" id="tabs" role="tablist" aria-label="Spår"></nav>
 
 <div class="controls">
   <div class="row" id="cats" role="group" aria-label="Kategori"></div>
@@ -161,11 +178,11 @@ MALL = r"""<!doctype html>
   <div class="grid" id="grid"></div>
   <div class="empty" id="empty" hidden>Inga fynd med de här filtren ännu.</div>
 </main>
-<footer>Bedömt av Claude mot stil.md · Länkarna går till auktionen/annonsen</footer>
+<footer>Bedömt av Claude mot dina profiler · Länkarna går till auktionen/annonsen</footer>
 
 <script>
 const D = __DATA__;
-const st = { cat: "", src: "", min: D.standard, sort: "betyg" };
+const st = { spar: (D.spar[0] || {}).id, cat: "", src: "", min: D.standard, sort: "betyg" };
 const $ = (id) => document.getElementById(id);
 const NU = Date.now() / 1000;
 
@@ -179,9 +196,24 @@ function chip(label, value) {
   b.onclick = () => { st.cat = value; renderChips(); render(); };
   return b;
 }
+function aktivtSpar() { return D.spar.find(s => s.id === st.spar) || { kategorier: [] }; }
+function renderTabs() {
+  const t = $("tabs"); t.hidden = D.spar.length < 2;
+  t.replaceChildren(...D.spar.map(s => {
+    const b = document.createElement("button");
+    b.className = "tab"; b.type = "button"; b.setAttribute("role", "tab");
+    b.setAttribute("aria-selected", String(s.id === st.spar));
+    b.textContent = s.namn;
+    const n = document.createElement("span"); n.className = "n";
+    n.textContent = D.poster.filter(p => p.spar === s.id && p.betyg >= st.min).length;
+    b.appendChild(n);
+    b.onclick = () => { st.spar = s.id; st.cat = ""; renderTabs(); renderChips(); render(); };
+    return b;
+  }));
+}
 function renderChips() {
   const c = $("cats"); c.replaceChildren(chip("Allt", ""));
-  D.kategorier.forEach(k => c.appendChild(chip(k, k)));
+  aktivtSpar().kategorier.forEach(k => c.appendChild(chip(k, k)));
 }
 function seddTs(p) { return p.sedd ? Date.parse(p.sedd.replace(" ", "T") + "Z") / 1000 : 0; }
 
@@ -217,7 +249,7 @@ function card(p) {
 
 function render() {
   let l = D.poster.filter(p =>
-    (!st.cat || p.kategori === st.cat) && (!st.src || p.kalla === st.src) && p.betyg >= st.min);
+    p.spar === st.spar && (!st.cat || p.kategori === st.cat) && (!st.src || p.kalla === st.src) && p.betyg >= st.min);
   const s = {
     betyg: (a, b) => b.betyg - a.betyg || seddTs(b) - seddTs(a),
     ny: (a, b) => seddTs(b) - seddTs(a),
@@ -232,8 +264,8 @@ function render() {
 
 $("sort").onchange = e => { st.sort = e.target.value; render(); };
 $("src").onchange = e => { st.src = e.target.value; render(); };
-$("min").oninput = e => { st.min = +e.target.value; $("minv").textContent = st.min; render(); };
-renderChips(); render();
+$("min").oninput = e => { st.min = +e.target.value; $("minv").textContent = st.min; renderTabs(); render(); };
+renderTabs(); renderChips(); render();
 </script>
 </body>
 </html>

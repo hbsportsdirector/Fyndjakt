@@ -1,148 +1,183 @@
 # ──────────────────────────────────────────────────────────────
 #  Fyndjakt – inställningar
 #  Ändra fritt. Allt som står här läses in vid varje körning.
+#  Det finns två "spår": inredningen (The Reading Room) och konstsamlingen.
+#  Varje spår har en egen profilfil, egna sökningar och en egen flik på hemsidan.
 # ──────────────────────────────────────────────────────────────
 
-# Din stil läses från den här filen. Byt ut eller redigera den när du vill.
-stilfil: stil.md
-
-# Extra instruktioner till AI:n utöver stilfilen.
-tillagg: |
-  Jag letar begagnade/vintage-föremål till det här hemmet. Fokusera på lösa föremål –
-  inte golv, färg eller lister.
-  Mest av allt söker jag: stora bokhyllor och bokskåp i mörkt trä, gamla kartor och
-  sjökort, jordglober och vetenskaplig kuriosa (teleskop, kompasser, instrument),
-  konst för väggarna (oljemålningar, porträtt, grafik) och udda detaljer med historia
-  (byster, mässingsobjekt, skrivbordsföremål, naturalier).
-  Mässing, mörk valnöt, mahogny, cognacfärgat läder, mörkgrön sammet, burgundy/oxblod och
-  vit/grå marmor med mässing är rätt. Patina och ålder är ett plus.
-  Fel: krom, blanka lackytor, kalla grå toner, ljus/vitpigmenterad ek, ljus skandinavisk minimalism.
-
-# Saker jag redan har. Annonser som uppenbart är någon av dessa sorteras bort direkt,
-# och AI:n ger låga betyg åt liknande föremål.
-har_redan:
-  - Chesterfield-soffa
-  - bordslampor och bankirlampa
-  - klubbfåtölj i läder
-  - wingback-fåtölj
-har_redan_ord:
-  - chesterfield
-  - bordslampa
-  - bordlampe
-  - bordlampa
-  - bankirlampa
-  - bankerlampa
-  - klubbfåtölj
-  - wingback
-  - öronlappsfåtölj
-  - öronlappsstol
-
-# Bara annonser i Sverige (svenska auktionshus på Auctionet; Tradera är alltid svenskt).
-bara_sverige: true
-
-# Betyg som krävs för Telegram-notis, och standardfiltret på sidan (0–10).
-min_betyg: 8
-
-# Lägsta betyg som syns på hemsidan över huvud taget.
+# Gemensamt för båda spåren
+bara_sverige: true                 # bara svenska auktionshus på Auctionet (Tradera är alltid svenskt)
+min_betyg: 8                       # krävs för Telegram-notis och för att synas på sidan
 sajt_min_betyg: 8
+sajt_max_per_sokord: 3             # max fynd per sökord på sidan – ger variation
+max_pris: 25000                    # kr, 0 = ingen gräns (kan sättas per spår)
+max_bedomningar_per_korning: 200   # styr kostnaden
+modell: claude-haiku-4-5-20251001  # byt till claude-sonnet-5-5 för skarpare omdömen
 
-# Max antal fynd av samma typ (samma sökord) på sidan – ger variation.
-sajt_max_per_sokord: 3
-
-# Prisgräns i kronor (utrop/aktuellt pris/köp nu). 0 = ingen gräns.
-max_pris: 25000
-
-# Max antal NYA annonser som AI-bedöms per körning (styr kostnaden).
-max_bedomningar_per_korning: 150
-
-# AI-modell för bedömningen. Haiku är billig och klarar bilder bra.
-# Byt till claude-sonnet-5-5 om du vill ha skarpare omdömen.
-modell: claude-haiku-4-5-20251001
-
-# Ord som gör att en annons sorteras bort direkt, utan AI (sparar pengar).
 uteslut_ord:
   - ikea
   - plast
-  - högglans
-  - krom
-  - vitpigmenterad
   - reservdel
   - defekt
   - reproduktion
-  - affisch
-  - poster
 
-# Sökningar per kategori. Bred sökning är bra – AI:n sköter urvalet.
-sokningar:
-  Bokhyllor och möbler:
-    - bokhylla valnöt
-    - bokhylla mahogny
-    - bokhylla mörkt trä
-    - bokhylla glasdörrar
-    - bibliotekshylla
-    - biblioteksskåp
-    - bokskåp
-    - engelsk bokhylla
-    - vitrinskåp mahogny
-    - skrivbord marmor
-    - partnerskrivbord
-    - sekretär mahogny
-    - globbar
-    - sidobord marmor
-  Kartor, glober och kuriosa:
-    - jordglob
-    - himmelsglob
-    - glob 1800-tal
-    - antik karta
-    - karta 1700-tal
-    - karta 1800-tal
-    - världskarta
-    - sjökort
-    - stjärnkarta
-    - teleskop mässing
-    - kompass mässing
-    - sextant
-    - mikroskop mässing
-    - vetenskapligt instrument
-    - anatomisk plansch
-    - skolplansch
-  Konst:
-    - oljemålning porträtt
-    - oljemålning interiör
-    - oljemålning stilleben
-    - oljemålning landskap 1800-tal
-    - porträtt förgylld ram
-    - kopparstick
-    - gravyr
-    - litografi arkitektur
-    - silhuett
-  Detaljer och dekor:
-    - byst brons
-    - byst gips
-    - skulptur brons
-    - skrivställ
-    - bläckhorn
-    - förstoringsglas mässing
-    - bokstöd
-    - ljusstakar mässing
-    - karaff kristall
-    - cigarrlåda
-    - fjärilar inramade
-    - naturalier
-    - läderband böcker
-    - klotband
-  Belysning:
-    - tavelbelysning mässing
-    - golvlampa mässing
-    - läslampa golv mässing
-    - vägglampa mässing
-    - lampett mässing
-  Mattor och textilier:
-    - persisk matta
-    - kelim
-    - sammet kudde grön
-
-# Vilka källor som är påslagna.
 kallor:
-  auctionet: true   # Ingen nyckel behövs
-  tradera: true     # Kräver TRADERA_APP_ID och TRADERA_APP_KEY (gratis), annars hoppas den över
+  auctionet: true   # ingen nyckel behövs
+  tradera: true     # kräver TRADERA_APP_ID och TRADERA_APP_KEY (gratis), annars hoppas den över
+
+spar:
+  # ── 1. Inredningen ────────────────────────────────────────────
+  hemmet:
+    namn: The Reading Room
+    profilfil: stil.md
+    tillagg: |
+      Jag letar begagnade/vintage-föremål till det här hemmet. Fokusera på lösa föremål –
+      inte golv, färg eller lister.
+      Mest av allt söker jag: stora bokhyllor och bokskåp i mörkt trä, gamla kartor och
+      sjökort, jordglober och vetenskaplig kuriosa (teleskop, kompasser, instrument),
+      konst för väggarna (oljemålningar, porträtt, grafik) och udda detaljer med historia
+      (byster, mässingsobjekt, skrivbordsföremål, naturalier).
+      Mässing, mörk valnöt, mahogny, cognacfärgat läder, mörkgrön sammet, burgundy/oxblod och
+      vit/grå marmor med mässing är rätt. Patina och ålder är ett plus.
+      Fel: krom, blanka lackytor, kalla grå toner, ljus/vitpigmenterad ek, ljus skandinavisk minimalism.
+    har_redan:
+      - Chesterfield-soffa
+      - bordslampor och bankirlampa
+      - klubbfåtölj i läder
+      - wingback-fåtölj
+    har_redan_ord: [chesterfield, bordslampa, bordlampe, bordlampa, bankirlampa, bankerlampa,
+                    klubbfåtölj, wingback, öronlappsfåtölj, öronlappsstol]
+    uteslut_ord: [högglans, krom, vitpigmenterad, affisch, poster]
+    sokningar:
+      Bokhyllor och möbler:
+      - bokhylla valnöt
+      - bokhylla mahogny
+      - bokhylla mörkt trä
+      - bokhylla glasdörrar
+      - bibliotekshylla
+      - biblioteksskåp
+      - bokskåp
+      - engelsk bokhylla
+      - vitrinskåp mahogny
+      - skrivbord marmor
+      - partnerskrivbord
+      - sekretär mahogny
+      - globbar
+      - sidobord marmor
+      Kartor, glober och kuriosa:
+      - jordglob
+      - himmelsglob
+      - glob 1800-tal
+      - antik karta
+      - karta 1700-tal
+      - karta 1800-tal
+      - världskarta
+      - sjökort
+      - stjärnkarta
+      - teleskop mässing
+      - kompass mässing
+      - sextant
+      - mikroskop mässing
+      - vetenskapligt instrument
+      - anatomisk plansch
+      - skolplansch
+      Konst:
+      - oljemålning porträtt
+      - oljemålning interiör
+      - oljemålning stilleben
+      - oljemålning landskap 1800-tal
+      - porträtt förgylld ram
+      - kopparstick
+      - gravyr
+      - litografi arkitektur
+      - silhuett
+      Detaljer och dekor:
+      - byst brons
+      - byst gips
+      - skulptur brons
+      - skrivställ
+      - bläckhorn
+      - förstoringsglas mässing
+      - bokstöd
+      - ljusstakar mässing
+      - karaff kristall
+      - cigarrlåda
+      - fjärilar inramade
+      - naturalier
+      - läderband böcker
+      - klotband
+      Belysning:
+      - tavelbelysning mässing
+      - golvlampa mässing
+      - läslampa golv mässing
+      - vägglampa mässing
+      - lampett mässing
+      Mattor och textilier:
+      - persisk matta
+      - kelim
+      - sammet kudde grön
+
+  # ── 2. Konst, glas och design ────────────────────────────────
+  samlingen:
+    namn: Samlingen
+    profilfil: samlingsprofil.md
+    tillagg: |
+      Hitta LIKNANDE fynd som passar samlingen – nya namn och föremål i samma anda,
+      inte bara exakt samma konstnärer. Nordisk expressionism och abstraktion 1940–1990,
+      signerad grafik och serigrafier, pop art, handblåst färgat svenskt designglas
+      (starka färger: rött, koboltblått, smaragdgrönt, gult), signerad keramik från
+      Gustavsberg/Rörstrand med grafiska mönster.
+      Följ prisnivåerna i profilen: original 3 000–80 000 kr, grafik 500–8 000 kr,
+      glas 200–2 000 kr, keramik 100–600 kr. Räkna ner för föremål långt över de nivåerna.
+      Räkna ner för osignerat, omärkt, reproduktioner och tryck utan upplaga/signatur.
+      Ge låga betyg åt dubbletter av sådant som redan finns i ägarförteckningen.
+    uteslut_ord: [affischtryck, offsettryck, print on canvas]
+    max_pris: 40000
+    sokningar:
+      Konst:
+        - Evert Lundquist
+        - Curt Hillfon
+        - Willie Weberg
+        - Ulf Lundell
+        - Owe Gustafson
+        - Lennart Rodhe
+        - Olle Bonniér
+        - Pierre Olofsson
+        - Torsten Renqvist
+        - Peter Dahl
+        - Carl Fredrik Reuterswärd
+        - Jan Håfström
+        - Philip von Schantz
+        - nordisk abstraktion
+        - abstrakt komposition signerad
+        - serigrafi signerad numrerad
+        - litografi signerad numrerad
+        - Andy Warhol edition
+        - Roy Lichtenstein poster
+      Glas:
+        - Erik Höglund
+        - Ulrica Hydman-Vallien
+        - Bertil Vallien
+        - Kjell Engman
+        - Gunnel Sahlin
+        - Nils Landberg
+        - Vicke Lindstrand
+        - Sven Palmqvist
+        - Gunnar Cyrén
+        - Ingeborg Lundin
+        - Monica Bratt Reijmyre
+        - Boda glas
+        - Kosta glas
+        - Orrefors Colora
+        - Iittala Kastehelmi
+      Keramik och design:
+        - Stig Lindberg
+        - Lisa Larson
+        - Hertha Bengtson
+        - Marianne Westman
+        - Rörstrand keramik
+        - Gustavsberg keramik
+        - Gunnar Nylund
+        - Carl-Harry Stålhane
+        - Bjørn Wiinblad
+        - Niki de Saint Phalle
