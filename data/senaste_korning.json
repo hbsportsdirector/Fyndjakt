@@ -1,13 +1,13 @@
 {
-  "tid": "2026-10-04T12:07:36",
-  "annonser_totalt": 4233,
-  "nya": 2302,
+  "tid": "2026-10-04T12:41:32",
+  "annonser_totalt": 4210,
+  "nya": 1953,
   "bedomda": 350,
-  "nya_traffar": 42,
+  "nya_traffar": 26,
   "kallor": {
     "Auctionet": {
       "sokningar": 105,
-      "traffar": 4073,
+      "traffar": 4068,
       "fel": 0,
       "felexempel": []
     },
@@ -30,5 +30,5 @@
       "felexempel": []
     }
   },
-  "stadsmissionen_katalog": 1363
+  "stadsmissionen_katalog": 1364
 }
