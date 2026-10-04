@@ -50,12 +50,21 @@ jobs:
 
       - name: Spara sedda annonser
         if: always()
+        continue-on-error: true   # hemsidan ska publiceras även om sparandet krånglar
         run: |
           git config user.name "fyndjakt-bot"
           git config user.email "fyndjakt-bot@users.noreply.github.com"
           git add data/sedda.db data/senaste_korning.json
-          git diff --cached --quiet || git commit -m "Uppdatera sedda annonser"
-          git push
+          git diff --cached --quiet && exit 0
+          git commit -m "Uppdatera sedda annonser"
+          # Om något annat laddats upp under körningen: lägg resultaten ovanpå och försök igen.
+          for i in 1 2 3; do
+            git push && exit 0
+            git fetch origin main
+            git rebase -X theirs origin/main || { git checkout --theirs data/ ; git add data/ ; GIT_EDITOR=true git rebase --continue ; }
+            sleep 5
+          done
+          exit 1
 
       - uses: actions/configure-pages@v5
 

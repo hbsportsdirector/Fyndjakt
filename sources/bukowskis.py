@@ -109,7 +109,8 @@ def tolka_lotsida(html: str) -> tuple[str, str]:
     Placering ser ut som 'Västberga Allé 3, Hägersten - H138'."""
     soup = BeautifulSoup(html, "lxml")
     placering = _text(soup.select_one(".c-lot-placement__value"))
-    ort = placering.split(" - ")[0].split(",")[-1].strip() if placering else ""
+    ort = re.split(r"\s+-\s*\w*$", placering)[0].split(",")[-1].strip() if placering else ""
+    ort = re.sub(r"^.*?\d{3}\s?\d{2}\s+", "", ort)  # ta bort gatuadress och postnummer
     beskrivning = _text(soup.select_one(".c-lot-description"))
     return ort, beskrivning
 

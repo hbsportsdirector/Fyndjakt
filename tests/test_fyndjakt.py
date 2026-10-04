@@ -270,6 +270,10 @@ def test_region():
     assert sajt.region_for("bukowskis", "Bukowskis, Hägersten") == ("Hägersten", "Stockholm")
     assert sajt.region_for("bukowskis", "Bukowskis, Göteborg")[1] == "Västsverige och Värmland"
     assert sajt.region_for("bukowskis", "Bukowskis") == ("Stockholm", "Stockholm")
+    assert sajt.region_for("bukowskis", "Bukowskis, 126 30 Hägersten")[1] == "Stockholm"
+    assert sajt.region_for("bukowskis", "Bukowskis, Bukowskis Malmö")[1] == "Skåne"
+    assert sajt.region_for("bukowskis", "Bukowskis, Västberga Allé 3. 126 30 Hägersten -T13")[1] == "Stockholm"
+    assert sajt.region_for("auctionet", "Hus, Lundby")[1] == "Övriga Sverige"  # inte "Lund"
 
 
 def test_bukowskis_lotsida():

@@ -1,5 +1,6 @@
 """Bygger hemsidan (site/index.html) från databasen. Publiceras via GitHub Pages."""
 import json
+import re
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -44,7 +45,15 @@ def region_for(kalla: str, plats: str) -> tuple[str, str]:
         return "Stockholm", "Stockholm"  # äldre annonser utan läst placering; huvudlagret ligger i Stockholm
     if not ort:
         return "", "Övriga Sverige"
-    return ort, _ORT_TILL_REGION.get(ort.lower(), "Övriga Sverige")
+    region = _ORT_TILL_REGION.get(ort.lower())
+    if region:
+        return ort, region
+    # Leta efter en känd ort någonstans i texten, t.ex. "Västberga Allé 3. 126 30 Hägersten -T13".
+    text = (plats or "").lower()
+    for kand in sorted(_ORT_TILL_REGION, key=len, reverse=True):
+        if re.search(rf"(?<![a-zåäö]){re.escape(kand)}(?![a-zåäö])", text):
+            return kand.title(), _ORT_TILL_REGION[kand]
+    return ort, "Övriga Sverige"
 
 
 FALT = ["nyckel", "titel", "url", "betyg", "motivering", "kalla", "kategori",
