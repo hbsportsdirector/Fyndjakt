@@ -7,6 +7,42 @@ from zoneinfo import ZoneInfo
 ROT = Path(__file__).parent
 UT = ROT / "site"
 
+# Ort → region. Orter som saknas hamnar i "Övriga Sverige".
+REGIONER = {
+    "Stockholm": ["stockholm", "norrtälje", "järna", "jarna", "södertälje", "nacka", "täby", "lidingö",
+                  "sollentuna", "solna", "sundbyberg", "huddinge", "haninge", "värmdö", "sigtuna", "danderyd",
+                  "upplands väsby", "vallentuna", "österåker", "tyresö", "botkyrka", "ekerö", "sickla", "bromma"],
+    "Uppsala och Mälardalen": ["uppsala", "västerås", "örebro", "eskilstuna", "katrineholm", "nyköping",
+                               "enköping", "sala", "strängnäs", "köping", "arboga", "flen", "tierp", "östhammar"],
+    "Östergötland, Småland och Blekinge": ["norrköping", "linköping", "motala", "söderköping", "kalmar", "växjö",
+                                           "jönköping", "oskarshamn", "karlshamn", "karlskrona", "västervik",
+                                           "vimmerby", "värnamo", "ljungby", "nässjö", "vadstena", "mjölby", "ronneby",
+                                           "visby", "gotland"],
+    "Skåne": ["helsingborg", "lund", "landskrona", "malmö", "malmo", "trelleborg", "ängelholm", "engelholm", "höör",
+              "höganäs", "ystad", "kristianstad", "hässleholm", "eslöv", "simrishamn", "båstad", "skurup", "staffanstorp"],
+    "Västsverige och Värmland": ["gothenburg", "göteborg", "borås", "vänersborg", "varberg", "halmstad", "laholm",
+                                 "henån", "lysekil", "uddevalla", "trollhättan", "kungsbacka", "alingsås", "skövde",
+                                 "lidköping", "mariestad", "falkenberg", "karlstad", "arvika", "kristinehamn",
+                                 "strömstad", "kungälv", "stenungsund", "falköping"],
+    "Norrland och Dalarna": ["umeå", "falun", "sundsvall", "hudiksvall", "sandviken", "mora", "örnsköldsvik", "gävle",
+                             "luleå", "skellefteå", "östersund", "borlänge", "härnösand", "kiruna", "piteå",
+                             "bollnäs", "söderhamn", "ludvika", "leksand", "rättvik", "avesta", "hedemora"],
+}
+_ORT_TILL_REGION = {ort: region for region, orter in REGIONER.items() for ort in orter}
+
+
+def region_for(kalla: str, plats: str) -> tuple[str, str]:
+    """Returnerar (ort, region) för en annons."""
+    if kalla in ("stadsmissionen", "bukowskis"):
+        return "Stockholm", "Stockholm"
+    if kalla in ("myrorna", "tradera"):
+        return "", "Webbutik med frakt"
+    ort = (plats or "").split(", ")[-1].strip()
+    if not ort:
+        return "", "Övriga Sverige"
+    return ort, _ORT_TILL_REGION.get(ort.lower(), "Övriga Sverige")
+
+
 FALT = ["nyckel", "titel", "url", "betyg", "motivering", "kalla", "kategori",
         "pris", "pris_text", "plats", "slutar", "slutar_ts", "bilder", "sedd", "spar"]
 
@@ -21,7 +57,9 @@ def bygg(db, cfg: dict) -> Path:
         if max_per and per_sokord.get(nyckel, 0) >= max_per:
             continue
         per_sokord[nyckel] = per_sokord.get(nyckel, 0) + 1
-        poster.append({k: r.get(k) for k in FALT})
+        post = {k: r.get(k) for k in FALT}
+        post["ort"], post["region"] = region_for(r.get("kalla"), r.get("plats"))
+        poster.append(post)
     spar_cfg = cfg.get("spar") or {"": {"namn": "Fynd", "sokningar": cfg.get("sokningar", {})}}
     forsta = next(iter(spar_cfg))
     for p in poster:
@@ -166,6 +204,9 @@ MALL = r"""<!doctype html>
         <option value="pris">Lägst pris</option>
       </select>
     </label>
+    <label>Område
+      <select id="reg"><option value="">Hela Sverige</option></select>
+    </label>
     <label>Källa
       <select id="src"><option value="">Alla</option></select>
     </label>
@@ -182,10 +223,19 @@ MALL = r"""<!doctype html>
 
 <script>
 const D = __DATA__;
-const st = { spar: (D.spar[0] || {}).id, cat: "", src: "", min: D.standard, sort: "betyg" };
+const st = { spar: (D.spar[0] || {}).id, cat: "", src: "", reg: "", min: D.standard, sort: "betyg" };
+try { st.reg = localStorage.getItem("fyndjakt-omrade") || ""; } catch (e) {}
 const $ = (id) => document.getElementById(id);
 const NU = Date.now() / 1000;
 const KALLNAMN = { auctionet: "Auctionet", tradera: "Tradera", bukowskis: "Bukowskis", myrorna: "Myrorna", stadsmissionen: "Stadsmissionen" };
+const REGORDNING = ["Stockholm", "Uppsala och Mälardalen", "Östergötland, Småland och Blekinge", "Västsverige och Värmland",
+  "Skåne", "Norrland och Dalarna", "Övriga Sverige", "Webbutik med frakt"];
+const finns = new Set(D.poster.map(p => p.region));
+REGORDNING.filter(r => finns.has(r)).forEach(r => {
+  const o = document.createElement("option"); o.value = r; o.textContent = r; $("reg").appendChild(o);
+});
+if (st.reg && !finns.has(st.reg)) st.reg = "";
+$("reg").value = st.reg;
 [...new Set(D.poster.map(p => p.kalla))].sort().forEach(k => {
   const o = document.createElement("option"); o.value = k; o.textContent = KALLNAMN[k] || k; $("src").appendChild(o);
 });
@@ -209,7 +259,7 @@ function renderTabs() {
     b.setAttribute("aria-selected", String(s.id === st.spar));
     b.textContent = s.namn;
     const n = document.createElement("span"); n.className = "n";
-    n.textContent = D.poster.filter(p => p.spar === s.id && p.betyg >= st.min).length;
+    n.textContent = D.poster.filter(p => p.spar === s.id && p.betyg >= st.min && (!st.reg || p.region === st.reg)).length;
     b.appendChild(n);
     b.onclick = () => { st.spar = s.id; st.cat = ""; renderTabs(); renderChips(); render(); };
     return b;
@@ -253,7 +303,7 @@ function card(p) {
 
 function render() {
   let l = D.poster.filter(p =>
-    p.spar === st.spar && (!st.cat || p.kategori === st.cat) && (!st.src || p.kalla === st.src) && p.betyg >= st.min);
+    p.spar === st.spar && (!st.reg || p.region === st.reg) && (!st.cat || p.kategori === st.cat) && (!st.src || p.kalla === st.src) && p.betyg >= st.min);
   const s = {
     betyg: (a, b) => b.betyg - a.betyg || seddTs(b) - seddTs(a),
     ny: (a, b) => seddTs(b) - seddTs(a),
@@ -268,6 +318,10 @@ function render() {
 
 $("sort").onchange = e => { st.sort = e.target.value; render(); };
 $("src").onchange = e => { st.src = e.target.value; render(); };
+$("reg").onchange = e => {
+  st.reg = e.target.value; renderTabs(); render();
+  try { localStorage.setItem("fyndjakt-omrade", st.reg); } catch (e) {}
+};
 $("min").oninput = e => { st.min = +e.target.value; $("minv").textContent = st.min; renderTabs(); render(); };
 renderTabs(); renderChips(); render();
 </script>

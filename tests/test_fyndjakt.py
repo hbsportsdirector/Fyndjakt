@@ -257,3 +257,13 @@ def test_blanda_varvar_kallor():
     from sources import Annons
     ann.append(Annons(kalla="myrorna", id="m", titel="t", url="u", kategori="Möbler"))
     assert "myrorna" in [a.kalla for a in main.blanda_kategorier(ann)[:2]]
+
+
+def test_region():
+    import sajt
+    assert sajt.region_for("auctionet", "Roslagens Auktionsverk, Norrtälje") == ("Norrtälje", "Stockholm")
+    assert sajt.region_for("auctionet", "Kalmar Auktionsverk, Kalmar")[1] == "Östergötland, Småland och Blekinge"
+    assert sajt.region_for("auctionet", "Hus, Gothenburg")[1] == "Västsverige och Värmland"
+    assert sajt.region_for("auctionet", "Hus, Okändstad")[1] == "Övriga Sverige"
+    assert sajt.region_for("stadsmissionen", "x")[1] == "Stockholm"
+    assert sajt.region_for("myrorna", "x")[1] == "Webbutik med frakt"
