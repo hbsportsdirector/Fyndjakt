@@ -362,3 +362,14 @@ def test_sajt_med_konto(tmp_path, monkeypatch):
     data = json.loads(re.search(r"const D = (.*?);\n", html).group(1))
     assert data["supabase"]["url"] == "https://x.supabase.co"
     assert "fyndjakt-kann-igen" in html and 'id="p-smak"' in html
+
+
+def test_sajt_ar_installerbar(tmp_path, monkeypatch):
+    import sajt, json
+    monkeypatch.setattr(sajt, "UT", tmp_path)
+    html = sajt.bygg(Databas(tmp_path / "t.db"), {"sajt_min_betyg": 8}).read_text(encoding="utf-8")
+    assert 'rel="manifest"' in html and 'apple-touch-icon' in html
+    m = json.loads((tmp_path / "manifest.webmanifest").read_text(encoding="utf-8"))
+    assert m["display"] == "standalone"
+    for ikon in m["icons"]:
+        assert (tmp_path / ikon["src"]).exists()

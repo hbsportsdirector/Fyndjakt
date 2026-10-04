@@ -1,0 +1,16 @@
+{
+  "name": "Fyndjakt",
+  "short_name": "Fyndjakt",
+  "description": "Dagens utvalda begagnade fynd för ditt hem och din samling.",
+  "lang": "sv",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1b241f",
+  "theme_color": "#1b241f",
+  "icons": [
+    { "src": "ikon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "ikon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "ikon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

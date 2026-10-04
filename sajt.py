@@ -90,6 +90,10 @@ def bygg(db, cfg: dict) -> Path:
     ).replace("</", "<\\/")
 
     UT.mkdir(exist_ok=True)
+    # Ikoner och manifest så att sidan kan installeras som app på telefonen.
+    import shutil
+    for f in (ROT / "assets").glob("*"):
+        shutil.copy(f, UT / f.name)
     fil = UT / "index.html"
     fil.write_text(MALL.replace("__DATA__", data), encoding="utf-8")
     print(f"Hemsidan byggd: {len(poster)} fynd → {fil}")
@@ -100,8 +104,15 @@ MALL = r"""<!doctype html>
 <html lang="sv">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#1b241f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fyndjakt">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>Fyndjakt · The Reading Room</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -129,7 +140,7 @@ MALL = r"""<!doctype html>
     background-image: radial-gradient(1200px 500px at 50% -200px, rgba(201,163,91,.10), transparent 70%);
     min-height: 100vh;
   }
-  header { padding: 40px 16px 8px; text-align: center; }
+  header { padding: calc(40px + env(safe-area-inset-top)) 16px 8px; text-align: center; }
   .tabs { display: flex; justify-content: center; gap: 4px; padding: 18px 16px 0; border-bottom: 1px solid var(--line); }
   .tab {
     background: none; border: 0; border-bottom: 2px solid transparent; color: var(--muted);
