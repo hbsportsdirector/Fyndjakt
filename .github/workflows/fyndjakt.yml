@@ -24,7 +24,7 @@ concurrency:
 jobs:
   jakt:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 100
     environment:
       name: github-pages
       url: ${{ steps.publicera.outputs.page_url }}

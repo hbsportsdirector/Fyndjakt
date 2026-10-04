@@ -11,7 +11,8 @@ min_betyg: 8                       # krävs för Telegram-notis och för att syn
 sajt_min_betyg: 8
 sajt_max_per_sokord: 3             # max fynd per sökord på sidan – ger variation
 max_pris: 25000                    # kr, 0 = ingen gräns (kan sättas per spår)
-max_bedomningar_per_korning: 200   # styr kostnaden
+max_bedomningar_per_korning: 350   # styr kostnaden (ca 1–2 öre per bedömning)
+sidor_per_sokning: 4               # hur många resultatsidor per sökning och sajt
 modell: claude-haiku-4-5-20251001  # byt till claude-sonnet-5-5 för skarpare omdömen
 
 uteslut_ord:
@@ -22,8 +23,12 @@ uteslut_ord:
   - reproduktion
 
 kallor:
-  auctionet: true   # ingen nyckel behövs
-  tradera: true     # kräver TRADERA_APP_ID och TRADERA_APP_KEY (gratis), annars hoppas den över
+  auctionet: true       # 500+ auktionshus, bl.a. Uppsala Auktionskammare och Stockholms Auktionsverk
+  bukowskis: true       # Bukowskis egna nätauktioner
+  myrorna: true         # Myrornas webbutik (auktioner via Tradera)
+  stadsmissionen: true  # Stockholms Stadsmissions webbutik, kategorin Hem
+  tradera: true         # kräver TRADERA_APP_ID och TRADERA_APP_KEY (gratis), annars hoppas den över
+                        # (täcker då även Erikshjälpen, Röda Korset m.fl. som säljer där)
 
 spar:
   # ── 1. Inredningen ────────────────────────────────────────────

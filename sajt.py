@@ -150,7 +150,7 @@ MALL = r"""<!doctype html>
 <header>
   <div class="ornament">✦ Fyndjakt ✦</div>
   <h1>Dagens <em>fynd</em></h1>
-  <p class="sub">Utvalt från Auctionet och Tradera · uppdaterad <span id="upd"></span></p>
+  <p class="sub">Utvalt från svenska auktioner och second hand · uppdaterad <span id="upd"></span></p>
 </header>
 
 <nav class="tabs" id="tabs" role="tablist" aria-label="Spår"></nav>
@@ -167,7 +167,7 @@ MALL = r"""<!doctype html>
       </select>
     </label>
     <label>Källa
-      <select id="src"><option value="">Alla</option><option value="auctionet">Auctionet</option><option value="tradera">Tradera</option></select>
+      <select id="src"><option value="">Alla</option></select>
     </label>
     <label>Minst <input id="min" type="range" min="0" max="10" step="1"> <span id="minv"></span>/10</label>
     <span class="count" id="count"></span>
@@ -185,6 +185,10 @@ const D = __DATA__;
 const st = { spar: (D.spar[0] || {}).id, cat: "", src: "", min: D.standard, sort: "betyg" };
 const $ = (id) => document.getElementById(id);
 const NU = Date.now() / 1000;
+const KALLNAMN = { auctionet: "Auctionet", tradera: "Tradera", bukowskis: "Bukowskis", myrorna: "Myrorna", stadsmissionen: "Stadsmissionen" };
+[...new Set(D.poster.map(p => p.kalla))].sort().forEach(k => {
+  const o = document.createElement("option"); o.value = k; o.textContent = KALLNAMN[k] || k; $("src").appendChild(o);
+});
 
 $("upd").textContent = D.uppdaterad;
 $("min").min = D.golv; $("min").value = st.min; $("minv").textContent = st.min;
@@ -242,7 +246,7 @@ function card(p) {
   mm("price", p.pris_text);
   mm("", p.plats);
   if (p.slutar) mm(p.slutar_ts && p.slutar_ts - NU < 86400 * 2 ? "soon" : "", "Slutar " + p.slutar);
-  mm("", p.kalla === "auctionet" ? "Auctionet" : p.kalla === "tradera" ? "Tradera" : p.kalla);
+  mm("", KALLNAMN[p.kalla] || p.kalla);
   b.appendChild(m); a.appendChild(b);
   return a;
 }

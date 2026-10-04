@@ -195,3 +195,49 @@ def test_sajt_har_flikar_per_spar(tmp_path, monkeypatch):
     data = json.loads(re.search(r"const D = (.*?);\n", sajt.bygg(db, cfg).read_text(encoding="utf-8")).group(1))
     assert [s["namn"] for s in data["spar"]] == ["The Reading Room", "Samlingen"]
     assert sorted(p["spar"] for p in data["poster"]) == ["hemmet", "samlingen", "samlingen"]
+
+
+# ── Nya källor, testade mot riktig HTML som hämtats från sajterna ──
+FIX = Path(__file__).parent / "fixtures"
+FAST_TID = 1791000000  # före alla sluttider i fixturerna
+
+
+def _las(namn):
+    return (FIX / f"{namn}.html").read_text(encoding="utf-8")
+
+
+def test_bukowskis(monkeypatch):
+    from sources import bukowskis
+    monkeypatch.setattr(bukowskis.time, "time", lambda: FAST_TID)
+    r = bukowskis.tolka_sida(_las("bukowskis"), "Test")
+    assert len(r) == 73
+    sek = next(a for a in r if a.id == "1742747")
+    assert sek.titel.startswith("Hans Lyberg") and sek.pris == 3800 and sek.valuta == "SEK"
+    assert sek.url.endswith("/sv/lots/1742747-hans-lyberg-bagare-silver-boras-1811")
+    assert sek.bilder[0].startswith("https://") and sek.slutar_ts
+    eur = next(a for a in r if a.valuta == "EUR")
+    assert "≈" in eur.pris_text
+    monkeypatch.setattr(bukowskis.time, "time", lambda: 9e12)
+    assert bukowskis.tolka_sida(_las("bukowskis")) == []  # utgångna sorteras bort
+
+
+def test_myrorna(monkeypatch):
+    from sources import myrorna
+    monkeypatch.setattr(myrorna.time, "time", lambda: FAST_TID)
+    r = myrorna.tolka_sida(_las("myrorna"), "Test")
+    assert len(r) == 50
+    a = r[0]
+    assert a.id == "500523" and a.pris == 249 and "Ledande bud" in a.pris_text
+    assert a.url.startswith("https://www.myrorna.se/shop/annons/") and a.bilder and a.slutar_ts
+
+
+def test_stadsmissionen(monkeypatch):
+    from sources import stadsmissionen
+    r = stadsmissionen.tolka_sida(_las("stadsmissionen"))
+    assert len(r) == 16 and all(a.pris and a.url.startswith("https://www.stadsmissionen.se/shop/produkt/") for a in r)
+    assert not any(a.titel.startswith("Okänt märke") for a in r)
+    monkeypatch.setattr(stadsmissionen, "_katalog", r)
+    traffar = [a.titel for a in stadsmissionen.sok("skål blå", "Glas")]
+    assert "Ljusgrön skål med blå fot" in traffar and len(traffar) < 5
+    assert stadsmissionen.sok("skål blå", "Glas")[0].kategori == "Glas"
+    assert stadsmissionen.sok("jordglob") == []

@@ -1,6 +1,6 @@
 # Fyndjakt 🔎
 
-Letar varje morgon igenom Auctionet och Tradera efter möbler, belysning, mattor, konst och dekor.
+Letar varje morgon igenom **Auctionet** (500+ auktionshus, bl.a. Uppsala Auktionskammare och Stockholms Auktionsverk), **Bukowskis**, **Myrorna**, **Stockholms Stadsmission** och **Tradera** efter möbler, belysning, mattor, konst, glas och dekor.
 Claude tittar på bilderna och betygsätter hur väl varje föremål passar din stil (0–10).
 Alla bra fynd samlas på **din egen hemsida** som uppdateras varje morgon, och de bästa (7 eller mer)
 skickas dessutom till Telegram med bild, pris, motivering och länk.
@@ -78,9 +78,12 @@ Auctionet, Tradera, Telegram, GitHub Actions och GitHub Pages (publikt repo) är
 Claude-bedömningen kostar några öre per annons med Haiku. De första dagarna blir det mest,
 sedan kommer bara nya annonser. Räkna grovt med några tior i månaden; `max_bedomningar_per_korning` sätter taket.
 
-## Blocket och Facebook Marketplace
+## Sajter som inte ingår
 
-De har inga öppna API:er och förbjuder automatisk skrapning, så de ingår inte här.
+- **Blocket och Facebook Marketplace** förbjuder automatisk skrapning.
+- **Sellpy** blockerar sin sökning för robotar.
+- **Lauritz** finns sedan konkursen 2023 bara i dansk version.
+- **Erikshjälpen och Röda Korset** säljer via Tradera och kommer med när Tradera-nyckeln är inlagd.
 Använd deras egna sparade sökningar med notiser – gärna med samma sökord som i `config.yaml`.
 
 ## Testa lokalt

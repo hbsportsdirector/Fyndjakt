@@ -14,7 +14,9 @@ from pathlib import Path
 import yaml
 
 from databas import Databas
-from sources import Annons, auctionet, tradera
+import inspect
+
+from sources import Annons, auctionet, bukowskis, myrorna, stadsmissionen, tradera
 
 ROT = Path(__file__).parent
 
@@ -51,9 +53,15 @@ def bygg_profil(spar: dict) -> str:
 
 def hamta_alla(cfg: dict) -> list[Annons]:
     kallor = cfg.get("kallor", {})
+    sidor = cfg.get("sidor_per_sokning", 3)
     aktiva = []
-    if kallor.get("auctionet", True):
-        aktiva.append(("Auctionet", auctionet.sok))
+    for namn, modul in [("Auctionet", auctionet), ("Bukowskis", bukowskis), ("Myrorna", myrorna),
+                        ("Stadsmissionen", stadsmissionen)]:
+        if kallor.get(namn.lower(), True):
+            sok = modul.sok
+            if "sidor" in inspect.signature(sok).parameters:
+                sok = (lambda f: lambda q, k: f(q, k, sidor=sidor))(sok)
+            aktiva.append((namn, sok))
     if kallor.get("tradera", True):
         if tradera.aktiverad():
             aktiva.append(("Tradera", tradera.sok))
@@ -75,7 +83,8 @@ def hamta_alla(cfg: dict) -> list[Annons]:
                         a.sokord = a.sokord or fraga
                         a.spar = sid
                         alla.setdefault(a.nyckel, a)  # första spåret som hittar den äger den
-                    print(f"  {namn:9} {fraga:32} {len(traffar):3} träffar")
+                    if traffar or namn != "Stadsmissionen":
+                        print(f"  {namn:14} {fraga:32} {len(traffar):3} träffar")
     return list(alla.values())
 
 
