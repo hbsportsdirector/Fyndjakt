@@ -7,7 +7,7 @@ skickas dessutom till Telegram med bild, pris, motivering och länk.
 
 ## Så fungerar det
 
-1. GitHub Actions startar `main.py` kl. 07:37 varje dag.
+1. GitHub Actions startar `main.py` kl. 05:17 varje dag (med en reservkörning 07:17 om GitHub är sen).
 2. Alla sökningar i `config.yaml` körs mot Auctionet (och Tradera om du har nyckel).
 3. Annonser du redan sett hoppas över (`data/sedda.db`).
 4. Nya annonser grovfiltreras på pris och "uteslut-ord", sedan bedöms resten av Claude mot din stilprofil.

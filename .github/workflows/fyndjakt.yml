@@ -2,7 +2,9 @@ name: Fyndjakt
 
 on:
   schedule:
-    - cron: "37 5 * * *"   # varje dag 07:37 svensk sommartid (06:37 vintertid)
+    # GitHub kan försena schemalagda körningar flera timmar – därför tidig start plus en reserv.
+    - cron: "17 3 * * *"   # 05:17 svensk sommartid (04:17 vintertid)
+    - cron: "17 5 * * *"   # reserv 07:17 – körs bara om dagens körning inte redan är gjord
   workflow_dispatch:        # gör att du kan köra den manuellt från fliken Actions
   push:                     # kör direkt när du ändrar stilen, inställningarna eller koden
     branches: [main]
@@ -22,7 +24,25 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Reservkörningen hoppar över allt om dagens körning redan är gjord.
+  koll:
+    runs-on: ubuntu-latest
+    outputs:
+      klar: ${{ steps.koll.outputs.klar }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: koll
+        run: |
+          IDAG=$(date -u +%F)
+          SENAST=$(python3 -c "import json;print(json.load(open('data/senaste_korning.json')).get('tid','')[:10])" 2>/dev/null || true)
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "${{ github.event.schedule }}" = "17 5 * * *" ] && [ "$SENAST" = "$IDAG" ]; then
+            echo "Dagens körning är redan gjord ($SENAST) – hoppar över."
+            echo "klar=1" >> "$GITHUB_OUTPUT"
+          fi
+
   jakt:
+    needs: koll
+    if: needs.koll.outputs.klar != '1'
     runs-on: ubuntu-latest
     timeout-minutes: 100
     environment:
