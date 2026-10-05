@@ -1,19 +1,19 @@
 {
-  "tid": "2026-10-05T09:38:26",
-  "annonser_totalt": 4193,
-  "nya": 1082,
+  "tid": "2026-10-05T23:00:16",
+  "annonser_totalt": 4252,
+  "nya": 1017,
   "bedomda": 500,
-  "nya_traffar": 222,
+  "nya_traffar": 139,
   "kallor": {
     "Auctionet": {
       "sokningar": 115,
-      "traffar": 4204,
+      "traffar": 4257,
       "fel": 0,
       "felexempel": []
     },
     "Bukowskis": {
       "sokningar": 115,
-      "traffar": 156,
+      "traffar": 142,
       "fel": 0,
       "felexempel": []
     },
@@ -25,14 +25,14 @@
     },
     "Stadsmissionen": {
       "sokningar": 115,
-      "traffar": 94,
+      "traffar": 97,
       "fel": 0,
       "felexempel": []
     },
     "Prisjämförelse": {
       "fynd": 120,
-      "med_data": 73
+      "med_data": 70
     }
   },
-  "stadsmissionen_katalog": 1353
+  "stadsmissionen_katalog": 1368
 }
