@@ -396,3 +396,100 @@ def test_egna_bedomningsregler():
     assert "SAMLARREGLER" in anrop["system"] and "MYCKET kräsen" not in anrop["system"]
     bedomning.bedom(a, "STIL", "m", Falsk)
     assert "MYCKET kräsen" in anrop["system"]
+
+
+# ── Flera användare ────────────────────────────────────────────────
+EXPORT2 = {
+    "anvandare": [{"user_id": "per-0000-aaaa", "namn": "Per", "admin": True},
+                  {"user_id": "kompis-11-bbbb", "namn": "kompis", "admin": False}],
+    "profiler": [
+        {"id": 5, "user_id": "kompis-11-bbbb", "namn": "Sommarhuset", "beskrivning": "Allmoge och blått",
+         "har_redan": "matbord\n- pinnstolar", "max_pris": 3000,
+         "sokningar": {"Möbler": ["allmogeskåp", "  allmogeskåp ", "x", "pinnstol " * 20], "Porslin": ["Gustavsberg blå"]}},
+        {"id": 6, "user_id": "kompis-11-bbbb", "namn": "Tomt", "sokningar": {}},
+        {"id": 7, "user_id": "okand-medlem", "namn": "Ej medlem", "sokningar": {"A": ["b c"]}},
+    ],
+    "reaktioner": [
+        {"user_id": "per-0000-aaaa", "typ": "gillar", "spar": "hemmet", "titel": "PERS BOKSKÅP"},
+        {"user_id": "kompis-11-bbbb", "typ": "ogillar", "spar": "p5", "titel": "KOMPISENS MATTA"},
+    ],
+    "anteckningar": [
+        {"user_id": "kompis-11-bbbb", "typ": "gillar", "spar": None, "text": "Blå kakelugn", "sokord": "kakelugn blå"},
+        {"user_id": "per-0000-aaaa", "typ": "gillar", "spar": None, "text": "Glob", "sokord": "jordglob"},
+    ],
+}
+
+
+def _cfg_med_anvandare():
+    import smak
+    cfg = {"spar": {"hemmet": {"namn": "Hem", "profil": "BAS", "sokningar": {"Möbler": ["bokhylla"]}}}}
+    smak.tillampa(cfg, EXPORT2)
+    return cfg
+
+
+def test_anvandarprofiler_blir_spar():
+    cfg = _cfg_med_anvandare()
+    assert set(cfg["spar"]) == {"hemmet", "p5"}  # tom profil och icke-medlem hoppas över
+    p5 = cfg["spar"]["p5"]
+    assert p5["agare"] == "kompis-11-bbbb" and p5["max_pris"] == 3000 and p5["publik"] is False
+    assert p5["sokningar"]["Möbler"][0] == "allmogeskåp" and len(p5["sokningar"]["Möbler"]) == 2
+    assert all(len(q) <= 60 for qs in p5["sokningar"].values() for q in qs)
+    assert "Allmoge och blått" in p5["profil"] and "pinnstolar" in p5["profil"]
+
+
+def test_larande_haller_isar_anvandare():
+    cfg = _cfg_med_anvandare()
+    hem, p5 = cfg["spar"]["hemmet"], cfg["spar"]["p5"]
+    assert "PERS BOKSKÅP" in hem["profil"] and "KOMPISENS MATTA" not in hem["profil"]
+    assert "KOMPISENS MATTA" in p5["profil"] and "PERS BOKSKÅP" not in p5["profil"]
+    assert hem["sokningar"]["Från Min smak"] == ["jordglob"]
+    assert p5["sokningar"]["Från Min smak"] == ["kakelugn blå"]
+
+
+def test_samma_annons_hos_flera_anvandare(monkeypatch):
+    import main
+    from sources import Annons
+    anrop = []
+
+    def falsk_sok(q, k, sidor=3):
+        anrop.append(q)
+        return [Annons("auctionet", "1", "Skåp", "u")]
+    for mod in (main.auctionet, main.bukowskis, main.myrorna, main.stadsmissionen):
+        monkeypatch.setattr(mod, "sok", falsk_sok)
+    cfg = {"kallor": {"auctionet": True, "bukowskis": False, "myrorna": False, "stadsmissionen": False, "tradera": False},
+           "spar": {"hemmet": {"namn": "H", "sokningar": {"M": ["skåp"]}},
+                    "p5": {"namn": "K", "agare": "kompis-11-bbbb", "sokningar": {"M": ["skåp"]}}}}
+    alla = main.hamta_alla(cfg)
+    assert sorted(a.nyckel for a in alla) == ["auctionet:1", "kompis-1|auctionet:1"]
+    assert {a.spar for a in alla} == {"hemmet", "p5"}
+
+
+def test_tak_per_anvandare():
+    import main
+    from sources import Annons
+    cfg = {"max_bedomningar_per_korning": 3, "max_bedomningar_per_anvandare": 2,
+           "spar": {"h": {}, "p5": {"agare": "k"}}}
+    k = [Annons("a", str(i), "t", "u", spar="h") for i in range(5)] + \
+        [Annons("a", str(i), "t", "u", spar="p5", prefix="k|") for i in range(5)]
+    ut = main.begransa(k, cfg)
+    assert sum(a.spar == "h" for a in ut) == 3 and sum(a.spar == "p5" for a in ut) == 2
+
+
+def test_egna_fynd_syns_inte_publikt(tmp_path, monkeypatch):
+    import sajt, json, re
+    from dataclasses import replace
+    monkeypatch.setattr(sajt, "UT", tmp_path)
+    db = Databas(tmp_path / "t.db")
+    a = auctionet.tolka(AUCTIONET_POST, "Möbler")
+    db.spara(replace(a, spar="hemmet"), 9, "Pers")
+    db.spara(replace(a, spar="p5", prefix="kompis-1|"), 9, "Kompisens")
+    cfg = {"sajt_min_betyg": 8, "spar": {"hemmet": {"namn": "Hem", "sokningar": {"Möbler": []}},
+                                         "p5": {"namn": "Sommarhuset", "agare": "kompis-11-bbbb", "sokningar": {"Möbler": []}}}}
+    html = sajt.bygg(db, cfg).read_text(encoding="utf-8")
+    data = json.loads(re.search(r"const D = (.*?);\n", html).group(1))
+    assert [p["motivering"] for p in data["poster"]] == ["Pers"] and [s["id"] for s in data["spar"]] == ["hemmet"]
+    assert "Kompisens" not in html
+    egna = sajt.anvandarfynd(db, cfg)
+    assert list(egna) == ["kompis-11-bbbb"]
+    assert [p["motivering"] for p in egna["kompis-11-bbbb"]["poster"]] == ["Kompisens"]
+    assert egna["kompis-11-bbbb"]["spar"][0]["namn"] == "Sommarhuset"

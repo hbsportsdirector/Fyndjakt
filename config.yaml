@@ -12,9 +12,21 @@ sajt_min_betyg: 8
 sajt_max_per_sokord: 3             # max fynd per sökord på sidan – ger variation
 max_pris: 25000                    # kr, 0 = ingen gräns (kan sättas per spår)
 max_bedomningar_per_korning: 500   # styr kostnaden (ca 1–2 öre per bedömning)
+max_bedomningar_per_anvandare: 150  # för varje inbjuden användares egna spår
 max_prisjamforelser_per_korning: 120  # sålda föremål på Auctionet hämtas för fynden som visas
 sidor_per_sokning: 4               # hur många resultatsidor per sökning och sajt
 modell: claude-haiku-4-5-20251001  # byt till claude-sonnet-5-5 för skarpare omdömen
+
+# Betygsregler för inbjudna användares egna spår (de skapar sina profiler på hemsidan).
+bedomningsregler_anvandare: |
+  Var kräsen men rättvis – kunden vill se ett urval, inte allt. Ungefär 1 av 6 annonser bör få 8 eller mer.
+  - 10: Ett tydligt fynd: exakt det kunden beskriver, ovanligt eller långt under vad det brukar kosta.
+  - 9: Exakt rätt sak, stil och kvalitet för kunden.
+  - 8: Mycket bra match, väl värt att titta på.
+  - 6–7: Rätt riktning men vardagligt, fel detalj eller osäkert skick.
+  - 4–5: Kanske, men något skaver (fel färg, epok, material eller storlek).
+  - 0–3: Fel sak, reproduktion, trasigt, eller sådant kunden redan har.
+  Kända formgivare och eftersökta serier ska inte dras ner för att de är serietillverkade.
 
 uteslut_ord:
   - ikea

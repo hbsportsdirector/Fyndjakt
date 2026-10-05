@@ -20,7 +20,8 @@ class Annons:
     valuta: str = "SEK"
     spar: str = ""                 # vilket spår (profil) annonsen hör till
     jamforsok: str = ""            # sökfras för prisjämförelse (föreslås av AI:n)
+    prefix: str = ""               # skiljer olika användares exemplar av samma annons åt
 
     @property
     def nyckel(self) -> str:
-        return f"{self.kalla}:{self.id}"
+        return f"{self.prefix}{self.kalla}:{self.id}"

@@ -7,6 +7,7 @@ Kör:  python main.py            (vanlig körning)
       python main.py --torr     (hämtar annonser och skriver ut, utan AI och utan notiser)
 """
 import argparse
+from dataclasses import replace
 import sys
 import time
 from pathlib import Path
@@ -52,47 +53,57 @@ def bygg_profil(spar: dict) -> str:
     return "\n\n".join(delar)
 
 
+def agare_av(spar: dict) -> str:
+    """Vem spåret tillhör: "" för spåren i config.yaml (administratören), annars användarens id."""
+    return spar.get("agare") or ""
+
+
 def hamta_alla(cfg: dict) -> list[Annons]:
     kallor = cfg.get("kallor", {})
-    sidor = cfg.get("sidor_per_sokning", 3)
+    std_sidor = cfg.get("sidor_per_sokning", 3)
     aktiva = []
     for namn, modul in [("Auctionet", auctionet), ("Bukowskis", bukowskis), ("Myrorna", myrorna),
                         ("Stadsmissionen", stadsmissionen)]:
         if kallor.get(namn.lower(), True):
-            sok = modul.sok
-            if "sidor" in inspect.signature(sok).parameters:
-                sok = (lambda f: lambda q, k: f(q, k, sidor=sidor))(sok)
-            aktiva.append((namn, sok))
+            aktiva.append((namn, modul.sok, "sidor" in inspect.signature(modul.sok).parameters))
     if kallor.get("tradera", True):
         if tradera.aktiverad():
-            aktiva.append(("Tradera", tradera.sok))
+            aktiva.append(("Tradera", tradera.sok, False))
         else:
             print("Tradera: ingen nyckel satt (TRADERA_APP_ID/TRADERA_APP_KEY) – hoppar över.")
 
     alla: dict[str, Annons] = {}
+    cache: dict[tuple, list[Annons]] = {}  # samma sökning i flera användares spår görs bara en gång
     # Spåret med mest specifika sökord (namngivna formgivare) söks först och "äger" föremål som
     # båda spåren hittar – annars hamnar t.ex. en Skultuna-ljusstake under inredningen.
+    # Varje användare har sin egen uppsättning; samma annons kan alltså finnas hos flera användare.
     ordning = sorted(cfg["spar"].items(), key=lambda kv: kv[1].get("prioritet", 0), reverse=True)
     for sid, spar in ordning:
+        agare = agare_av(spar)
+        prefix = f"{agare[:8]}|" if agare else ""
+        sidor = min(spar.get("sidor", std_sidor), std_sidor)
         print(f"\n— {spar['namn']} —")
-        for namn, sok in aktiva:
+        for namn, sok, tar_sidor in aktiva:
             for kategori, fragor in spar["sokningar"].items():
                 for fraga in fragor:
                     st = STATISTIK.setdefault(namn, {"sokningar": 0, "traffar": 0, "fel": 0, "felexempel": []})
-                    st["sokningar"] += 1
-                    try:
-                        traffar = sok(fraga, kategori)
-                    except Exception as e:  # en trasig sökning ska inte stoppa resten
-                        print(f"  {namn} '{fraga}': fel – {e}")
-                        st["fel"] += 1
-                        if len(st["felexempel"]) < 5:
-                            st["felexempel"].append(f"{fraga}: {type(e).__name__}: {str(e)[:200]}")
-                        continue
-                    st["traffar"] += len(traffar)
+                    nyckel = (namn, fraga.lower(), sidor)
+                    if nyckel not in cache:
+                        st["sokningar"] += 1
+                        try:
+                            cache[nyckel] = sok(fraga, kategori, sidor=sidor) if tar_sidor else sok(fraga, kategori)
+                        except Exception as e:  # en trasig sökning ska inte stoppa resten
+                            print(f"  {namn} '{fraga}': fel – {e}")
+                            st["fel"] += 1
+                            if len(st["felexempel"]) < 5:
+                                st["felexempel"].append(f"{fraga}: {type(e).__name__}: {str(e)[:200]}")
+                            cache[nyckel] = []
+                            continue
+                        st["traffar"] += len(cache[nyckel])
+                    traffar = cache[nyckel]
                     for a in traffar:
-                        a.sokord = a.sokord or fraga
-                        a.spar = sid
-                        alla.setdefault(a.nyckel, a)  # första spåret som hittar den äger den
+                        b = replace(a, sokord=a.sokord or fraga, spar=sid, kategori=kategori, prefix=prefix)
+                        alla.setdefault(b.nyckel, b)  # första spåret (per användare) som hittar den äger den
                     if traffar or namn != "Stadsmissionen":
                         print(f"  {namn:14} {fraga:32} {len(traffar):3} träffar")
     return list(alla.values())
@@ -127,6 +138,21 @@ def blanda_kategorier(annonser: list[Annons]) -> list[Annons]:
         for lista in grupper.values():
             if lista:
                 ut.append(lista.pop(0))
+    return ut
+
+
+def begransa(kandidater: list[Annons], cfg: dict) -> list[Annons]:
+    """Taket för antal bedömningar gäller per användare, så att ingen tar slut på de andras."""
+    grupper: dict[str, list[Annons]] = {}
+    for a in kandidater:
+        grupper.setdefault(agare_av(cfg["spar"][a.spar]), []).append(a)
+    ut = []
+    for agare, lista in grupper.items():
+        tak = (cfg.get("max_bedomningar_per_anvandare", 150) if agare
+               else cfg.get("max_bedomningar_per_korning", 150))
+        if len(lista) > tak:
+            print(f"Bedömer {tak} av {len(lista)} för {agare[:8] or 'huvudspåren'} – resten tas nästa körning.")
+        ut += blanda_kategorier(lista)[:tak]
     return ut
 
 
@@ -208,10 +234,7 @@ def main() -> int:
         else:
             kandidater.append(a)
 
-    tak = cfg.get("max_bedomningar_per_korning", 150)
-    if len(kandidater) > tak:
-        print(f"Bedömer {tak} av {len(kandidater)} – resten tas nästa körning.")
-    kandidater = blanda_kategorier(kandidater)[:tak]
+    kandidater = begransa(kandidater, cfg)
 
     # Vissa källor visar ort och beskrivning bara på annonssidan – hämta dem för de som ska bedömas.
     moduler = {"bukowskis": bukowskis}
@@ -228,9 +251,9 @@ def main() -> int:
         klient = bedomning._klient()
         for i, a in enumerate(kandidater, 1):
             spar = cfg["spar"][a.spar]
+            regler = spar.get("bedomningsregler") or (cfg.get("bedomningsregler_anvandare") if spar.get("agare") else None)
             try:
-                betyg, motivering, a.jamforsok = bedomning.bedom(a, spar["profil"], cfg["modell"], klient,
-                                                                 spar.get("bedomningsregler"))
+                betyg, motivering, a.jamforsok = bedomning.bedom(a, spar["profil"], cfg["modell"], klient, regler)
             except Exception as e:
                 print(f"  [{i}] fel vid bedömning av {a.titel[:50]}: {e}")
                 continue  # sparas inte – försöker igen nästa gång
@@ -245,10 +268,18 @@ def main() -> int:
 
     # Hemsidan byggs om varje gång, även om inget nytt hittades (utgångna annonser försvinner).
     sajt.bygg(db, cfg)
+    try:
+        import smak
+        smak.publicera(cfg, sajt.anvandarfynd(db, cfg))
+    except Exception as e:
+        print(f"Kunde inte lägga upp användarnas fynd: {e}")
+        STATISTIK["Egna fynd"] = {"fel": str(e)[:200]}
 
     traffar.sort(key=lambda t: t[0], reverse=True)
     if notis.aktiverad():
         for betyg, a, motivering in traffar:
+            if agare_av(cfg["spar"][a.spar]):
+                continue  # Telegram-notiserna går bara till administratören
             try:
                 notis.skicka(a, betyg, motivering)
                 time.sleep(1)

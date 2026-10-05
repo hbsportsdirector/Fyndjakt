@@ -1,4 +1,4 @@
-// Fyndjakt: känner igen ett fotograferat föremål med Claude.
+// Fyndjakt: känner igen ett fotograferat föremål med Claude, och föreslår sökord för en ny profil (typ: "profil").
 // Kräver inloggad Fyndjakt-medlem. Anthropic-nyckeln ligger som hemlighet ANTHROPIC_API_KEY i Supabase.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
@@ -46,6 +46,54 @@ Svara ENBART med JSON:
  "sokord": "<2–4 ord som hittar liknande föremål på en svensk auktionssajt, t.ex. 'Rörstrand Swedish Grace'>",
  "kategori": "<en av: Möbler, Belysning, Konst, Glas, Keramik, Porslin, Textil, Dekor, Övrigt>"}`;
 
+const PROFIL_INSTRUKTION = `Du hjälper en person att sätta upp en daglig bevakning av svenska auktionssajter
+(Auctionet, Bukowskis) och second hand-butiker (Myrorna, Stadsmissionen). Personen beskriver sin stil, sitt hem
+eller sin samling. Föreslå sökord som hittar RÄTT begagnade och vintage-föremål.
+
+Regler för sökorden:
+- Svenska, 1–4 ord, så som föremål faktiskt rubriceras på auktion: "Josef Frank", "Rörstrand Picknick",
+  "byrå gustaviansk", "pinnstol allmoge", "Orrefors vas", "matta rya".
+- Namngivna formgivare, konstnärer, fabriker och serier ger bäst träffar – ta med dem när de passar stilen.
+- Blanda: några breda (föremålstyp + material/epok) och många specifika (namn, serier).
+- Inget som personen säger att hen redan har eller inte vill ha.
+- 15–30 sökord totalt, grupperade i 3–6 kategorier med korta namn (t.ex. "Möbler", "Glas", "Konst", "Belysning").
+
+Svara ENBART med JSON:
+{"namn": "<kort namn på bevakningen, max 30 tecken, om personen inte gett något>",
+ "sokningar": {"<Kategori>": ["<sökord>", ...], ...},
+ "kommentar": "<1–2 meningar till personen om vad du fokuserat på>"}`;
+
+async function profilforslag(nyckel: string, kropp: { beskrivning?: string; har_redan?: string; namn?: string }) {
+  const text = [
+    kropp.namn ? `Bevakningens namn: ${String(kropp.namn).slice(0, 40)}` : "",
+    `Så här beskriver personen vad hen söker:\n${String(kropp.beskrivning ?? "").slice(0, 6000)}`,
+    kropp.har_redan ? `Har redan / vill inte ha:\n${String(kropp.har_redan).slice(0, 1500)}` : "",
+  ].filter(Boolean).join("\n\n");
+  const r = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "x-api-key": nyckel, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+    body: JSON.stringify({ model: MODELL, max_tokens: 1200, system: PROFIL_INSTRUKTION,
+                           messages: [{ role: "user", content: text }] }),
+  });
+  if (!r.ok) { console.error("Anthropic", r.status, await r.text()); return null; }
+  const data = await r.json();
+  const svarstext: string = (data?.content ?? []).filter((b: { type: string }) => b.type === "text")
+    .map((b: { text: string }) => b.text).join("\n");
+  const m = svarstext.match(/\{[\s\S]*\}/);
+  try {
+    const res = JSON.parse(m ? m[0] : "{}");
+    const sokningar: Record<string, string[]> = {};
+    let antal = 0;
+    for (const [kat, lista] of Object.entries(res.sokningar ?? {}).slice(0, 8)) {
+      if (!Array.isArray(lista)) continue;
+      const rena = lista.map((q) => String(q).trim().slice(0, 60)).filter((q) => q.length > 1);
+      const plats = Math.max(0, 30 - antal);
+      if (rena.length && plats) { sokningar[String(kat).slice(0, 40)] = rena.slice(0, plats); antal += Math.min(rena.length, plats); }
+    }
+    return { namn: String(res.namn ?? "").slice(0, 40), sokningar, kommentar: String(res.kommentar ?? "").slice(0, 400) };
+  } catch { return null; }
+}
+
 // Första frågan med bilden, sedan växelvis Claudes tidigare svar och användarens kommentarer.
 function bygg_meddelanden(bilder: string[], mediatyp: string, samtal: { roll: string; text: string }[]) {
   const meddelanden: unknown[] = [{ role: "user", content: [
@@ -88,8 +136,15 @@ Deno.serve(async (req) => {
       (liknande.length ? " Hittade bara: " + liknande.join(", ") : "") }, 503, origin);
   }
 
-  let kropp: { bild?: string; bilder?: string[]; mediatyp?: string; samtal?: { roll: string; text: string }[] };
+  let kropp: { typ?: string; bild?: string; bilder?: string[]; mediatyp?: string; samtal?: { roll: string; text: string }[];
+               beskrivning?: string; har_redan?: string; namn?: string };
   try { kropp = await req.json(); } catch { return svar({ fel: "Ogiltig förfrågan" }, 400, origin); }
+
+  if (kropp.typ === "profil") {
+    if (String(kropp.beskrivning ?? "").trim().length < 10) return svar({ fel: "Beskriv lite mer först" }, 400, origin);
+    const res = await profilforslag(nyckel, kropp);
+    return res ? svar(res, 200, origin) : svar({ fel: "Kunde inte ta fram sökord just nu" }, 502, origin);
+  }
   const bilder = (kropp.bilder?.length ? kropp.bilder : [kropp.bild ?? ""])
     .map((b) => String(b ?? "").replace(/^data:image\/\w+;base64,/, "")).filter((b) => b).slice(0, 4);
   const mediatyp = ["image/jpeg", "image/png", "image/webp"].includes(kropp.mediatyp ?? "") ? kropp.mediatyp! : "image/jpeg";
