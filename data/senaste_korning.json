@@ -1,13 +1,13 @@
 {
-  "tid": "2026-10-04T18:04:32",
-  "annonser_totalt": 4179,
-  "nya": 399,
+  "tid": "2026-10-05T06:40:09",
+  "annonser_totalt": 4008,
+  "nya": 536,
   "bedomda": 350,
-  "nya_traffar": 0,
+  "nya_traffar": 31,
   "kallor": {
     "Auctionet": {
       "sokningar": 108,
-      "traffar": 3998,
+      "traffar": 4039,
       "fel": 0,
       "felexempel": []
     },
@@ -19,16 +19,20 @@
     },
     "Myrorna": {
       "sokningar": 108,
-      "traffar": 1111,
+      "traffar": 751,
       "fel": 0,
       "felexempel": []
     },
     "Stadsmissionen": {
       "sokningar": 108,
-      "traffar": 90,
+      "traffar": 87,
       "fel": 0,
       "felexempel": []
+    },
+    "Prisjämförelse": {
+      "fynd": 31,
+      "med_data": 23
     }
   },
-  "stadsmissionen_katalog": 1360
+  "stadsmissionen_katalog": 1355
 }
