@@ -1,13 +1,13 @@
 {
-  "tid": "2026-10-05T08:46:48",
-  "annonser_totalt": 4201,
-  "nya": 1586,
+  "tid": "2026-10-05T09:38:26",
+  "annonser_totalt": 4193,
+  "nya": 1082,
   "bedomda": 500,
-  "nya_traffar": 145,
+  "nya_traffar": 222,
   "kallor": {
     "Auctionet": {
       "sokningar": 115,
-      "traffar": 4209,
+      "traffar": 4204,
       "fel": 0,
       "felexempel": []
     },
@@ -25,13 +25,13 @@
     },
     "Stadsmissionen": {
       "sokningar": 115,
-      "traffar": 90,
+      "traffar": 94,
       "fel": 0,
       "felexempel": []
     },
     "Prisjämförelse": {
       "fynd": 120,
-      "med_data": 77
+      "med_data": 73
     }
   },
   "stadsmissionen_katalog": 1353
