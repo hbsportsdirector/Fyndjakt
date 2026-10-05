@@ -373,3 +373,26 @@ def test_sajt_ar_installerbar(tmp_path, monkeypatch):
     assert m["display"] == "standalone"
     for ikon in m["icons"]:
         assert (tmp_path / ikon["src"]).exists()
+
+
+def test_raddning_av_avklippt_svar():
+    assert bedomning.tolka_svar('{"betyg": 7, "motivering": "Fin men avklip')[0] == 7
+    assert bedomning.tolka_svar('```json\n{"betyg": "8", "motivering": "Bra", "jamforsok": "x"}')[:2] == (8, "Bra")
+    assert bedomning.tolka_svar("Inget här")[1] == "Kunde inte tolka svaret"
+
+
+def test_egna_bedomningsregler():
+    anrop = {}
+
+    class Falsk:
+        class messages:
+            @staticmethod
+            def create(**kw):
+                anrop.update(kw)
+                return SimpleNamespace(content=[SimpleNamespace(type="text", text='{"betyg":9,"motivering":"ok"}')])
+
+    a = auctionet.tolka(AUCTIONET_POST)
+    bedomning.bedom(a, "STIL", "m", Falsk, "SAMLARREGLER")
+    assert "SAMLARREGLER" in anrop["system"] and "MYCKET kräsen" not in anrop["system"]
+    bedomning.bedom(a, "STIL", "m", Falsk)
+    assert "MYCKET kräsen" in anrop["system"]

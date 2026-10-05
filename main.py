@@ -70,7 +70,10 @@ def hamta_alla(cfg: dict) -> list[Annons]:
             print("Tradera: ingen nyckel satt (TRADERA_APP_ID/TRADERA_APP_KEY) – hoppar över.")
 
     alla: dict[str, Annons] = {}
-    for sid, spar in cfg["spar"].items():
+    # Spåret med mest specifika sökord (namngivna formgivare) söks först och "äger" föremål som
+    # båda spåren hittar – annars hamnar t.ex. en Skultuna-ljusstake under inredningen.
+    ordning = sorted(cfg["spar"].items(), key=lambda kv: kv[1].get("prioritet", 0), reverse=True)
+    for sid, spar in ordning:
         print(f"\n— {spar['namn']} —")
         for namn, sok in aktiva:
             for kategori, fragor in spar["sokningar"].items():
@@ -226,7 +229,8 @@ def main() -> int:
         for i, a in enumerate(kandidater, 1):
             spar = cfg["spar"][a.spar]
             try:
-                betyg, motivering, a.jamforsok = bedomning.bedom(a, spar["profil"], cfg["modell"], klient)
+                betyg, motivering, a.jamforsok = bedomning.bedom(a, spar["profil"], cfg["modell"], klient,
+                                                                 spar.get("bedomningsregler"))
             except Exception as e:
                 print(f"  [{i}] fel vid bedömning av {a.titel[:50]}: {e}")
                 continue  # sparas inte – försöker igen nästa gång

@@ -11,7 +11,7 @@ min_betyg: 8                       # krävs för Telegram-notis och för att syn
 sajt_min_betyg: 8
 sajt_max_per_sokord: 3             # max fynd per sökord på sidan – ger variation
 max_pris: 25000                    # kr, 0 = ingen gräns (kan sättas per spår)
-max_bedomningar_per_korning: 350   # styr kostnaden (ca 1–2 öre per bedömning)
+max_bedomningar_per_korning: 500   # styr kostnaden (ca 1–2 öre per bedömning)
 max_prisjamforelser_per_korning: 120  # sålda föremål på Auctionet hämtas för fynden som visas
 sidor_per_sokning: 4               # hur många resultatsidor per sökning och sajt
 modell: claude-haiku-4-5-20251001  # byt till claude-sonnet-5-5 för skarpare omdömen
@@ -132,6 +132,7 @@ spar:
   # ── 2. Konst, glas och design ────────────────────────────────
   samlingen:
     namn: Samlingen
+    prioritet: 1          # söks först: föremål som båda spåren hittar hamnar här
     profilfil: samlingsprofil.md
     tillagg: |
       Hitta LIKNANDE fynd som passar samlingen – nya namn och föremål i samma anda,
@@ -144,6 +145,19 @@ spar:
       Räkna ner för osignerat, omärkt, reproduktioner och tryck utan upplaga/signatur.
       Ge låga betyg åt dubbletter av sådant som redan finns i ägarförteckningen.
     uteslut_ord: [affischtryck, offsettryck, print on canvas]
+    # Egna betygsregler för samlingen (ersätter den stränga standarden som gäller för hemmet).
+    bedomningsregler: |
+      Kunden SAMLAR svensk och nordisk designkeramik, porslin och glas från kända formgivare och
+      fabriker (Rörstrand, Gustavsberg, Orrefors, Kosta Boda, Boda, Skultuna, Iittala m.fl.).
+      Serietillverkade föremål ur namngivna serier är PRECIS vad hen söker – dra INTE ner för att
+      något är serietillverkat, välkänt, vanligt på auktion eller ett bruksföremål.
+      - 10: Eftersökt serie/formgivare i ovanlig färg, form eller variant, eller ett tydligt fynd långt under marknadspris.
+      - 9: Känd formgivare eller eftertraktad serie (t.ex. Picknick, Swedish Grace, Blå Eld) i gott skick till bra pris.
+      - 8: Namngiven formgivare eller fabrik med tydlig designhistoria som passar samlingen.
+      - 6–7: Rätt fabrik men anonym eller ointressant form, eller dåligt skick.
+      - 4–5: Osäker tillverkare, eller fel stil (t.ex. romantiskt, dekorporslin utan designhistoria).
+      - 0–3: Fel kategori, reproduktion, eller exakt det kunden redan har.
+      Ett lågt pris är ett plus, inte ett tecken på låg kvalitet.
     max_pris: 40000
     sokningar:
       Konst:
@@ -192,4 +206,11 @@ spar:
         - Gunnar Nylund
         - Carl-Harry Stålhane
         - Bjørn Wiinblad
+        - Rörstrand Picknick
+        - Swedish Grace
+        - Skultuna
+        - Bernadotte Kylberg
+        - Pierre Forssell
+        - Owe Elvén
+        - Signe Persson-Melin
         - Niki de Saint Phalle
