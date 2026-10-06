@@ -339,6 +339,11 @@ MALL = r"""<!doctype html>
   .profilkort .kommentar { color: var(--muted); font-size: 14px; font-style: italic; margin: 6px 0 0; }
   .valkommen { background: #3a3524; border: 1px dashed var(--brass); border-radius: 12px; padding: 12px 14px; font-size: 14px; margin: 10px 0 0; }
   .valkommen[hidden] { display: none; }
+  .forklaring { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px;
+                font-size: 14px; color: var(--muted); margin-top: 8px; }
+  .forklaring p { margin: 0; } .forklaring p + ol, .forklaring ol + p { margin-top: 8px; }
+  .forklaring b { color: var(--text); }
+  .forklaring ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
   .profilval { display: flex; align-items: center; gap: 10px; margin-top: 16px; }
   .profilval label { color: var(--text); font-weight: 600; font-size: 14px; }
   .profilval select { flex: 1; font-size: 15px; padding: 10px 12px; border-color: var(--brass-dim); }
@@ -411,16 +416,21 @@ MALL = r"""<!doctype html>
   <div class="panel" role="dialog" aria-modal="true" aria-labelledby="prof-rubrik">
     <button class="knapp stang" type="button" data-stang>Stäng</button>
     <h2 id="prof-rubrik">Mina bevakningar</h2>
-    <p class="hj">Beskriv vad du letar efter – ditt hem, din stil eller din samling. Varje morgon letar appen på
-      Auctionet, Bukowskis, Myrorna och Stadsmissionen, och Claude väljer ut det som passar dig.
-      Dina fynd syns bara för dig när du är inloggad. Du kan ha upp till tre bevakningar, t.ex. en för hemmet och en för en samling.</p>
-    <p class="valkommen" id="valkommen" hidden>Välkommen! Börja med att skriva några rader om vad du gillar nedan och tryck på
+    <div class="forklaring">
+      <p><b>En bevakning är något du letar efter – och appen letar åt dig varje morgon.</b></p>
+      <ol>
+        <li><b>Beskriv</b> med egna ord vad du vill hitta, t.ex. <i>”möbler i allmogestil till sommarhuset”</i>
+          eller <i>”Gustavsbergs keramik från 50-talet”</i>.</li>
+        <li><b>Claude föreslår sökord</b> som appen använder på Auctionet, Bukowskis, Myrorna och Stadsmissionen.</li>
+        <li><b>Varje morgon</b> går Claude igenom allt nytt och visar bara det som passar dig – under en egen flik med bevakningens namn.</li>
+      </ol>
+      <p>Har du flera intressen, t.ex. hemmet och en samling, gör en bevakning för varje (högst tre).
+        Dina fynd syns bara för dig, och 👍/👎 på fynden gör bevakningen träffsäkrare.</p>
+    </div>
+    <p class="valkommen" id="valkommen" hidden>Välkommen! Skapa din första bevakning: skriv några rader om vad du letar efter nedan och tryck på
       <b>✨ Föreslå sökord</b>. Spara – så kommer dina första fynd i morgon bitti.</p>
-    <p class="valkommen" id="admin-info" hidden><b>The Reading Room</b> och <b>Samlingen</b> styrs av dina filer
-      stil.md och samlingsprofil.md och syns för alla. Här kan du lägga till extra bevakningar som bara du ser,
-      och längre ner bjuda in andra.</p>
     <div class="profilval">
-      <label for="prof-val">Bevakning</label>
+      <label for="prof-val">Välj bevakning</label>
       <select id="prof-val"></select>
     </div>
     <div id="prof-lista"></div>
