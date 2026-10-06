@@ -95,7 +95,7 @@ jobs:
         env:
           FYNDJAKT_BOT_TOKEN: ${{ secrets.FYNDJAKT_BOT_TOKEN }}
         run: |
-          git fetch -q origin main && git checkout -q origin/main -- . || true
+          git fetch -q origin main && git checkout -q origin/main -- . ':!data' || true
           python publicera.py
 
       - uses: actions/configure-pages@v5
