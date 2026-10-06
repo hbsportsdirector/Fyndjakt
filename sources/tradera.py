@@ -32,22 +32,35 @@ def tolka(post: dict, kategori: str = "") -> Annons | None:
     kop_nu = _hamta(post, "buyItNowPrice", default=0) or 0
     bud = _hamta(post, "maxBid", default=0) or 0
     nasta = _hamta(post, "nextBid", default=0) or 0
+    har_bud = bool(_hamta(post, "hasBids", default=False)) or (_hamta(post, "bidCount", default=0) or 0) > 0
 
-    if kop_nu and not bud:
-        pris, pris_text = kop_nu, f"Köp nu {kop_nu} kr"
-    elif bud:
+    if _hamta(post, "itemType") == "PureBuyItNow" or (kop_nu and not har_bud):
+        pris = kop_nu or nasta or None
+        pris_text = f"Köp nu {pris} kr" if pris else ""
+        if kop_nu and _hamta(post, "itemType") != "PureBuyItNow":
+            pris_text = f"Utrop {nasta} kr (köp nu {kop_nu} kr)"
+            pris = nasta or kop_nu
+    elif har_bud:
         pris, pris_text = bud, f"Bud {bud} kr" + (f" (köp nu {kop_nu} kr)" if kop_nu else "")
     else:
         pris, pris_text = nasta or None, f"Utrop {nasta} kr" if nasta else ""
 
+    # Bilderna kommer i flera storlekar – ta den stora ("normal"), annars galleribilden.
     bilder = []
-    for b in _hamta(post, "detailedImageLinks", default=[]) or []:
-        if isinstance(b, dict) and b.get("url"):
+    for b in _hamta(post, "imageLinks", "detailedImageLinks", default=[]) or []:
+        if isinstance(b, str):
+            bilder.append(b)
+        elif isinstance(b, dict) and b.get("url") and b.get("format", "normal") in ("normal", "gallery"):
             bilder.append(b["url"])
-    bilder += [b for b in _hamta(post, "imageLinks", default=[]) or [] if isinstance(b, str)]
+    bilder.sort(key=lambda u: 0 if "/images/" in u else 1)
     tumnagel = _hamta(post, "thumbnailLink")
     if not bilder and tumnagel:
         bilder = [tumnagel]
+
+    skick = ""
+    for attr in ((_hamta(post, "attributeValues", default={}) or {}).get("termAttributeValues") or []):
+        if attr.get("name") == "condition" and attr.get("values"):
+            skick = ", ".join(attr["values"])
 
     slutar, slutar_ts = "", None
     slut = _hamta(post, "endDate")
@@ -61,16 +74,20 @@ def tolka(post: dict, kategori: str = "") -> Annons | None:
         except ValueError:
             pass
 
-    url = _hamta(post, "itemLink", "itemUrl") or f"https://www.tradera.com/item/{item_id}"
+    url = _hamta(post, "itemUrl", "itemLink") or f"https://www.tradera.com/item/{item_id}"
     if url.startswith("/"):
         url = "https://www.tradera.com" + url
+    url = url.replace("http://", "https://", 1)
+    if _hamta(post, "isEnded", default=False):
+        return None
 
     return Annons(
         kalla="tradera",
         id=str(item_id),
         titel=(_hamta(post, "shortDescription", "title", default="") or "").strip(),
         url=url,
-        beskrivning=(_hamta(post, "longDescription", default="") or "")[:1500],
+        beskrivning=((_hamta(post, "longDescription", default="") or "")[:1500] + (f"\nSkick: {skick}" if skick else "")).strip(),
+        plats="Tradera",
         pris=pris,
         pris_text=pris_text,
         bilder=list(dict.fromkeys(bilder)),

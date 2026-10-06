@@ -68,7 +68,7 @@ def hamta_alla(cfg: dict) -> list[Annons]:
             aktiva.append((namn, modul.sok, "sidor" in inspect.signature(modul.sok).parameters))
     if kallor.get("tradera", True):
         if tradera.aktiverad():
-            aktiva.append(("Tradera", tradera.sok, False))
+            aktiva.append(("Tradera", tradera.sok, True))
         else:
             print("Tradera: ingen nyckel satt (TRADERA_APP_ID/TRADERA_APP_KEY) – hoppar över.")
 

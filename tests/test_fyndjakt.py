@@ -49,7 +49,7 @@ def test_tradera_tolkning_camel_och_pascal():
              "endDate": "2026-10-10T18:00:00Z"}
     a = tradera.tolka(camel, "Konst och dekor")
     assert a.titel == "Jordglob 1930-tal" and a.pris == 900 and a.bilder == ["https://img/t.jpg"]
-    pascal = {"Id": 5, "ShortDescription": "Karta", "MaxBid": 300, "BuyItNowPrice": 800,
+    pascal = {"Id": 5, "ShortDescription": "Karta", "MaxBid": 300, "BuyItNowPrice": 800, "HasBids": True,
               "ImageLinks": ["https://img/1.jpg"]}
     b = tradera.tolka(pascal)
     assert b.pris == 300 and "köp nu 800" in b.pris_text and b.url.endswith("/item/5")
@@ -554,3 +554,17 @@ def test_morgonnotis():
     n = w.morgonnotis(poster, nu)
     assert n["title"] == "2 nya toppfynd i Fyndjakt" and "Ny topp" in n["body"]
     assert w.morgonnotis(poster[:1], nu) is None
+
+
+def test_tradera_mot_riktigt_svar():
+    import json
+    from sources import tradera
+    data = json.loads((FIX / "tradera.json").read_text(encoding="utf-8"))
+    ann = [tradera.tolka(p, "Porslin") for p in tradera._poster(data)]
+    ann = [a for a in ann if a]
+    assert ann and all(a.url.startswith("https://www.tradera.com/item/") for a in ann)
+    forsta = ann[0]
+    assert forsta.pris == 350 and forsta.pris_text == "Köp nu 350 kr"
+    assert forsta.bilder[0].startswith("https://img.tradera.net/images/") and "Skick: Gott skick" in forsta.beskrivning
+    andra = ann[1]
+    assert andra.pris == 99 and andra.pris_text.startswith("Bud 99 kr") and andra.slutar_ts
