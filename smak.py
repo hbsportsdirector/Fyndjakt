@@ -13,7 +13,7 @@ import re
 
 import requests
 
-MAX_EXEMPEL = 20
+MAX_EXEMPEL = 30
 MAX_SOKNINGAR_PER_PROFIL = 30
 MAX_KATEGORIER = 8
 
@@ -160,15 +160,31 @@ def profiltillagg(export: dict, sid: str, agare: set[str] | None = None) -> str:
     def lista(rubrik: str, rader: list[str]) -> str:
         return f"{rubrik}\n" + "\n".join(f"- {x}" for x in rader[:MAX_EXEMPEL]) if rader else ""
 
-    gillar = [r["titel"] for r in reakt if r["typ"] == "gillar" and r.get("titel")]
-    ogillar = [r["titel"] for r in reakt if r["typ"] == "ogillar" and r.get("titel")]
-    kopt = [r["titel"] for r in reakt if r["typ"] == "kopt" and r.get("titel")]
+    def rader(typ: str) -> list[str]:
+        """Med förklaring först – den säger VAD i föremålet som avgjorde."""
+        valda = [r for r in reakt if r["typ"] == typ and r.get("titel")]
+        valda.sort(key=lambda r: 0 if r.get("kommentar") else 1)
+        ut = []
+        for r in valda:
+            rad = r["titel"]
+            if r.get("kommentar"):
+                rad += f' — KUNDENS FÖRKLARING: "{r["kommentar"]}"'
+            if r.get("motivering"):
+                rad += f" (din bedömning då: {r['motivering'][:160]})"
+            ut.append(rad)
+        return ut
+
+    gillar, ogillar, kopt = rader("gillar"), rader("ogillar"), rader("kopt")
     a_gillar = [a["text"] for a in ant if a["typ"] == "gillar"]
     a_ogillar = [a["text"] for a in ant if a["typ"] == "ogillar"]
     a_har = [a["text"] for a in ant if a["typ"] == "har"]
 
     delar = [
-        "KUNDENS EGNA REAKTIONER – väg in dem tungt. De säger mer än stilbeskrivningen.",
+        "KUNDENS EGNA REAKTIONER – väg in dem tungt. De säger mer än stilbeskrivningen.\n"
+        "Kundens FÖRKLARINGAR väger allra tyngst: de visar vilka egenskaper som avgjorde (färg, form, epok, material, "
+        "pris, skick). Samma formgivare eller tillverkare kan vara rätt i ett föremål och fel i ett annat – döm efter "
+        "egenskaperna kunden beskriver, inte bara efter namnet. Saknas förklaring: dra inte slutsatsen att hela "
+        "formgivaren eller tillverkaren är fel, jämför hellre med just det föremålets typ, färg och form.",
         lista("Fynd kunden gillat (ge liknande högt betyg):", gillar),
         lista("Kunden har själv sagt att hen gillar:", a_gillar),
         lista("Fynd kunden INTE tyckte passade (ge liknande lågt betyg):", ogillar),

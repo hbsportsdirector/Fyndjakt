@@ -568,3 +568,16 @@ def test_tradera_mot_riktigt_svar():
     assert forsta.bilder[0].startswith("https://img.tradera.net/images/") and "Skick: Gott skick" in forsta.beskrivning
     andra = ann[1]
     assert andra.pris == 99 and andra.pris_text.startswith("Bud 99 kr") and andra.slutar_ts
+
+
+def test_forklaringar_vags_in_forst():
+    import smak
+    exp = {"anvandare": [{"user_id": "u1", "admin": True}], "anteckningar": [], "reaktioner": [
+        {"user_id": "u1", "typ": "ogillar", "spar": "s", "titel": "ERIK HÖGLUND, vas, brun", "motivering": "Höglund i bärnsten."},
+        {"user_id": "u1", "typ": "ogillar", "spar": "s", "titel": "ERIK HÖGLUND, skål, grön", "kommentar": "Fel färg: för mörk"},
+        {"user_id": "u1", "typ": "gillar", "spar": "s", "titel": "ERIK HÖGLUND, vas, blå", "kommentar": "Färgen: klart koboltblått"}]}
+    t = smak.profiltillagg(exp, "s", {"u1"})
+    assert 'KUNDENS FÖRKLARING: "Färgen: klart koboltblått"' in t
+    ogillar = t.split("INTE tyckte passade")[1]
+    assert ogillar.index("skål, grön") < ogillar.index("vas, brun")  # med förklaring först
+    assert "din bedömning då: Höglund i bärnsten." in t and "inte bara efter namnet" in t

@@ -263,6 +263,18 @@ MALL = r"""<!doctype html>
   }
   .reakt button[aria-pressed="true"] { color: var(--text); border-color: var(--brass); background: #3a3524; }
   .reakt button:focus-visible { outline: 2px solid var(--brass); outline-offset: 1px; }
+  .varfor { margin-top: 8px; padding: 10px; border: 1px dashed var(--brass-dim); border-radius: 10px; background: var(--panel-2);
+            display: flex; flex-direction: column; gap: 8px; cursor: default; }
+  .varfor .v-rubrik { font-size: 13px; color: var(--text); font-weight: 600; }
+  .varfor .v-val { display: flex; flex-wrap: wrap; gap: 6px; }
+  .varfor button { border: 1px solid var(--line); background: var(--panel); color: var(--muted); font: inherit; font-size: 13px;
+                   padding: 5px 10px; border-radius: 999px; cursor: pointer; }
+  .varfor .v-val button[aria-pressed="true"] { color: #1b1a14; background: var(--brass); border-color: var(--brass); }
+  .varfor input { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 8px;
+                  padding: 7px 9px; font: inherit; font-size: 14px; width: 100%; }
+  .varfor .v-knappar { display: flex; gap: 6px; }
+  .varfor .v-spara { background: var(--brass); color: #1b1a14; border-color: var(--brass); font-weight: 600; }
+  .varfor .v-tack { font-size: 13px; color: var(--brass); }
   .card.borta { opacity: 0; transform: scale(.97); transition: opacity .35s, transform .35s; }
 
   /* Panel: logga in / Min smak */
@@ -693,16 +705,61 @@ function reaktionsknappar(p, kortEl) {
     btn.onclick = async (e) => {
       e.preventDefault(); e.stopPropagation();
       const nu = (konto.reakt.get(p.nyckel) || {}).typ;
-      if (nu === typ) await taBortReaktion(p.nyckel);
-      else await sparaReaktion(p, typ);
-      if (typ !== "gillar" && nu !== typ) {
-        kortEl.classList.add("borta");
-        setTimeout(() => { renderTabs(); render(); }, 380);
-      } else { renderTabs(); render(); }
+      if (nu === typ) { await taBortReaktion(p.nyckel); renderTabs(); render(); return; }
+      await sparaReaktion(p, typ);
+      rad.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b === btn)));
+      const gammal = kortEl.querySelector(".varfor"); if (gammal) gammal.remove();
+      if (typ === "kopt") { kortEl.classList.add("borta"); setTimeout(() => { renderTabs(); render(); }, 380); return; }
+      // Fråga varför – förklaringen säger Claude mer än namnet (samma formgivare kan vara rätt och fel).
+      rad.after(varforRuta(p, typ, kortEl));
     };
     rad.appendChild(btn);
   }
   return rad;
+}
+
+const VARFOR_VAL = {
+  gillar: ["Formen", "Färgen", "Formgivaren", "Materialet", "Motivet", "Priset", "Skicket"],
+  ogillar: ["Fel färg", "Fel form", "Fel epok", "Fel material", "För dyrt", "Dåligt skick", "Har liknande"],
+};
+function varforRuta(p, typ, kortEl) {
+  const ruta = document.createElement("div"); ruta.className = "varfor";
+  ruta.addEventListener("click", e => { e.stopPropagation(); if (e.target.tagName !== "INPUT") e.preventDefault(); });
+  const rubrik = document.createElement("div"); rubrik.className = "v-rubrik";
+  rubrik.textContent = typ === "gillar" ? "Vad gillar du med den? (valfritt)" : "Vad var fel? (valfritt)";
+  ruta.appendChild(rubrik);
+  const val = document.createElement("div"); val.className = "v-val";
+  for (const t of VARFOR_VAL[typ]) {
+    const b = document.createElement("button"); b.type = "button"; b.textContent = t; b.setAttribute("aria-pressed", "false");
+    b.onclick = () => b.setAttribute("aria-pressed", String(b.getAttribute("aria-pressed") !== "true"));
+    val.appendChild(b);
+  }
+  ruta.appendChild(val);
+  const inp = document.createElement("input"); inp.type = "text"; inp.maxLength = 200;
+  inp.placeholder = typ === "gillar" ? "t.ex. de klara färgerna, inte de bruna" : "t.ex. för brun – jag vill ha klara färger";
+  inp.setAttribute("aria-label", "Förklara med egna ord");
+  ruta.appendChild(inp);
+  const knappar = document.createElement("div"); knappar.className = "v-knappar";
+  const klar = (sparat) => {
+    if (typ === "ogillar") { kortEl.classList.add("borta"); setTimeout(() => { renderTabs(); render(); }, 380); }
+    else ruta.replaceChildren(Object.assign(document.createElement("div"),
+      { className: "v-tack", textContent: sparat ? "Tack! Claude tar med det i natt." : "Sparat som gillat." }));
+  };
+  const spara = document.createElement("button"); spara.type = "button"; spara.className = "v-spara"; spara.textContent = "Spara";
+  spara.onclick = async () => {
+    const valda = [...val.querySelectorAll('[aria-pressed="true"]')].map(b => b.textContent);
+    const text = [valda.join(", "), inp.value.trim()].filter(Boolean).join(": ").slice(0, 300);
+    if (!text) { klar(false); return; }
+    spara.disabled = true;
+    const { error } = await konto.sb.from("fyndjakt_reaktioner").update({ kommentar: text }).eq("nyckel", p.nyckel);
+    if (!error) { const r = konto.reakt.get(p.nyckel); if (r) r.kommentar = text; }
+    klar(!error);
+  };
+  const hoppa = document.createElement("button"); hoppa.type = "button"; hoppa.textContent = "Hoppa över";
+  hoppa.onclick = () => klar(false);
+  inp.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); spara.click(); } });
+  knappar.append(spara, hoppa); ruta.appendChild(knappar);
+  return ruta;
 }
 
 async function sparaReaktion(p, typ) {
@@ -771,7 +828,7 @@ function renderSmak() {
     const ul = $("l-" + typ);
     const rader = [...konto.reakt.values()].filter(r => r.typ === typ);
     ul.replaceChildren(...rader.map(r => listrad({
-      bild: r.bild || "", etikett: sparNamn(r.spar), titel: r.titel, url: r.url,
+      bild: r.bild || "", etikett: sparNamn(r.spar) + (r.kommentar ? " · ”" + r.kommentar + "”" : ""), titel: r.titel, url: r.url,
       onBort: async () => { await taBortReaktion(r.nyckel); renderSmak(); renderTabs(); render(); },
     })));
     if (!rader.length) ul.innerHTML = '<li class="tom">Inget här ännu.</li>';
