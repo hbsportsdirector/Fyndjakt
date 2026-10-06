@@ -131,9 +131,14 @@ def test_sajt_byggs(tmp_path, monkeypatch):
     monkeypatch.setattr(sajt, "ROT", tmp_path.parent)
     db = Databas(tmp_path / "t.db")
     db.spara(auctionet.tolka(dict(AUCTIONET_POST, title="Lampa </script><b>"), "Belysning"), 9, "Mässing")
-    html = sajt.bygg(db, {"sokningar": {"Belysning": []}, "min_betyg": 7}).read_text(encoding="utf-8")
-    assert "__DATA__" not in html and "Mässing" in html
-    assert "</script><b>" not in html  # ingen injektion i inbäddad data
+    cfg = {"min_betyg": 7, "_admins": {"per"}, "spar": {"hemmet": {"namn": "H", "sokningar": {"Belysning": []}}}}
+    for r in db.traffar(0):
+        pass
+    db.con.execute("UPDATE sedda SET spar='hemmet'"); db.con.commit()
+    html = sajt.bygg(db, cfg).read_text(encoding="utf-8")
+    assert "__DATA__" not in html
+    assert "Mässing" not in html and "Lampa" not in html  # inga fynd i den publika sidan
+    assert sajt.anvandarfynd(db, cfg)["per"]["poster"][0]["motivering"] == "Mässing"
 
 
 def test_config_laddas():
@@ -178,9 +183,9 @@ def test_sajt_max_per_sokord(tmp_path, monkeypatch):
         a = auctionet.tolka(dict(AUCTIONET_POST, id=i), "Konst")
         a.sokord = "persisk matta" if i < 4 else "jordglob"
         db.spara(a, 9, "x")
-    html = sajt.bygg(db, {"sokningar": {}, "sajt_min_betyg": 8, "sajt_max_per_sokord": 2}).read_text(encoding="utf-8")
-    data = json.loads(re.search(r"const D = (.*?);\n", html).group(1))
-    assert len(data["poster"]) == 3
+    db.con.execute("UPDATE sedda SET spar='hemmet'"); db.con.commit()
+    cfg = {"_admins": {"per"}, "sajt_min_betyg": 8, "sajt_max_per_sokord": 2, "spar": {"hemmet": {"sokningar": {}}}}
+    assert len(sajt.anvandarfynd(db, cfg)["per"]["poster"]) == 3
 
 
 def test_sajt_har_flikar_per_spar(tmp_path, monkeypatch):
@@ -191,9 +196,9 @@ def test_sajt_har_flikar_per_spar(tmp_path, monkeypatch):
         a = auctionet.tolka(dict(AUCTIONET_POST, id=i), "Glas")
         a.spar, a.sokord = sp, f"s{i}"
         db.spara(a, 9, "x")
-    cfg = {"sajt_min_betyg": 8, "spar": {"hemmet": {"namn": "The Reading Room", "sokningar": {"Möbler": []}},
+    cfg = {"sajt_min_betyg": 8, "_admins": {"per"}, "spar": {"hemmet": {"namn": "The Reading Room", "sokningar": {"Möbler": []}},
                                          "samlingen": {"namn": "Samlingen", "sokningar": {"Glas": []}}}}
-    data = json.loads(re.search(r"const D = (.*?);\n", sajt.bygg(db, cfg).read_text(encoding="utf-8")).group(1))
+    data = sajt.anvandarfynd(db, cfg)["per"]
     assert [s["namn"] for s in data["spar"]] == ["The Reading Room", "Samlingen"]
     assert sorted(p["spar"] for p in data["poster"]) == ["hemmet", "samlingen", "samlingen"]
 
@@ -487,9 +492,11 @@ def test_egna_fynd_syns_inte_publikt(tmp_path, monkeypatch):
                                          "p5": {"namn": "Sommarhuset", "agare": "kompis-11-bbbb", "sokningar": {"Möbler": []}}}}
     html = sajt.bygg(db, cfg).read_text(encoding="utf-8")
     data = json.loads(re.search(r"const D = (.*?);\n", html).group(1))
-    assert [p["motivering"] for p in data["poster"]] == ["Pers"] and [s["id"] for s in data["spar"]] == ["hemmet"]
-    assert "Kompisens" not in html
+    assert data["poster"] == [] and data["spar"] == []  # inget publikt
+    assert "Kompisens" not in html and "Pers" not in html
+    cfg["_admins"] = {"per-0000-aaaa"}
     egna = sajt.anvandarfynd(db, cfg)
-    assert list(egna) == ["kompis-11-bbbb"]
+    assert sorted(egna) == ["kompis-11-bbbb", "per-0000-aaaa"]
+    assert [p["motivering"] for p in egna["per-0000-aaaa"]["poster"]] == ["Pers"]
     assert [p["motivering"] for p in egna["kompis-11-bbbb"]["poster"]] == ["Kompisens"]
     assert egna["kompis-11-bbbb"]["spar"][0]["namn"] == "Sommarhuset"

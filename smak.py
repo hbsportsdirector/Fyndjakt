@@ -183,6 +183,7 @@ def tillampa(cfg: dict, export: dict | None) -> None:
     """Lägger in användarnas profiler och uppdaterar varje spårs profil och sökningar på plats."""
     if not export:
         return
+    cfg["_admins"] = admins(export)  # huvudspårens fynd läggs upp till dem
     lagg_till_profiler(cfg, export)
     for sid, spar in cfg["spar"].items():
         agare = _agare(spar, export)

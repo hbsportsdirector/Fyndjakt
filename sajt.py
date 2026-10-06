@@ -94,8 +94,9 @@ def anvandarfynd(db, cfg: dict) -> dict:
     """Varje användares egna spår och fynd, för att läggas upp i databasen: {user_id: {...}}."""
     egna: dict[str, dict] = {}
     for sid, s in cfg.get("spar", {}).items():
-        if s.get("agare"):
-            egna.setdefault(s["agare"], {})[sid] = s
+        # Huvudspåren i config.yaml tillhör administratörerna; övriga spår sin ägare.
+        for uid in ([s["agare"]] if s.get("agare") else sorted(cfg.get("_admins") or [])):
+            egna.setdefault(uid, {})[sid] = s
     if not egna:
         return {}
     rader = db.traffar(cfg.get("sajt_min_betyg", 6))
@@ -104,15 +105,9 @@ def anvandarfynd(db, cfg: dict) -> dict:
 
 
 def bygg(db, cfg: dict) -> Path:
+    # Sidan är publik men innehåller inga fynd – allt hämtas från databasen efter inloggning.
     min_betyg = cfg.get("sajt_min_betyg", 6)
-    spar_cfg = {sid: s for sid, s in (cfg.get("spar") or {}).items() if not s.get("agare")}
-    spar_cfg = spar_cfg or {"": {"namn": "Fynd", "sokningar": cfg.get("sokningar", {})}}
-    forsta = next(iter(spar_cfg))
-    rader = db.traffar(min_betyg)
-    for r in rader:
-        r["spar"] = r.get("spar") or forsta
-    poster = _poster(db, cfg, set(spar_cfg), rader)
-    spar = _sparlista(spar_cfg)
+    poster, spar = [], []
     nu = _nu()
 
     data = json.dumps(
@@ -129,7 +124,7 @@ def bygg(db, cfg: dict) -> Path:
         shutil.copy(f, UT / f.name)
     fil = UT / "index.html"
     fil.write_text(MALL.replace("__DATA__", data), encoding="utf-8")
-    print(f"Hemsidan byggd: {len(poster)} fynd → {fil}")
+    print(f"Hemsidan byggd (fynden visas efter inloggning) → {fil}")
     return fil
 
 
@@ -146,7 +141,7 @@ MALL = r"""<!doctype html>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<title>Fyndjakt · The Reading Room</title>
+<title>Fyndjakt</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -339,6 +334,11 @@ MALL = r"""<!doctype html>
   .profilkort .kommentar { color: var(--muted); font-size: 14px; font-style: italic; margin: 6px 0 0; }
   .valkommen { background: #3a3524; border: 1px dashed var(--brass); border-radius: 12px; padding: 12px 14px; font-size: 14px; margin: 10px 0 0; }
   .valkommen[hidden] { display: none; }
+  body.utloggad .controls, body.utloggad .tabs, body.utloggad .inne, body.utloggad footer { display: none; }
+  body.utloggad .empty { padding-top: 40px; }
+  .logga-in-stor { display: none; text-align: center; }
+  body.utloggad .logga-in-stor { display: block; }
+  .logga-in-stor .knapp { font-size: 16px; padding: 11px 26px; }
   .forklaring { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px;
                 font-size: 14px; color: var(--muted); margin-top: 8px; }
   .forklaring p { margin: 0; } .forklaring p + ol, .forklaring ol + p { margin-top: 8px; }
@@ -362,7 +362,7 @@ MALL = r"""<!doctype html>
   </div>
   <div class="ornament">✦ Fyndjakt ✦</div>
   <h1>Dagens <em>fynd</em></h1>
-  <p class="sub">Utvalt från svenska auktioner och second hand · uppdaterad <span id="upd"></span></p>
+  <p class="sub">Utvalt från svenska auktioner och second hand<span class="inne"> · uppdaterad <span id="upd"></span></span></p>
 </header>
 
 <p class="ingen-profil" id="ingen-profil" hidden>Du är inloggad men inte inbjuden till Fyndjakt än. Be den som tipsade dig om appen att bjuda in din e-post.</p>
@@ -394,6 +394,7 @@ MALL = r"""<!doctype html>
 <main>
   <div class="grid" id="grid"></div>
   <div class="empty" id="empty" hidden>Inga fynd med de här filtren ännu.</div>
+  <div class="logga-in-stor"><button class="knapp primar" type="button" id="b-logga2">Logga in</button></div>
 </main>
 <div class="panel-bak" id="p-login" hidden>
   <div class="panel" role="dialog" aria-modal="true" aria-labelledby="login-rubrik">
@@ -512,8 +513,8 @@ MALL = r"""<!doctype html>
 <script>
 const D = __DATA__;
 // Det som visas just nu: de publika spåren, eller den inloggades egna.
-const V = { spar: D.spar, poster: D.poster, egna: new Set() };
-const st = { spar: (D.spar[0] || {}).id, cat: "", src: "", reg: "", min: D.standard, sort: "betyg" };
+const V = { spar: [], poster: [], egna: new Set() };
+const st = { spar: null, cat: "", src: "", reg: "", min: D.standard, sort: "betyg" };
 try { st.reg = localStorage.getItem("fyndjakt-omrade") || ""; } catch (e) {}
 const $ = (id) => document.getElementById(id);
 const NU = Date.now() / 1000;
@@ -636,7 +637,8 @@ function render() {
   $("grid").replaceChildren(...l.map(card));
   $("empty").hidden = l.length > 0;
   const forst = V.egna.has(st.spar) && !V.poster.some(p => p.spar === st.spar);
-  $("empty").textContent = !V.spar.length ? "Skapa en bevakning under ”Mina bevakningar” så börjar appen leta åt dig."
+  $("empty").textContent = !konto.inloggad ? "Logga in för att se dina fynd."
+    : !V.spar.length ? "Skapa en bevakning under ”Mina bevakningar” så börjar appen leta åt dig."
     : forst ? "Appen letar efter det här varje morgon – dina första fynd kommer i morgon bitti."
     : "Inga fynd med de här filtren ännu.";
   $("count").textContent = l.length + (l.length === 1 ? " fynd" : " fynd");
@@ -912,9 +914,11 @@ async function uppdateraKonto(session) {
   if (konto.inloggad && !konto.admin && !konto.profiler.length) oppnaProfiler(true);
 }
 
-// Publika spår (för administratören) + egna bevakningar med fynd från morgonkörningen.
+// Huvudspåren (bara administratören) + egna bevakningar, med fynd från morgonkörningen.
+function filspar() { return ((konto.fynd || {}).spar || []).filter(s => !/^p\d+$/.test(s.id)); }
 function byggVy() {
-  if (!konto.inloggad) { V.spar = D.spar; V.poster = D.poster; V.egna = new Set(); }
+  document.body.classList.toggle("utloggad", !konto.inloggad);
+  if (!konto.inloggad) { V.spar = []; V.poster = []; V.egna = new Set(); $("upd").textContent = ""; }
   else {
     const f = konto.fynd || { spar: [], poster: [] };
     const egnaSpar = konto.profiler.map(p => {
@@ -922,9 +926,10 @@ function byggVy() {
       return { id, namn: p.namn, kategorier: fran ? fran.kategorier : Object.keys(p.sokningar || {}) };
     });
     V.egna = new Set(egnaSpar.map(s => s.id));
-    V.spar = (konto.admin ? D.spar : []).concat(egnaSpar);
-    V.poster = (konto.admin ? D.poster : []).concat((f.poster || []).filter(p => V.egna.has(p.spar)));
-    if (!konto.admin && f.uppdaterad) $("upd").textContent = f.uppdaterad;
+    V.spar = filspar().concat(egnaSpar);
+    const synliga = new Set(V.spar.map(s => s.id));
+    V.poster = (f.poster || []).filter(p => synliga.has(p.spar));
+    $("upd").textContent = f.uppdaterad || "–";
   }
   if (!V.spar.some(s => s.id === st.spar)) { st.spar = (V.spar[0] || {}).id; st.cat = ""; }
   byggFilter(); renderTabs(); renderChips(); render();
@@ -1034,7 +1039,7 @@ function profilkort(p) {
 // Listan överst: huvudspåren (styrs av filer), egna bevakningar och "+ Ny bevakning".
 function renderProfiler() {
   const val = [];
-  if (konto.admin) D.spar.forEach(sp => val.push({ v: "fil:" + sp.id, t: sp.namn + " (huvudspår)" }));
+  filspar().forEach(sp => val.push({ v: "fil:" + sp.id, t: sp.namn + " (huvudspår)" }));
   konto.profiler.forEach(pr => val.push({ v: "p" + pr.id, t: pr.namn }));
   if (konto.profiler.length < 3) val.push({ v: "ny", t: "+ Ny bevakning" });
   if (!val.some(x => x.v === konto.vald)) konto.vald = (konto.profiler.length ? "p" + konto.profiler[0].id : val[0].v);
@@ -1042,7 +1047,7 @@ function renderProfiler() {
   $("prof-val").value = konto.vald;
   let kort;
   if (konto.vald === "ny") kort = profilkort({});
-  else if (konto.vald.startsWith("fil:")) kort = filkort(D.spar.find(sp => "fil:" + sp.id === konto.vald));
+  else if (konto.vald.startsWith("fil:")) kort = filkort(filspar().find(sp => "fil:" + sp.id === konto.vald));
   else kort = profilkort(konto.profiler.find(pr => "p" + pr.id === konto.vald));
   $("prof-lista").replaceChildren(kort);
 }
@@ -1107,10 +1112,11 @@ if (D.supabase && window.supabase) {
   };
   $("b-smak").onclick = () => { sparVal($("a-spar"), st.spar); renderSmak(); oppna("p-smak"); };
   $("b-prof").onclick = () => oppnaProfiler(false);
+  $("b-logga2").onclick = () => oppna("p-login");
   konto.sb.auth.onAuthStateChange((_ev, session) => { setTimeout(() => uppdateraKonto(session), 0); });
 }
 
-renderTabs(); renderChips(); render();
+byggVy();
 </script>
 </body>
 </html>
