@@ -322,6 +322,9 @@ MALL = r"""<!doctype html>
                   color: var(--text); background: var(--panel); border: 1px solid var(--brass-dim); border-radius: 12px; }
   .ingen-profil[hidden] { display: none; }
   .status { font-size: 14px; color: var(--brass); min-height: 1.4em; }
+  .knapp.google { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;
+                  background: #fff; color: #1f1f1f; border-color: #fff; font-weight: 600; padding: 11px 14px; margin: 14px 0 6px; }
+  .panel p.hj.eller { text-align: center; margin: 10px 0 4px; }
   textarea { width: 100%; background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 10px;
              padding: 9px 11px; font: inherit; font-size: 15px; resize: vertical; }
   textarea:focus-visible, input[type=number]:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
@@ -384,7 +387,11 @@ MALL = r"""<!doctype html>
   <div class="panel" role="dialog" aria-modal="true" aria-labelledby="login-rubrik">
     <button class="knapp stang" type="button" data-stang>Stäng</button>
     <h2 id="login-rubrik">Logga in</h2>
-    <p class="hj">Du får en inloggningslänk till din e-post. Inget lösenord behövs.</p>
+    <button class="knapp google" type="button" id="b-google">
+      <svg viewBox="0 0 48 48" width="18" height="18" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.6 13.3l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.7 6c4.5-4.2 6.9-10.3 6.9-17.7z"/><path fill="#FBBC05" d="M10.5 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C1 16.6 0 20.2 0 24s1 7.4 2.6 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.7-6c-2.2 1.5-5 2.3-8.2 2.3-6.3 0-11.6-4.1-13.5-9.9l-7.9 6.1C6.6 42.6 14.6 48 24 48z"/></svg>
+      Fortsätt med Google
+    </button>
+    <p class="hj eller">eller få en inloggningslänk till din e-post – inget lösenord behövs</p>
     <form class="falt" id="f-login">
       <input type="email" id="login-epost" required placeholder="din@epost.se" autocomplete="email">
       <button class="knapp primar" type="submit">Skicka länk</button>
@@ -837,6 +844,14 @@ document.querySelectorAll("[data-spara]").forEach(b => b.onclick = async () => {
     visaStatus("foto-status", b.dataset.spara === "gillar" ? "Sparat! Appen letar efter liknande från i morgon." : "Sparat!");
   }
 });
+
+$("b-google").onclick = async () => {
+  visaStatus("login-status", "Öppnar Google …");
+  const { error } = await konto.sb.auth.signInWithOAuth({
+    provider: "google", options: { redirectTo: location.origin + location.pathname, queryParams: { prompt: "select_account" } },
+  });
+  if (error) { console.error(error); visaStatus("login-status", "Google-inloggningen är inte påslagen än – använd e-postlänken så länge."); }
+};
 
 $("f-login").onsubmit = async (e) => {
   e.preventDefault();
