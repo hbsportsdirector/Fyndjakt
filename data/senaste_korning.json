@@ -1,13 +1,16 @@
 {
-  "tid": "2026-10-06T10:43:56",
-  "annonser_totalt": 5258,
-  "nya": 620,
-  "bedomda": 176,
-  "nya_traffar": 56,
+  "tid": "2026-10-06T11:26:59",
+  "annonser_totalt": 18473,
+  "nya": 13839,
+  "bedomda": 650,
+  "nya_traffar": 106,
   "kallor": {
+    "Smakanalys": {
+      "nya": 3
+    },
     "Auctionet": {
       "sokningar": 171,
-      "traffar": 5234,
+      "traffar": 5256,
       "fel": 0,
       "felexempel": []
     },
@@ -29,9 +32,22 @@
       "fel": 0,
       "felexempel": []
     },
+    "Tradera": {
+      "sokningar": 171,
+      "traffar": 14060,
+      "fel": 0,
+      "felexempel": []
+    },
+    "Bedömning": {
+      "batch": 650,
+      "direkt": 0
+    },
     "Prisjämförelse": {
       "fynd": 120,
-      "med_data": 84
+      "med_data": 73
+    },
+    "Notiser": {
+      "skickade": 0
     }
   },
   "stadsmissionen_katalog": 1368
