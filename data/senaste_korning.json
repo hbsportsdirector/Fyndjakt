@@ -1,37 +1,37 @@
 {
-  "tid": "2026-10-06T09:02:58",
-  "annonser_totalt": 4224,
-  "nya": 433,
-  "bedomda": 431,
-  "nya_traffar": 202,
+  "tid": "2026-10-06T09:29:43",
+  "annonser_totalt": 4737,
+  "nya": 514,
+  "bedomda": 166,
+  "nya_traffar": 16,
   "kallor": {
     "Auctionet": {
-      "sokningar": 115,
-      "traffar": 4266,
+      "sokningar": 145,
+      "traffar": 4746,
       "fel": 0,
       "felexempel": []
     },
     "Bukowskis": {
-      "sokningar": 115,
-      "traffar": 142,
+      "sokningar": 145,
+      "traffar": 151,
       "fel": 0,
       "felexempel": []
     },
     "Myrorna": {
-      "sokningar": 115,
-      "traffar": 763,
+      "sokningar": 145,
+      "traffar": 974,
       "fel": 0,
       "felexempel": []
     },
     "Stadsmissionen": {
-      "sokningar": 115,
-      "traffar": 97,
+      "sokningar": 145,
+      "traffar": 218,
       "fel": 0,
       "felexempel": []
     },
     "Prisjämförelse": {
       "fynd": 120,
-      "med_data": 79
+      "med_data": 73
     }
   },
   "stadsmissionen_katalog": 1368
