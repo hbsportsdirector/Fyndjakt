@@ -409,6 +409,9 @@ MALL = r"""<!doctype html>
       Dina fynd syns bara för dig när du är inloggad. Du kan ha upp till tre bevakningar, t.ex. en för hemmet och en för en samling.</p>
     <p class="valkommen" id="valkommen" hidden>Välkommen! Börja med att skriva några rader om vad du gillar nedan och tryck på
       <b>✨ Föreslå sökord</b>. Spara – så kommer dina första fynd i morgon bitti.</p>
+    <p class="valkommen" id="admin-info" hidden><b>The Reading Room</b> och <b>Samlingen</b> styrs av dina filer
+      stil.md och samlingsprofil.md och syns för alla. Här kan du lägga till extra bevakningar som bara du ser,
+      och längre ner bjuda in andra.</p>
     <div id="prof-lista"></div>
     <div class="falt"><button class="knapp" type="button" id="b-ny-prof">+ Ny bevakning</button></div>
 
@@ -1009,12 +1012,13 @@ function profilkort(p) {
 function renderProfiler(medNy) {
   const lista = $("prof-lista");
   const kort = konto.profiler.map(profilkort);
-  if (medNy || !konto.profiler.length) kort.push(profilkort({}));
+  if (medNy || (!konto.profiler.length && !konto.admin)) kort.push(profilkort({}));
   lista.replaceChildren(...kort);
   $("b-ny-prof").hidden = konto.profiler.length >= 3 || kort.length > konto.profiler.length;
 }
 function oppnaProfiler(valkommen) {
   $("valkommen").hidden = !valkommen;
+  $("admin-info").hidden = !konto.admin;
   renderProfiler(); oppna("p-prof");
   if (konto.admin) laddaMedlemmar();
   $("admin").hidden = !konto.admin;
