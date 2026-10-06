@@ -423,13 +423,14 @@ MALL = r"""<!doctype html>
         <li><b>Beskriv</b> med egna ord vad du vill hitta, t.ex. <i>”möbler i allmogestil till sommarhuset”</i>
           eller <i>”Gustavsbergs keramik från 50-talet”</i>.</li>
         <li><b>Claude föreslår sökord</b> som appen använder på Auctionet, Bukowskis, Myrorna och Stadsmissionen.</li>
-        <li><b>Varje morgon</b> går Claude igenom allt nytt och visar bara det som passar dig – under en egen flik med bevakningens namn.</li>
+        <li><b>Direkt när du sparar</b> letar appen en första gång – efter ungefär en minut ser du dina första fynd under en egen flik.</li>
+        <li><b>Varje natt</b> går Claude sedan igenom allt nytt på alla sajterna och visar bara det som passar dig.</li>
       </ol>
       <p>Har du flera intressen, t.ex. hemmet och en samling, gör en bevakning för varje (högst tre).
         Dina fynd syns bara för dig, och 👍/👎 på fynden gör bevakningen träffsäkrare.</p>
     </div>
     <p class="valkommen" id="valkommen" hidden>Välkommen! Skapa din första bevakning: skriv några rader om vad du letar efter nedan och tryck på
-      <b>✨ Föreslå sökord</b>. Spara – så kommer dina första fynd i morgon bitti.</p>
+      <b>✨ Föreslå sökord</b>. Spara – så letar appen direkt och visar dina första fynd efter ungefär en minut.</p>
     <div class="profilval">
       <label for="prof-val">Välj bevakning</label>
       <select id="prof-val"></select>
@@ -639,7 +640,7 @@ function render() {
   const forst = V.egna.has(st.spar) && !V.poster.some(p => p.spar === st.spar);
   $("empty").textContent = !konto.inloggad ? "Logga in för att se dina fynd."
     : !V.spar.length ? "Skapa en bevakning under ”Mina bevakningar” så börjar appen leta åt dig."
-    : forst ? "Appen letar efter det här varje morgon – dina första fynd kommer i morgon bitti."
+    : forst ? "Inga fynd här än – tryck 🔎 Leta nu under Mina bevakningar, eller vänta till i morgon bitti."
     : "Inga fynd med de här filtren ännu.";
   $("count").textContent = l.length + (l.length === 1 ? " fynd" : " fynd");
 }
@@ -972,6 +973,7 @@ function profilkort(p) {
     <textarea id="${uid}-sok" rows="9" placeholder="Möbler:\nteak sidobord\nJosef Frank\n\nGlas:\nErik Höglund"></textarea>
     <div class="falt">
       <button class="knapp primar" type="submit">Spara</button>
+      ${p.id ? '<button class="knapp" type="button" data-leta>🔎 Leta nu</button>' : ""}
       ${p.id ? '<button class="knapp" type="button" data-bort>Ta bort</button>' : ""}
     </div>
     <div class="status" role="status" data-status></div>`;
@@ -1020,9 +1022,11 @@ function profilkort(p) {
     konto.vald = "p" + data.id;
     byggVy(); renderProfiler();
     $("valkommen").hidden = true;
-    const ny = $("prof-lista").querySelector('[data-id="' + data.id + '"] [data-status]');
-    if (ny) ny.textContent = "Sparat! Appen letar efter det här från i morgon bitti.";
+    if (!p.id) snabbstart(data.id);  // första gången: leta direkt
+    else profilStatus(data.id, "Sparat! Ändringarna används från nästa sökning.");
   };
+  const leta = kort.querySelector("[data-leta]");
+  if (leta) leta.onclick = () => snabbstart(p.id);
   const bort = kort.querySelector("[data-bort]");
   if (bort) bort.onclick = async () => {
     if (bort.dataset.saker !== "1") { bort.dataset.saker = "1"; bort.textContent = "Tryck igen för att ta bort"; return; }
@@ -1034,6 +1038,33 @@ function profilkort(p) {
   };
   if (p.id) kort.dataset.id = p.id;
   return kort;
+}
+
+function profilStatus(id, text) {
+  const e = $("prof-lista").querySelector('[data-id="' + id + '"] [data-status]');
+  if (e) e.textContent = text;
+}
+// Första sökningen direkt: Auctionet + Claudes bedömning, ca en minut. Nattkörningen tar sedan över.
+async function snabbstart(id) {
+  const knappar = () => $("prof-lista").querySelectorAll('[data-id="' + id + '"] button');
+  knappar().forEach(b => b.disabled = true);
+  profilStatus(id, "🔎 Letar på Auctionet nu och låter Claude välja ut det som passar – det tar ungefär en minut …");
+  try {
+    const { data, error } = await konto.sb.functions.invoke("fyndjakt-snabbstart", { body: { profil_id: id } });
+    if (error || !data || data.fel) {
+      let txt = (data && data.fel) || "";
+      try { if (!txt && error && error.context) txt = (await error.context.json()).fel; } catch (x) {}
+      throw new Error(txt || "Det gick inte att leta just nu – appen letar i natt i stället.");
+    }
+    const f = await konto.sb.from("fyndjakt_fynd").select("data").maybeSingle();
+    konto.fynd = (f.data && f.data.data) || konto.fynd;
+    st.spar = "p" + id; st.cat = "";
+    byggVy();
+    profilStatus(id, data.fynd
+      ? `Klart! ${data.fynd} fynd bland ${data.bedomda} bedömda annonser – stäng rutan för att se dem. I natt letar appen även på Bukowskis, Myrorna och Stadsmissionen.`
+      : `Claude gick igenom ${data.bedomda} annonser men inget passade riktigt än. Prova fler eller andra sökord – i natt letar appen även på fler sajter.`);
+  } catch (x) { console.error(x); profilStatus(id, x.message); }
+  finally { knappar().forEach(b => b.disabled = false); }
 }
 
 // Listan överst: huvudspåren (styrs av filer), egna bevakningar och "+ Ny bevakning".

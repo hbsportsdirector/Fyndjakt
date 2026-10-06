@@ -11,7 +11,7 @@ min_betyg: 8                       # krävs för Telegram-notis och för att syn
 sajt_min_betyg: 8
 sajt_max_per_sokord: 3             # max fynd per sökord på sidan – ger variation
 max_pris: 25000                    # kr, 0 = ingen gräns (kan sättas per spår)
-max_bedomningar_per_korning: 500   # styr kostnaden (ca 1–2 öre per bedömning)
+max_bedomningar_per_korning: 500   # styr kostnaden (ca 5 öre per bedömning med Haiku)
 max_bedomningar_per_anvandare: 150  # för varje inbjuden användares egna spår
 max_prisjamforelser_per_korning: 120  # sålda föremål på Auctionet hämtas för fynden som visas
 sidor_per_sokning: 4               # hur många resultatsidor per sökning och sajt
