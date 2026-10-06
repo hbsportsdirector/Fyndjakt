@@ -1,0 +1,42 @@
+name: Publicera sidan (snabbt)
+
+# Bygger om hemsidan från befintlig data utan att leta nya fynd – för ändringar i sidans utseende.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/publicera.yml"
+      - "sajt_version.txt"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: publicera-snabbt
+  cancel-in-progress: true
+
+jobs:
+  publicera:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.publicera.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Bygg hemsidan
+        run: python -c "import main, sajt; from databas import Databas; sajt.bygg(Databas(), main.las_config())"
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - name: Publicera hemsidan
+        id: publicera
+        uses: actions/deploy-pages@v4
