@@ -81,7 +81,8 @@ def _poster(db, cfg: dict, spar_ids: set[str] | None, rader: list[dict] | None =
 
 
 def _sparlista(spar_cfg: dict) -> list[dict]:
-    return [{"id": sid, "namn": s.get("namn", sid), "kategorier": list(s.get("sokningar", {}).keys())}
+    return [{"id": sid, "namn": s.get("namn", sid), "kategorier": list(s.get("sokningar", {}).keys()),
+             "sokningar": s.get("sokningar", {})}
             for sid, s in spar_cfg.items()]
 
 
@@ -338,6 +339,12 @@ MALL = r"""<!doctype html>
   .profilkort .kommentar { color: var(--muted); font-size: 14px; font-style: italic; margin: 6px 0 0; }
   .valkommen { background: #3a3524; border: 1px dashed var(--brass); border-radius: 12px; padding: 12px 14px; font-size: 14px; margin: 10px 0 0; }
   .valkommen[hidden] { display: none; }
+  .profilval { display: flex; align-items: center; gap: 10px; margin-top: 16px; }
+  .profilval label { color: var(--text); font-weight: 600; font-size: 14px; }
+  .profilval select { flex: 1; font-size: 15px; padding: 10px 12px; border-color: var(--brass-dim); }
+  .filspar .kat { color: var(--brass); font-size: 12px; text-transform: uppercase; letter-spacing: .1em; margin: 12px 0 6px; }
+  .filspar .ord { display: flex; flex-wrap: wrap; gap: 6px; }
+  .filspar .ord span { background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; font-size: 13px; }
   @media (max-width: 560px) { .konto { position: static; justify-content: center; margin-bottom: 10px; } }
 </style>
 </head>
@@ -412,8 +419,11 @@ MALL = r"""<!doctype html>
     <p class="valkommen" id="admin-info" hidden><b>The Reading Room</b> och <b>Samlingen</b> styrs av dina filer
       stil.md och samlingsprofil.md och syns för alla. Här kan du lägga till extra bevakningar som bara du ser,
       och längre ner bjuda in andra.</p>
+    <div class="profilval">
+      <label for="prof-val">Bevakning</label>
+      <select id="prof-val"></select>
+    </div>
     <div id="prof-lista"></div>
-    <div class="falt"><button class="knapp" type="button" id="b-ny-prof">+ Ny bevakning</button></div>
 
     <section class="admin" id="admin" hidden>
       <h3>Användare</h3>
@@ -992,6 +1002,7 @@ function profilkort(p) {
     if (error) { console.error(error); status("Kunde inte spara – försök igen."); return; }
     const i = konto.profiler.findIndex(x => x.id === data.id);
     if (i >= 0) konto.profiler[i] = data; else konto.profiler.push(data);
+    konto.vald = "p" + data.id;
     byggVy(); renderProfiler();
     $("valkommen").hidden = true;
     const ny = $("prof-lista").querySelector('[data-id="' + data.id + '"] [data-status]');
@@ -1003,27 +1014,52 @@ function profilkort(p) {
     const { error } = await konto.sb.from("fyndjakt_profiler").delete().eq("id", p.id);
     if (error) { status("Kunde inte ta bort – försök igen."); return; }
     konto.profiler = konto.profiler.filter(x => x.id !== p.id);
+    konto.vald = null;
     byggVy(); renderProfiler();
   };
   if (p.id) kort.dataset.id = p.id;
   return kort;
 }
 
-function renderProfiler(medNy) {
-  const lista = $("prof-lista");
-  const kort = konto.profiler.map(profilkort);
-  if (medNy || (!konto.profiler.length && !konto.admin)) kort.push(profilkort({}));
-  lista.replaceChildren(...kort);
-  $("b-ny-prof").hidden = konto.profiler.length >= 3 || kort.length > konto.profiler.length;
+// Listan överst: huvudspåren (styrs av filer), egna bevakningar och "+ Ny bevakning".
+function renderProfiler() {
+  const val = [];
+  if (konto.admin) D.spar.forEach(sp => val.push({ v: "fil:" + sp.id, t: sp.namn + " (huvudspår)" }));
+  konto.profiler.forEach(pr => val.push({ v: "p" + pr.id, t: pr.namn }));
+  if (konto.profiler.length < 3) val.push({ v: "ny", t: "+ Ny bevakning" });
+  if (!val.some(x => x.v === konto.vald)) konto.vald = (konto.profiler.length ? "p" + konto.profiler[0].id : val[0].v);
+  $("prof-val").replaceChildren(...val.map(x => new Option(x.t, x.v)));
+  $("prof-val").value = konto.vald;
+  let kort;
+  if (konto.vald === "ny") kort = profilkort({});
+  else if (konto.vald.startsWith("fil:")) kort = filkort(D.spar.find(sp => "fil:" + sp.id === konto.vald));
+  else kort = profilkort(konto.profiler.find(pr => "p" + pr.id === konto.vald));
+  $("prof-lista").replaceChildren(kort);
 }
+$("prof-val").onchange = (e) => { konto.vald = e.target.value; renderProfiler(); };
+
+function filkort(sp) {
+  const d = document.createElement("div"); d.className = "profilkort filspar";
+  const fil = sp.id === "hemmet" ? "stil.md" : sp.id === "samlingen" ? "samlingsprofil.md" : "config.yaml";
+  d.innerHTML = '<p class="hj" style="margin:0">Det här spåret styrs av filen <b></b> och syns för alla som besöker sidan. ' +
+    'Be Claude i chatten om du vill ändra stilen eller sökorden. Reaktioner och Min smak påverkar det precis som vanligt.</p>';
+  d.querySelector("b").textContent = fil;
+  for (const [kat, lista] of Object.entries(sp.sokningar || {})) {
+    const k = document.createElement("div"); k.className = "kat"; k.textContent = kat; d.appendChild(k);
+    const o = document.createElement("div"); o.className = "ord";
+    lista.forEach(q => { const x = document.createElement("span"); x.textContent = q; o.appendChild(x); });
+    d.appendChild(o);
+  }
+  return d;
+}
+
 function oppnaProfiler(valkommen) {
   $("valkommen").hidden = !valkommen;
-  $("admin-info").hidden = !konto.admin;
+  if (valkommen) konto.vald = "ny";
   renderProfiler(); oppna("p-prof");
   if (konto.admin) laddaMedlemmar();
   $("admin").hidden = !konto.admin;
 }
-$("b-ny-prof").onclick = () => { renderProfiler(true); const k = $("prof-lista").lastElementChild; k.scrollIntoView({ behavior: "smooth" }); k.querySelector("input").focus(); };
 
 async function laddaMedlemmar() {
   const { data, error } = await konto.sb.rpc("fyndjakt_medlemmar");
