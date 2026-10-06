@@ -152,8 +152,10 @@ Deno.serve(async (req) => {
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
   const { data: rad } = await admin.from("fyndjakt_fynd").select("data").eq("user_id", user.id).maybeSingle();
   const data = (rad?.data ?? { spar: [], poster: [] }) as Record<string, any>;
+  // Administratören får leta när som helst; andra högst en gång per halvtimme och bevakning.
+  const { data: arAdmin } = await anv.rpc("fyndjakt_ar_admin");
   const senast = data.snabbstart?.[sid];
-  if (senast && Date.now() - Date.parse(senast) < SPARR_MINUTER * 60_000)
+  if (!arAdmin && senast && Date.now() - Date.parse(senast) < SPARR_MINUTER * 60_000)
     return svar({ fel: `Bevakningen letades igenom nyss – vänta en stund eller till i morgon bitti.` }, 429, origin);
 
   // 1. Sök – alla sökord parallellt (högst 6 åt gången, snällt mot Auctionet)
