@@ -75,8 +75,15 @@ function region(plats: string): [string, string] {
 }
 
 function profiltext(p: Record<string, any>): string {
-  const delar = ["Kunden letar begagnade och vintage-föremål i Sverige. Så här beskriver kunden sin stil och vad hen söker:",
-    String(p.beskrivning ?? "").trim() || `(Ingen beskrivning – utgå från spårets namn: ${p.namn})`];
+  // Namnet och sökorden talar om VAD som söks, beskrivningen om stilen – samma text som nattkörningen (smak.py).
+  const namn = String(p.namn ?? "").trim() || "Min bevakning";
+  const exempel = Object.entries(p.sokningar ?? {}).map(([k, v]) => `${k}: ${(v as string[]).join(", ")}`).join("; ");
+  const delar = [`Kunden letar begagnade och vintage-föremål i Sverige. Den här bevakningen heter «${namn}» – ` +
+    `kunden letar alltså efter just den SORTENS föremål.`];
+  if (exempel) delar.push(`Bevakningens sökord visar vad som avses: ${exempel}`);
+  delar.push("Kundens egen beskrivning av sin stil och vad hen söker:\n" + (String(p.beskrivning ?? "").trim() || "(ingen beskrivning)"));
+  delar.push(`VIKTIGT: Föremål av fel sort för bevakningen «${namn}» ger högst 3, hur fina eller stilrena de än är. ` +
+    "Det räcker inte att föremålet passar hemmets färger – det måste vara det kunden letar efter.");
   const har = String(p.har_redan ?? "").split("\n").map((r) => r.replace(/^[\s\-•]+|[\s\-•]+$/g, "")).filter(Boolean);
   if (har.length) delar.push("Kunden HAR REDAN följande – ge 0–3 åt samma typ av föremål:\n- " + har.slice(0, 30).join("\n- "));
   return delar.join("\n\n");

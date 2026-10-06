@@ -500,3 +500,11 @@ def test_egna_fynd_syns_inte_publikt(tmp_path, monkeypatch):
     assert [p["motivering"] for p in egna["per-0000-aaaa"]["poster"]] == ["PERSMOTIV"]
     assert [p["motivering"] for p in egna["kompis-11-bbbb"]["poster"]] == ["Kompisens"]
     assert egna["kompis-11-bbbb"]["spar"][0]["namn"] == "Sommarhuset"
+
+
+def test_bevakningens_namn_och_sokord_styr_bedomningen():
+    import smak
+    t = smak.profiltext({"namn": "Tavlor", "beskrivning": "Gröna väggar och mörkt trä.",
+                         "sokningar": {"Landskap": ["landskap olja", "Prins Eugen"]}})
+    assert "«Tavlor»" in t and "landskap olja" in t and "Gröna väggar" in t
+    assert "fel sort" in t

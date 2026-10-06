@@ -84,10 +84,21 @@ def rensa_sokningar(sokningar) -> dict[str, list[str]]:
 
 
 def profiltext(p: dict) -> str:
+    """Profilen för en användares bevakning. Namnet och sökorden talar om VAD som söks,
+    beskrivningen om stilen – båda måste med, annars bedöms allt som "passar hemmet"."""
+    namn = (p.get("namn") or "").strip() or "Min bevakning"
+    sok = rensa_sokningar(p.get("sokningar"))
+    exempel = "; ".join(f"{k}: {', '.join(v)}" for k, v in sok.items())
     delar = [
-        "Kunden letar begagnade och vintage-föremål i Sverige. Så här beskriver kunden sin stil och vad hen söker:",
-        (p.get("beskrivning") or "").strip() or f"(Ingen beskrivning – utgå från spårets namn: {p.get('namn')})",
+        f"Kunden letar begagnade och vintage-föremål i Sverige. Den här bevakningen heter «{namn}» – "
+        f"kunden letar alltså efter just den SORTENS föremål.",
     ]
+    if exempel:
+        delar.append(f"Bevakningens sökord visar vad som avses: {exempel}")
+    delar.append("Kundens egen beskrivning av sin stil och vad hen söker:\n"
+                 + ((p.get("beskrivning") or "").strip() or "(ingen beskrivning)"))
+    delar.append(f"VIKTIGT: Föremål av fel sort för bevakningen «{namn}» ger högst 3, hur fina eller stilrena de än är. "
+                 "Det räcker inte att föremålet passar hemmets färger – det måste vara det kunden letar efter.")
     har = [r.strip(" -•\t") for r in (p.get("har_redan") or "").splitlines() if r.strip(" -•\t")]
     if har:
         delar.append("Kunden HAR REDAN följande – ge 0–3 åt samma typ av föremål:\n- " + "\n- ".join(har[:30]))
