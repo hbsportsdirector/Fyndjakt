@@ -247,7 +247,8 @@ MALL = r"""<!doctype html>
   footer { text-align: center; color: var(--muted); font-size: 13px; padding: 0 16px 40px; }
 
   /* Konto och reaktioner */
-  .konto { position: absolute; top: 14px; right: 16px; display: flex; gap: 8px; }
+  .konto { position: absolute; top: 14px; right: 16px; display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  a.knapp { text-decoration: none; display: inline-block; }
   header { position: relative; }
   .knapp {
     border: 1px solid var(--line); background: var(--panel); color: var(--text); font: inherit; font-size: 14px;
@@ -356,6 +357,7 @@ MALL = r"""<!doctype html>
 <body>
 <header>
   <div class="konto" id="konto" hidden>
+    <button class="knapp" id="b-bjud" type="button" hidden>Bjud in</button>
     <button class="knapp" id="b-prof" type="button" hidden>Mina bevakningar</button>
     <button class="knapp" id="b-smak" type="button" hidden>Min smak</button>
     <button class="knapp" id="b-logga" type="button">Logga in</button>
@@ -436,17 +438,26 @@ MALL = r"""<!doctype html>
       <select id="prof-val"></select>
     </div>
     <div id="prof-lista"></div>
+  </div>
+</div>
 
-    <section class="admin" id="admin" hidden>
-      <h3>Användare</h3>
-      <p class="hj">Bjud in någon med e-post. Hen loggar sedan in på sidan med samma adress och skapar sina egna bevakningar.</p>
-      <form class="falt" id="f-bjud">
-        <input type="email" id="bjud-epost" required placeholder="kompis@epost.se" autocomplete="off" style="flex:1 1 220px">
-        <button class="knapp primar" type="submit">Bjud in</button>
-      </form>
-      <div class="status" id="bjud-status" role="status"></div>
-      <ul class="lista" id="l-medlemmar"></ul>
-    </section>
+<div class="panel-bak" id="p-bjud" hidden>
+  <div class="panel admin" role="dialog" aria-modal="true" aria-labelledby="bjud-rubrik">
+    <button class="knapp stang" type="button" data-stang>Stäng</button>
+    <h2 id="bjud-rubrik">Bjud in</h2>
+    <p class="hj">Skriv in en e-postadress. Personen loggar sedan in på sidan med samma adress – eller med Google –
+      och skapar sina egna bevakningar. Ingen annan än den du bjudit in kommer in.</p>
+    <form class="falt" id="f-bjud">
+      <input type="email" id="bjud-epost" required placeholder="namn@epost.se" autocomplete="off" style="flex:1 1 220px">
+      <button class="knapp primar" type="submit">Bjud in</button>
+    </form>
+    <div class="status" id="bjud-status" role="status"></div>
+    <div class="falt" id="bjud-skicka" hidden>
+      <a class="knapp primar" id="bjud-mejl" href="#">✉️ Skicka inbjudan via mejl</a>
+      <button class="knapp" type="button" id="bjud-dela">💬 Dela / kopiera</button>
+    </div>
+    <h3>Inbjudna</h3>
+    <ul class="lista" id="l-medlemmar"></ul>
   </div>
 </div>
 
@@ -911,6 +922,7 @@ async function uppdateraKonto(session) {
       konto.fynd = (fynd.data && fynd.data.data) || null;
     }
   } else { konto.reakt = new Map(); konto.anteckningar = []; $("ingen-profil").hidden = true; }
+  $("b-bjud").hidden = !konto.admin;
   byggVy();
   if (konto.inloggad && !konto.admin && !konto.profiler.length) oppnaProfiler(true);
 }
@@ -1103,8 +1115,7 @@ function oppnaProfiler(valkommen) {
   $("valkommen").hidden = !valkommen;
   if (valkommen) konto.vald = "ny";
   renderProfiler(); oppna("p-prof");
-  if (konto.admin) laddaMedlemmar();
-  $("admin").hidden = !konto.admin;
+
 }
 
 async function laddaMedlemmar() {
@@ -1124,6 +1135,14 @@ async function laddaMedlemmar() {
   }));
   $("l-medlemmar").replaceChildren(...rader);
 }
+function inbjudningstext() {
+  const url = location.origin + location.pathname;
+  return "Hej!\n\nJag har bjudit in dig till Fyndjakt – en app där Claude letar fynd åt dig på auktioner och " +
+    "second hand (Auctionet, Bukowskis, Myrorna, Stadsmissionen) varje dag.\n\n" +
+    "1. Gå till " + url + "\n2. Tryck Logga in – välj Fortsätt med Google eller få en länk till den här e-postadressen.\n" +
+    "3. Beskriv med egna ord vad du letar efter och tryck Spara. Efter ungefär en minut ser du dina första fynd.\n\n" +
+    "Dina fynd syns bara för dig.";
+}
 $("f-bjud").onsubmit = async (e) => {
   e.preventDefault();
   const epost = $("bjud-epost").value.trim(); if (!epost) return;
@@ -1131,7 +1150,16 @@ $("f-bjud").onsubmit = async (e) => {
   const { error } = await konto.sb.rpc("fyndjakt_bjud_in", { epost });
   if (error) { console.error(error); visaStatus("bjud-status", "Det gick inte – kolla adressen."); return; }
   $("bjud-epost").value = "";
-  visaStatus("bjud-status", "Klart! Be " + epost + " gå in på sidan, trycka Logga in och använda den adressen.");
+  visaStatus("bjud-status", "Klart! " + epost + " är inbjuden. Skicka ett meddelande så att hen vet om det:");
+  const text = inbjudningstext();
+  $("bjud-mejl").href = "mailto:" + encodeURIComponent(epost) + "?subject=" + encodeURIComponent("Inbjudan till Fyndjakt") +
+    "&body=" + encodeURIComponent(text);
+  $("bjud-dela").onclick = async () => {
+    try { if (navigator.share) { await navigator.share({ title: "Fyndjakt", text }); return; } } catch (x) { return; }
+    try { await navigator.clipboard.writeText(text); visaStatus("bjud-status", "Inbjudan kopierad – klistra in den i ett sms eller chatt."); }
+    catch (x) { visaStatus("bjud-status", "Kunde inte kopiera – använd mejlknappen."); }
+  };
+  $("bjud-skicka").hidden = false;
   laddaMedlemmar();
 };
 
@@ -1143,6 +1171,7 @@ if (D.supabase && window.supabase) {
   };
   $("b-smak").onclick = () => { sparVal($("a-spar"), st.spar); renderSmak(); oppna("p-smak"); };
   $("b-prof").onclick = () => oppnaProfiler(false);
+  $("b-bjud").onclick = () => { $("bjud-skicka").hidden = true; visaStatus("bjud-status", ""); laddaMedlemmar(); oppna("p-bjud"); };
   $("b-logga2").onclick = () => oppna("p-login");
   konto.sb.auth.onAuthStateChange((_ev, session) => { setTimeout(() => uppdateraKonto(session), 0); });
 }

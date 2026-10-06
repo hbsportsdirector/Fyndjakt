@@ -486,17 +486,17 @@ def test_egna_fynd_syns_inte_publikt(tmp_path, monkeypatch):
     monkeypatch.setattr(sajt, "UT", tmp_path)
     db = Databas(tmp_path / "t.db")
     a = auctionet.tolka(AUCTIONET_POST, "Möbler")
-    db.spara(replace(a, spar="hemmet"), 9, "Pers")
+    db.spara(replace(a, spar="hemmet"), 9, "PERSMOTIV")
     db.spara(replace(a, spar="p5", prefix="kompis-1|"), 9, "Kompisens")
     cfg = {"sajt_min_betyg": 8, "spar": {"hemmet": {"namn": "Hem", "sokningar": {"Möbler": []}},
                                          "p5": {"namn": "Sommarhuset", "agare": "kompis-11-bbbb", "sokningar": {"Möbler": []}}}}
     html = sajt.bygg(db, cfg).read_text(encoding="utf-8")
     data = json.loads(re.search(r"const D = (.*?);\n", html).group(1))
     assert data["poster"] == [] and data["spar"] == []  # inget publikt
-    assert "Kompisens" not in html and "Pers" not in html
+    assert "Kompisens" not in html and "PERSMOTIV" not in html
     cfg["_admins"] = {"per-0000-aaaa"}
     egna = sajt.anvandarfynd(db, cfg)
     assert sorted(egna) == ["kompis-11-bbbb", "per-0000-aaaa"]
-    assert [p["motivering"] for p in egna["per-0000-aaaa"]["poster"]] == ["Pers"]
+    assert [p["motivering"] for p in egna["per-0000-aaaa"]["poster"]] == ["PERSMOTIV"]
     assert [p["motivering"] for p in egna["kompis-11-bbbb"]["poster"]] == ["Kompisens"]
     assert egna["kompis-11-bbbb"]["spar"][0]["namn"] == "Sommarhuset"
