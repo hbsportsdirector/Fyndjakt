@@ -207,3 +207,40 @@ def tillampa(cfg: dict, export: dict | None) -> None:
             spar["sokningar"]["Från Min smak"] = nya[:15] if spar.get("agare") else nya
     antal = len(export.get("reaktioner", [])), len(export.get("anteckningar", []))
     print(f"Min smak: {antal[0]} reaktioner och {antal[1]} anteckningar inlästa.")
+
+
+def notifiera(cfg: dict, export: dict | None, fynd: dict) -> dict:
+    """Skickar morgonnotis till varje användare som slagit på notiser och har nya toppfynd.
+    Prenumerationer som inte längre finns (t.ex. avinstallerad app) tas bort."""
+    import webbnotis
+    if not export or not export.get("vapid") or not export.get("push"):
+        return {"skickade": 0}
+    skickade, borta, fel = 0, [], 0
+    for pren in export["push"]:
+        innehall = webbnotis.morgonnotis((fynd.get(pren["user_id"]) or {}).get("poster", []))
+        if not innehall:
+            continue
+        try:
+            status = webbnotis.skicka(pren, innehall, export["vapid"])
+        except Exception as e:  # en trasig prenumeration ska inte stoppa resten
+            print(f"  Notis misslyckades: {e}")
+            fel += 1
+            continue
+        if status in (404, 410):
+            borta.append(pren["endpoint"])
+        elif status < 300:
+            skickade += 1
+        else:
+            fel += 1
+            print(f"  Notis: svar {status}")
+    if borta:
+        ans = _anslutning(cfg)
+        if ans:
+            url, nyckel, token = ans
+            try:
+                requests.post(f"{url}/rest/v1/rpc/fyndjakt_push_bort", json={"token": token, "endpoints": borta},
+                              headers={"apikey": nyckel, "Content-Type": "application/json"}, timeout=30)
+            except Exception as e:
+                print(f"  Kunde inte rensa gamla prenumerationer: {e}")
+    print(f"Notiser: {skickade} skickade, {len(borta)} borttagna, {fel} fel.")
+    return {"skickade": skickade, "borttagna": len(borta), "fel": fel}

@@ -40,6 +40,7 @@ uteslut_ord:
 supabase:
   url: https://abwmdhvaxqlpyzgvuedj.supabase.co
   nyckel: sb_publishable_R1OuxhyY7HJq68XcEoFnSw_Zl16Gux9
+  vapid: BHOqwvHBwlipvfyrB5aTdgRynU2jU_R24b2YES3HW6ty8L7MRaUHAz_8nOd6TcF7pgjz-qx4sqhLwUCdkpc0VZM  # publik nyckel för telefonnotiser
 
 kallor:
   auctionet: true       # 500+ auktionshus, bl.a. Uppsala Auktionskammare och Stockholms Auktionsverk

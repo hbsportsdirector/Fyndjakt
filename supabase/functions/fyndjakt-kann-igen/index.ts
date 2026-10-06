@@ -94,6 +94,41 @@ async function profilforslag(nyckel: string, kropp: { beskrivning?: string; har_
   } catch { return null; }
 }
 
+// "Hitta liknande": vad finns till salu just nu, och vad har liknande sålts för (Auctionet, Sverige).
+const SMAORD = new Set(["och", "med", "i", "av", "på", "för", "en", "ett", "the", "a"]);
+function ordIFras(f: string) { return (f.toLowerCase().match(/[\wåäöéü]+/g) ?? []).filter((o) => !SMAORD.has(o) && o.length > 1); }
+function relevant(titel: string, fras: string) {
+  const t = titel.toLowerCase();
+  return ordIFras(fras).every((o) => t.includes(o.slice(0, Math.max(3, o.length - 2))));
+}
+async function auctionet(params: string) {
+  const r = await fetch("https://auctionet.com/api/v2/items.json?per_page=48&" + params,
+    { headers: { "User-Agent": "Fyndjakt/1.0 (privat bevakning)" } });
+  return r.ok ? ((await r.json()).items ?? []) as Record<string, any>[] : [];
+}
+async function liknande(sokord: string) {
+  const q = "q=" + encodeURIComponent(sokord);
+  const [aktiva, s1, s2] = await Promise.all([auctionet(q), auctionet(q + "&is=ended&page=1"), auctionet(q + "&is=ended&page=2")]);
+  const nu = Date.now() / 1000;
+  const sv = aktiva.filter((p) => p.state === "published" && (p.currency ?? "SEK") === "SEK" && (!p.ends_at || p.ends_at > nu));
+  const traff = sv.filter((p) => relevant(String(p.title ?? ""), sokord));
+  const till_salu = (traff.length >= 3 ? traff : sv).slice(0, 12).map((p) => {
+    const bud = Math.max(0, ...((p.bids ?? []) as { amount: number }[]).map((b) => b.amount || 0));
+    return { titel: String(p.title ?? "").trim(), url: String(p.url ?? "").replace("auctionet.com/en/", "auctionet.com/sv/"),
+      bild: ((p.images ?? [])[0] ?? {}).w640 ?? null, pris_text: bud ? `Bud ${bud} kr` : `Utrop ${p.estimate ?? "?"} kr`,
+      slutar_ts: p.ends_at ?? null, plats: [p.house, p.location].filter(Boolean).join(", ") };
+  });
+  const grans = nu - 5 * 365 * 86400;
+  const priser = [...s1, ...s2].filter((p) => p.state === "sold" && p.currency === "SEK" && (p.ends_at ?? 0) >= grans &&
+      relevant(String(p.title ?? ""), sokord))
+    .map((p) => p.highest_bid || Math.max(0, ...((p.bids ?? []) as { amount: number }[]).map((b) => b.amount || 0)))
+    .filter((x) => x > 0).sort((x, y) => x - y);
+  const kvantil = (k: number) => { const i = (priser.length - 1) * k, l = Math.floor(i); return priser[l] + (priser[Math.ceil(i)] - priser[l]) * (i - l); };
+  const salt = priser.length >= 3 ? { median: Math.round(kvantil(0.5)), lag: Math.round(kvantil(0.25)),
+                                      hog: Math.round(kvantil(0.75)), antal: priser.length } : null;
+  return { sokord, till_salu, antal: traff.length, salt };
+}
+
 // Första frågan med bilden, sedan växelvis Claudes tidigare svar och användarens kommentarer.
 function bygg_meddelanden(bilder: string[], mediatyp: string, samtal: { roll: string; text: string }[]) {
   const meddelanden: unknown[] = [{ role: "user", content: [
@@ -140,6 +175,12 @@ Deno.serve(async (req) => {
                beskrivning?: string; har_redan?: string; namn?: string };
   try { kropp = await req.json(); } catch { return svar({ fel: "Ogiltig förfrågan" }, 400, origin); }
 
+  if (kropp.typ === "liknande") {
+    const sokord = String((kropp as { sokord?: string }).sokord ?? "").trim().slice(0, 60);
+    if (sokord.length < 2) return svar({ fel: "Skriv vad du söker efter" }, 400, origin);
+    try { return svar(await liknande(sokord), 200, origin); }
+    catch (e) { console.error(e); return svar({ fel: "Kunde inte söka just nu" }, 502, origin); }
+  }
   if (kropp.typ === "profil") {
     if (String(kropp.beskrivning ?? "").trim().length < 10) return svar({ fel: "Beskriv lite mer först" }, 400, origin);
     const res = await profilforslag(nyckel, kropp);

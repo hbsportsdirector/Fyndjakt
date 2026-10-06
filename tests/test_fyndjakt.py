@@ -508,3 +508,49 @@ def test_bevakningens_namn_och_sokord_styr_bedomningen():
                          "sokningar": {"Landskap": ["landskap olja", "Prins Eugen"]}})
     assert "«Tavlor»" in t and "landskap olja" in t and "Gröna väggar" in t
     assert "fel sort" in t
+
+
+def test_batch_bedomning_med_reserv():
+    from types import SimpleNamespace as NS
+    class FalskBatches:
+        def __init__(s): s.n = 0
+        def create(s, requests): s.req = requests; return NS(id="b1", processing_status="in_progress")
+        def retrieve(s, bid): s.n += 1; return NS(id=bid, processing_status="ended" if s.n > 1 else "in_progress")
+        def results(s, bid):
+            yield NS(custom_id="a0", result=NS(type="succeeded", message=NS(content=[NS(type="text", text='{"betyg": 9, "motivering": "Bra", "jamforsok": "x"}')])))
+            yield NS(custom_id="a1", result=NS(type="errored"))
+            yield NS(custom_id="a2", result=NS(type="succeeded", message=NS(content=[NS(type="text", text="trasigt")])))
+    klient = NS(messages=NS(batches=FalskBatches()))
+    ut = bedomning.bedom_batch({"a0": {}, "a1": {}, "a2": {}}, klient, intervall=0)
+    assert ut == {"a0": (9, "Bra", "x")}  # a1 och a2 bedöms sedan direkt
+    a = auctionet.tolka(AUCTIONET_POST)
+    f = bedomning.forfragan(a, "PROFIL", "m", None)
+    assert f["model"] == "m" and "PROFIL" in f["system"] and f["messages"][0]["content"][-1]["type"] == "text"
+
+
+def test_webbnotis_kryptering_och_vapid():
+    import base64, json, time
+    import webbnotis as w
+    from cryptography.hazmat.primitives.asymmetric import ec
+    ua = ec.generate_private_key(ec.SECP256R1())
+    auth = w._b64e(b"0123456789abcdef")
+    kropp = w.kryptera(b'{"title":"Hej"}', w._b64e(w._publik_rad(ua)), auth)
+    assert w.dekryptera(kropp, ua, auth) == b'{"title":"Hej"}'
+    privat = w._b64e(ec.generate_private_key(ec.SECP256R1()).private_numbers().private_value.to_bytes(32, "big"))
+    h = w.vapid_huvud("https://web.push.apple.com/abc", privat)
+    assert h.startswith("vapid t=") and ", k=B" in h
+    data = json.loads(w._b64d(h.split("t=")[1].split(".")[1]))
+    assert data["aud"] == "https://web.push.apple.com" and data["exp"] > time.time()
+
+
+def test_morgonnotis():
+    import webbnotis as w, time
+    nu = time.time()
+    fmt = lambda t: time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(t))
+    poster = [{"titel": "Gammal", "betyg": 10, "sedd": fmt(nu - 3 * 86400)},
+              {"titel": "Ny bra", "betyg": 9, "sedd": fmt(nu - 3600)},
+              {"titel": "Ny topp", "betyg": 10, "sedd": fmt(nu - 7200)},
+              {"titel": "Ny medel", "betyg": 8, "sedd": fmt(nu - 3600)}]
+    n = w.morgonnotis(poster, nu)
+    assert n["title"] == "2 nya toppfynd i Fyndjakt" and "Ny topp" in n["body"]
+    assert w.morgonnotis(poster[:1], nu) is None

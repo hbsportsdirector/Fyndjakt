@@ -14,6 +14,7 @@ on:
       - "**.py"
       - ".github/workflows/**"
       - "!.github/workflows/publicera.yml"
+      - "!.github/workflows/testnotis.yml"
 
 permissions:
   contents: write           # för att spara listan över sedda annonser

@@ -202,9 +202,11 @@ def main() -> int:
     args = p.parse_args()
 
     cfg = las_config()
+    export = None
     try:
         import smak
-        smak.tillampa(cfg, smak.hamta(cfg))
+        export = smak.hamta(cfg)
+        smak.tillampa(cfg, export)
     except Exception as e:  # lärandet får aldrig stoppa körningen
         print(f"Min smak: kunde inte läsa reaktioner – {e}")
         STATISTIK["Min smak"] = {"fel": str(e)[:200]}
@@ -249,11 +251,29 @@ def main() -> int:
     traffar = []
     if kandidater:
         klient = bedomning._klient()
+
+        def regler_for(a):
+            spar = cfg["spar"][a.spar]
+            return spar.get("bedomningsregler") or (cfg.get("bedomningsregler_anvandare") if spar.get("agare") else None)
+
+        # Först allt i en batch (halva priset); det som inte blir klart där bedöms direkt.
+        fardiga: dict[str, tuple] = {}
+        if cfg.get("batch", True):
+            try:
+                fardiga = bedomning.bedom_batch(
+                    {f"a{i}": bedomning.forfragan(a, cfg["spar"][a.spar]["profil"], cfg["modell"], regler_for(a))
+                     for i, a in enumerate(kandidater)}, klient)
+            except Exception as e:
+                print(f"  Batch misslyckades ({e}) – bedömer med vanliga anrop.")
+            STATISTIK["Bedömning"] = {"batch": len(fardiga), "direkt": len(kandidater) - len(fardiga)}
         for i, a in enumerate(kandidater, 1):
             spar = cfg["spar"][a.spar]
-            regler = spar.get("bedomningsregler") or (cfg.get("bedomningsregler_anvandare") if spar.get("agare") else None)
             try:
-                betyg, motivering, a.jamforsok = bedomning.bedom(a, spar["profil"], cfg["modell"], klient, regler)
+                resultat = fardiga.get(f"a{i - 1}")
+                if not resultat:
+                    resultat = bedomning.bedom(a, spar["profil"], cfg["modell"], klient, regler_for(a))
+                    time.sleep(0.3)
+                betyg, motivering, a.jamforsok = resultat
             except Exception as e:
                 print(f"  [{i}] fel vid bedömning av {a.titel[:50]}: {e}")
                 continue  # sparas inte – försöker igen nästa gång
@@ -262,7 +282,6 @@ def main() -> int:
             print(f"  [{i:3}] {betyg:2}/10 [{a.spar}] {a.titel[:60]}")
             if bra:
                 traffar.append((betyg, a, motivering))
-            time.sleep(0.3)
 
     prisjamfor(db, cfg)
 
@@ -270,7 +289,9 @@ def main() -> int:
     sajt.bygg(db, cfg)
     try:
         import smak
-        smak.publicera(cfg, sajt.anvandarfynd(db, cfg))
+        egna_fynd = sajt.anvandarfynd(db, cfg)
+        smak.publicera(cfg, egna_fynd)
+        STATISTIK["Notiser"] = smak.notifiera(cfg, export, egna_fynd)
     except Exception as e:
         print(f"Kunde inte lägga upp användarnas fynd: {e}")
         STATISTIK["Egna fynd"] = {"fel": str(e)[:200]}

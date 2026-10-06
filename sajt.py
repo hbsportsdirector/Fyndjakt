@@ -306,6 +306,12 @@ MALL = r"""<!doctype html>
   .samtal p { margin: 0; padding: 8px 11px; border-radius: 12px; font-size: 14px; max-width: 90%; }
   .samtal .du { align-self: flex-end; background: #3a3524; color: var(--text); border: 1px solid var(--brass-dim); }
   .samtal .claude { align-self: flex-start; background: var(--panel); color: var(--text); border: 1px solid var(--line); }
+  #liknande { margin: 4px 0 10px; }
+  #liknande .salt { font-size: 14px; color: var(--muted); background: var(--panel); border: 1px solid var(--line);
+                    border-radius: 10px; padding: 8px 10px; margin-bottom: 8px; }
+  #liknande .salt b { color: var(--text); }
+  .notisruta { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px;
+               margin: 0 0 14px; font-size: 14px; }
   .lista { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
   .lista li { display: flex; gap: 10px; align-items: center; background: var(--panel); border: 1px solid var(--line);
               border-radius: 10px; padding: 7px 8px; font-size: 14px; }
@@ -467,6 +473,12 @@ MALL = r"""<!doctype html>
     <h2 id="smak-rubrik">Min smak</h2>
     <p class="hj">Det här lär sig appen av. Allt du lägger till eller tar bort här används från nästa morgon.</p>
 
+    <div class="notisruta" id="notisruta">
+      <div><strong>🔔 Morgonnotis</strong> – en notis på telefonen när natten gett nya toppfynd (9–10/10).</div>
+      <div class="falt"><button class="knapp primar" type="button" id="b-notis">Slå på notiser</button></div>
+      <div class="status" id="notis-status" role="status"></div>
+    </div>
+
     <div class="kamera">
       <div>📷 <strong>Fota något</strong> – så känner Claude igen föremålet</div>
       <label class="knapp primar" for="foto">Ta foto eller välj bild</label>
@@ -488,6 +500,8 @@ MALL = r"""<!doctype html>
           <button class="knapp" type="submit">Skicka</button>
         </form>
         <div class="falt"><label for="t-sok" style="color:var(--muted);font-size:14px">Söker efter</label><input type="text" id="t-sok"></div>
+        <div class="falt"><button class="knapp" type="button" id="b-liknande">🔎 Hitta liknande till salu</button></div>
+        <div id="liknande" hidden></div>
         <div class="falt"><select id="t-spar"></select></div>
         <div class="falt">
           <button class="knapp primar" type="button" data-spara="gillar">👍 Gillar sånt här</button>
@@ -815,6 +829,7 @@ function visaTolkning(svar) {
   $("t-tips").textContent = svar.tips ? "💡 " + svar.tips : "";
   $("t-tips").hidden = !svar.tips;
   $("t-sok").value = svar.sokord || "";
+  $("liknande").hidden = true;
   $("tolkning").hidden = false;
 }
 function visaSamtal() {
@@ -862,6 +877,40 @@ $("foto-extra").onchange = async (e) => {
   catch (x) { console.error(x); visaStatus("foto-status", x.message || "Kunde inte läsa bilden."); }
   finally { e.target.value = ""; }
 };
+$("b-liknande").onclick = async () => {
+  const sokord = $("t-sok").value.trim();
+  if (!sokord) { visaStatus("foto-status", "Skriv vad du vill söka efter i rutan ovanför."); return; }
+  const b = $("b-liknande"); b.disabled = true; b.textContent = "🔎 Letar …";
+  const ruta = $("liknande");
+  try {
+    const { data, error } = await konto.sb.functions.invoke("fyndjakt-kann-igen", { body: { typ: "liknande", sokord } });
+    if (error || !data || data.fel) throw new Error((data && data.fel) || "Kunde inte söka just nu.");
+    ruta.replaceChildren();
+    const s = document.createElement("div"); s.className = "salt";
+    if (data.salt) {
+      s.append("Liknande har sålts för ");
+      const v = document.createElement("b"); v.textContent = kr(data.salt.lag).replace(" kr", "") + "–" + kr(data.salt.hog); s.append(v);
+      s.append(` (mitten av ${data.salt.antal} försäljningar på Auctionet de senaste 5 åren).`);
+    } else s.textContent = "För få försäljningar av liknande för att säga vad det brukar gå för.";
+    ruta.appendChild(s);
+    const ul = document.createElement("ul"); ul.className = "lista";
+    if (!data.till_salu.length) ul.innerHTML = '<li class="tom">Inget liknande till salu just nu – spara med 👍 så letar appen varje natt.</li>';
+    for (const p of data.till_salu) {
+      const li = document.createElement("li");
+      const i = document.createElement("img"); if (p.bild) i.src = p.bild; i.alt = ""; i.referrerPolicy = "no-referrer"; li.appendChild(i);
+      const t = document.createElement("div"); t.className = "txt";
+      const et = document.createElement("span"); et.className = "etik";
+      const dagar = p.slutar_ts ? Math.max(0, Math.round((p.slutar_ts - Date.now() / 1000) / 86400)) : null;
+      et.textContent = p.pris_text + (dagar !== null ? " · slutar " + (dagar ? "om " + dagar + " d" : "i dag") : "");
+      t.appendChild(et);
+      const a = document.createElement("a"); a.href = p.url; a.target = "_blank"; a.rel = "noopener"; a.textContent = p.titel; t.appendChild(a);
+      li.appendChild(t); ul.appendChild(li);
+    }
+    ruta.appendChild(ul); ruta.hidden = false;
+  } catch (x) { console.error(x); visaStatus("foto-status", x.message); }
+  finally { b.disabled = false; b.textContent = "🔎 Hitta liknande till salu"; }
+};
+
 $("f-samtal").onsubmit = async (e) => {
   e.preventDefault();
   const text = $("t-meddelande").value.trim();
@@ -888,6 +937,56 @@ $("b-google").onclick = async () => {
     provider: "google", options: { redirectTo: location.origin + location.pathname, queryParams: { prompt: "select_account" } },
   });
   if (error) { console.error(error); visaStatus("login-status", "Google-inloggningen är inte påslagen än – använd e-postlänken så länge."); }
+};
+
+// ── Morgonnotiser (Web Push) ────────────────────────────────────────
+const NOTIS = { stod: "serviceWorker" in navigator && "PushManager" in window && "Notification" in window };
+const arIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+const installerad = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+function b64TillBytes(s) {
+  const b = atob((s + "=".repeat((4 - s.length % 4) % 4)).replace(/-/g, "+").replace(/_/g, "/"));
+  return Uint8Array.from(b, c => c.charCodeAt(0));
+}
+async function notisPrenumeration() {
+  if (!NOTIS.stod) return null;
+  const reg = await navigator.serviceWorker.getRegistration();
+  return reg ? reg.pushManager.getSubscription() : null;
+}
+async function visaNotisLage() {
+  const knapp = $("b-notis");
+  if (!NOTIS.stod || !(D.supabase || {}).vapid) {
+    knapp.hidden = true;
+    visaStatus("notis-status", arIOS && !installerad
+      ? "På iPhone: tryck Dela-knappen i Safari → ”Lägg till på hemskärmen”, öppna Fyndjakt därifrån och slå på notiser här."
+      : "Den här webbläsaren kan inte ta emot notiser.");
+    return;
+  }
+  const pren = await notisPrenumeration();
+  knapp.hidden = false;
+  knapp.textContent = pren ? "Stäng av notiser" : "Slå på notiser";
+  knapp.classList.toggle("primar", !pren);
+  visaStatus("notis-status", pren ? "Notiser är på för den här enheten." :
+    Notification.permission === "denied" ? "Notiser är blockerade – tillåt dem för sidan i telefonens inställningar." : "");
+}
+$("b-notis").onclick = async () => {
+  const knapp = $("b-notis"); knapp.disabled = true;
+  try {
+    const finns = await notisPrenumeration();
+    if (finns) {
+      await konto.sb.from("fyndjakt_push").delete().eq("endpoint", finns.endpoint);
+      await finns.unsubscribe();
+    } else {
+      const reg = await navigator.serviceWorker.register("sw.js");
+      await navigator.serviceWorker.ready;
+      if (await Notification.requestPermission() !== "granted") throw new Error("Du behöver tillåta notiser för att slå på dem.");
+      const pren = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64TillBytes(D.supabase.vapid) });
+      const j = pren.toJSON();
+      const { error } = await konto.sb.from("fyndjakt_push").insert({ endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth });
+      if (error && error.code !== "23505") { await pren.unsubscribe(); throw new Error("Kunde inte spara – försök igen."); }
+    }
+    await visaNotisLage();
+  } catch (x) { console.error(x); visaStatus("notis-status", x.message || "Det gick inte att slå på notiser."); }
+  finally { knapp.disabled = false; }
 };
 
 $("f-login").onsubmit = async (e) => {
@@ -1169,7 +1268,7 @@ if (D.supabase && window.supabase) {
   $("b-logga").onclick = async () => {
     if (konto.inloggad) { await konto.sb.auth.signOut(); } else oppna("p-login");
   };
-  $("b-smak").onclick = () => { sparVal($("a-spar"), st.spar); renderSmak(); oppna("p-smak"); };
+  $("b-smak").onclick = () => { sparVal($("a-spar"), st.spar); renderSmak(); oppna("p-smak"); visaNotisLage(); };
   $("b-prof").onclick = () => oppnaProfiler(false);
   $("b-bjud").onclick = () => { $("bjud-skicka").hidden = true; visaStatus("bjud-status", ""); laddaMedlemmar(); oppna("p-bjud"); };
   $("b-logga2").onclick = () => oppna("p-login");

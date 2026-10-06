@@ -1,0 +1,24 @@
+name: Testnotis
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["testnotis.txt"]
+
+permissions:
+  contents: read
+
+jobs:
+  skicka:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - env:
+          FYNDJAKT_BOT_TOKEN: ${{ secrets.FYNDJAKT_BOT_TOKEN }}
+        run: python tools/testnotis.py

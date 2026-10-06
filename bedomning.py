@@ -43,40 +43,81 @@ def _klient() -> anthropic.Anthropic:
     return anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
 
-def bedom(annons: Annons, stilprofil: str, modell: str, klient=None,
-          kalibrering: str | None = None) -> tuple[int, str, str]:
-    klient = klient or _klient()
+def forfragan(annons: Annons, stilprofil: str, modell: str, kalibrering: str | None = None,
+              med_bilder: bool = True) -> dict:
+    """Parametrarna till ett bedömningsanrop – samma för vanliga anrop och batch."""
     text = (
         f"Titel: {annons.titel}\n"
         f"Pris: {annons.pris_text}\n"
         f"Plats: {annons.plats}\n"
         f"Beskrivning: {annons.beskrivning[:1200]}"
     )
-    innehall = [{"type": "image", "source": {"type": "url", "url": u}} for u in annons.bilder[:3]]
+    innehall = [{"type": "image", "source": {"type": "url", "url": u}} for u in annons.bilder[:3]] if med_bilder else []
     innehall.append({"type": "text", "text": text})
+    return {
+        "model": modell,
+        "max_tokens": 400,
+        "system": INSTRUKTION.format(stil=stilprofil, kalibrering=(kalibrering or STANDARD_KALIBRERING).strip()),
+        "messages": [{"role": "user", "content": innehall}],
+    }
 
-    def fraga(med_bilder: bool):
-        delar = innehall if med_bilder else [innehall[-1]]
-        return klient.messages.create(
-            model=modell,
-            max_tokens=400,
-            system=INSTRUKTION.format(stil=stilprofil, kalibrering=(kalibrering or STANDARD_KALIBRERING).strip()),
-            messages=[{"role": "user", "content": delar}],
-        )
 
+def _text(svar) -> str:
+    return "".join(b.text for b in svar.content if getattr(b, "type", "text") == "text")
+
+
+def bedom(annons: Annons, stilprofil: str, modell: str, klient=None,
+          kalibrering: str | None = None) -> tuple[int, str, str]:
+    klient = klient or _klient()
     med_bilder = True
     for forsok in range(2):
         try:
-            svar = fraga(med_bilder)
+            svar = klient.messages.create(**forfragan(annons, stilprofil, modell, kalibrering, med_bilder))
         except anthropic.BadRequestError:
             # T.ex. en bild som inte gick att hämta – försök med bara text.
             med_bilder = False
-            svar = fraga(med_bilder)
-        text = "".join(b.text for b in svar.content if getattr(b, "type", "text") == "text")
-        resultat = tolka_svar(text)
+            svar = klient.messages.create(**forfragan(annons, stilprofil, modell, kalibrering, med_bilder))
+        resultat = tolka_svar(_text(svar))
         if resultat[1] != "Kunde inte tolka svaret":
             return resultat
     return resultat
+
+
+def bedom_batch(forfragningar: dict[str, dict], klient=None, max_vant: int = 75 * 60,
+                intervall: int = 30) -> dict[str, tuple[int, str, str]]:
+    """Skickar alla bedömningar som EN batch (halva priset) och väntar på svaren.
+    Returnerar {id: (betyg, motivering, jämförelsesökning)} för de som lyckades och gick att tolka;
+    resten (fel, avbrutna, otolkbara) saknas i svaret och bedöms sedan med vanliga anrop."""
+    import time
+    if not forfragningar:
+        return {}
+    klient = klient or _klient()
+    batch = klient.messages.batches.create(
+        requests=[{"custom_id": cid, "params": params} for cid, params in forfragningar.items()])
+    print(f"  Batch {batch.id} skickad med {len(forfragningar)} bedömningar – väntar på svar …")
+    start = time.time()
+    while True:
+        batch = klient.messages.batches.retrieve(batch.id)
+        if batch.processing_status == "ended":
+            break
+        if time.time() - start > max_vant:
+            print("  Batchen tog för lång tid – avbryter och bedömer resten direkt.")
+            klient.messages.batches.cancel(batch.id)
+            time.sleep(intervall)
+            batch = klient.messages.batches.retrieve(batch.id)
+            if batch.processing_status != "ended":
+                return {}
+            break
+        time.sleep(intervall)
+    ut = {}
+    for rad in klient.messages.batches.results(batch.id):
+        if rad.result.type != "succeeded":
+            continue
+        tolkat = tolka_svar(_text(rad.result.message))
+        if tolkat[1] != "Kunde inte tolka svaret":
+            ut[rad.custom_id] = tolkat
+    print(f"  Batch klar efter {round((time.time() - start) / 60)} min: {len(ut)} av {len(forfragningar)} bedömda.")
+    return ut
 
 
 def tolka_svar(text: str) -> tuple[int, str, str]:
