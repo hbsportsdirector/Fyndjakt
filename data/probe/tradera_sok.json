@@ -1,0 +1,2278 @@
+{
+ "status": 200,
+ "svar": {
+  "totalNumberOfItems": 178,
+  "totalNumberOfPages": 4,
+  "items": [
+   {
+    "id": 750542897,
+    "shortDescription": "Rörstrand blå eld fat",
+    "buyItNowPrice": 350,
+    "sellerId": 5859777,
+    "sellerAlias": "Milena90F",
+    "maxBid": 350,
+    "thumbnailLink": "https://img.tradera.net/thumbs/449/660061449_3d9ae8ae-d206-47fc-afa8-32661c72bf35.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2026-11-14T11:52:32.277+01:00",
+    "nextBid": 350,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "PureBuyItNow",
+    "itemUrl": "http://www.tradera.com/item/341144/750542897/rorstrand-bla-eld-fat",
+    "categoryId": 341144,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/449/660061449_3d9ae8ae-d206-47fc-afa8-32661c72bf35.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/449/660061449_3d9ae8ae-d206-47fc-afa8-32661c72bf35.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/449/660061449_3d9ae8ae-d206-47fc-afa8-32661c72bf35.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/449/660061449_3d9ae8ae-d206-47fc-afa8-32661c72bf35.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Gott skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 752450056,
+    "shortDescription": "Rörstrand blå eld djupa tallrikar",
+    "sellerId": 5214207,
+    "sellerAlias": "jontal",
+    "maxBid": 99,
+    "thumbnailLink": "https://img.tradera.net/thumbs/208/661559208_80bddbbe-2161-4616-8842-160a6f05532b.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2026-10-08T18:29:42.51+02:00",
+    "nextBid": 104,
+    "hasBids": true,
+    "isEnded": false,
+    "itemType": "Auction",
+    "itemUrl": "http://www.tradera.com/item/341144/752450056/rorstrand-bla-eld-djupa-tallrikar",
+    "categoryId": 341144,
+    "bidCount": 1,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/208/661559208_80bddbbe-2161-4616-8842-160a6f05532b.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/208/661559208_80bddbbe-2161-4616-8842-160a6f05532b.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/208/661559208_80bddbbe-2161-4616-8842-160a6f05532b.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/208/661559208_80bddbbe-2161-4616-8842-160a6f05532b.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Okej skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 753298422,
+    "shortDescription": "Gräddkanna från Rörstrand ”Blå Eld”",
+    "sellerId": 1825049,
+    "sellerAlias": "gorglo",
+    "maxBid": 50,
+    "thumbnailLink": "https://img.tradera.net/thumbs/709/662212709_ffa49740-33d4-436c-a48f-1a6e559ad0e0.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2026-10-13T18:36:53.08+02:00",
+    "nextBid": 55,
+    "hasBids": true,
+    "isEnded": false,
+    "itemType": "Auction",
+    "itemUrl": "http://www.tradera.com/item/341141/753298422/graddkanna-fran-rorstrand-bla-eld-",
+    "categoryId": 341141,
+    "bidCount": 1,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/709/662212709_ffa49740-33d4-436c-a48f-1a6e559ad0e0.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/709/662212709_ffa49740-33d4-436c-a48f-1a6e559ad0e0.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/709/662212709_ffa49740-33d4-436c-a48f-1a6e559ad0e0.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/709/662212709_ffa49740-33d4-436c-a48f-1a6e559ad0e0.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Mycket gott skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 753072777,
+    "shortDescription": "Tallrikar Rörstrand Blå eld.",
+    "sellerId": 3077081,
+    "sellerAlias": "tesspetitess",
+    "maxBid": 60,
+    "thumbnailLink": "https://img.tradera.net/thumbs/654/662044654_0a7ef48b-6c3c-4cc1-94f8-5e765cada5a0.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2026-10-13T18:02:21.127+02:00",
+    "nextBid": 60,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "Auction",
+    "itemUrl": "http://www.tradera.com/item/341141/753072777/tallrikar-rorstrand-bla-eld-",
+    "categoryId": 341141,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/654/662044654_0a7ef48b-6c3c-4cc1-94f8-5e765cada5a0.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/654/662044654_0a7ef48b-6c3c-4cc1-94f8-5e765cada5a0.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/654/662044654_0a7ef48b-6c3c-4cc1-94f8-5e765cada5a0.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/654/662044654_0a7ef48b-6c3c-4cc1-94f8-5e765cada5a0.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Okej skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 735697245,
+    "shortDescription": "Rörstrand - Blå Eld - Serveringsfat blå 24x35cm Design Hertha bengtsson",
+    "buyItNowPrice": 1499,
+    "sellerId": 4342793,
+    "sellerAlias": "GlasprinsenInteriorDesign",
+    "maxBid": 1499,
+    "thumbnailLink": "https://img.tradera.net/thumbs/943/648656943_86734640-55a7-4683-8d70-0162ce8ac284.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2041-06-09T22:20:12.797+02:00",
+    "nextBid": 1499,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "ShopItem",
+    "itemUrl": "http://www.tradera.com/item/341144/735697245/rorstrand-bla-eld-serveringsfat-bla-24x35cm-design-hertha-bengtsson",
+    "categoryId": 341144,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/943/648656943_86734640-55a7-4683-8d70-0162ce8ac284.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/943/648656943_86734640-55a7-4683-8d70-0162ce8ac284.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/943/648656943_86734640-55a7-4683-8d70-0162ce8ac284.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/943/648656943_86734640-55a7-4683-8d70-0162ce8ac284.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Mycket gott skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 735694483,
+    "shortDescription": "Rörstrand - Blå-Eld - Mat tallrik Blå Design Hertha bengtsson",
+    "buyItNowPrice": 375,
+    "sellerId": 4342793,
+    "sellerAlias": "GlasprinsenInteriorDesign",
+    "maxBid": 375,
+    "thumbnailLink": "https://img.tradera.net/thumbs/679/648654679_8cd9fe43-d9f8-46fc-ada1-69b7f3dcc2da.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2041-06-05T20:10:01.013+02:00",
+    "nextBid": 375,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "ShopItem",
+    "itemUrl": "http://www.tradera.com/item/341144/735694483/rorstrand-bla-eld-mat-tallrik-bla-design-hertha-bengtsson",
+    "categoryId": 341144,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/679/648654679_8cd9fe43-d9f8-46fc-ada1-69b7f3dcc2da.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/679/648654679_8cd9fe43-d9f8-46fc-ada1-69b7f3dcc2da.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/679/648654679_8cd9fe43-d9f8-46fc-ada1-69b7f3dcc2da.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/679/648654679_8cd9fe43-d9f8-46fc-ada1-69b7f3dcc2da.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Mycket gott skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 735696751,
+    "shortDescription": "Rörstrand - Blå Eld - Serveringsfat blå 20x29cm Design Hertha bengtsson",
+    "buyItNowPrice": 1490,
+    "sellerId": 4342793,
+    "sellerAlias": "GlasprinsenInteriorDesign",
+    "maxBid": 1490,
+    "thumbnailLink": "https://img.tradera.net/thumbs/500/648656500_3a889fb8-cafc-4a9f-9eeb-201d84d18fa2.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2041-06-05T20:21:00.917+02:00",
+    "nextBid": 1490,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "ShopItem",
+    "itemUrl": "http://www.tradera.com/item/341144/735696751/rorstrand-bla-eld-serveringsfat-bla-20x29cm-design-hertha-bengtsson",
+    "categoryId": 341144,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/500/648656500_3a889fb8-cafc-4a9f-9eeb-201d84d18fa2.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/500/648656500_3a889fb8-cafc-4a9f-9eeb-201d84d18fa2.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/500/648656500_3a889fb8-cafc-4a9f-9eeb-201d84d18fa2.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/500/648656500_3a889fb8-cafc-4a9f-9eeb-201d84d18fa2.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Mycket gott skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 753435475,
+    "shortDescription": "RÖRSTRAND Rörstrand Blå eld, fat, Hertha Bengtsson",
+    "sellerId": 4667832,
+    "sellerAlias": "daelsa1",
+    "maxBid": 600,
+    "thumbnailLink": "https://img.tradera.net/thumbs/649/655157649_39a7601d-7b13-47c8-8419-5c2b3f0a2bd6.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2026-10-08T20:42:14.7867981+02:00",
+    "nextBid": 600,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "Auction",
+    "itemUrl": "http://www.tradera.com/item/341141/753435475/rorstrand-rorstrand-bla-eld-fat-hertha-bengtsson",
+    "categoryId": 341141,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/649/655157649_39a7601d-7b13-47c8-8419-5c2b3f0a2bd6.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/649/655157649_39a7601d-7b13-47c8-8419-5c2b3f0a2bd6.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/649/655157649_39a7601d-7b13-47c8-8419-5c2b3f0a2bd6.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/649/655157649_39a7601d-7b13-47c8-8419-5c2b3f0a2bd6.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Mycket gott skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 735696266,
+    "shortDescription": "Rörstrand - Blå Eld - Serveringsfat vit 24x35cm Design Hertha bengtsson",
+    "buyItNowPrice": 1499,
+    "sellerId": 4342793,
+    "sellerAlias": "GlasprinsenInteriorDesign",
+    "maxBid": 1499,
+    "thumbnailLink": "https://img.tradera.net/thumbs/147/648656147_c30a6f14-8744-4e9d-a5da-967d8bd28d5e.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2041-06-05T20:20:00.753+02:00",
+    "nextBid": 1499,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "ShopItem",
+    "itemUrl": "http://www.tradera.com/item/341144/735696266/rorstrand-bla-eld-serveringsfat-vit-24x35cm-design-hertha-bengtsson",
+    "categoryId": 341144,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/147/648656147_c30a6f14-8744-4e9d-a5da-967d8bd28d5e.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/147/648656147_c30a6f14-8744-4e9d-a5da-967d8bd28d5e.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/147/648656147_c30a6f14-8744-4e9d-a5da-967d8bd28d5e.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/147/648656147_c30a6f14-8744-4e9d-a5da-967d8bd28d5e.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Mycket gott skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 753869870,
+    "shortDescription": "Rörstrands Blå eld, tekopp med fat",
+    "sellerId": 6428057,
+    "sellerAlias": "avaj",
+    "maxBid": 400,
+    "thumbnailLink": "https://img.tradera.net/thumbs/321/662648321_1e9e35ab-a9bb-405d-84e4-5cd225129d74.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2026-10-11T10:38:55.573+02:00",
+    "nextBid": 400,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "Auction",
+    "itemUrl": "http://www.tradera.com/item/341141/753869870/rorstrands-bla-eld-tekopp-med-fat",
+    "categoryId": 341141,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/321/662648321_1e9e35ab-a9bb-405d-84e4-5cd225129d74.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/321/662648321_1e9e35ab-a9bb-405d-84e4-5cd225129d74.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/321/662648321_1e9e35ab-a9bb-405d-84e4-5cd225129d74.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/321/662648321_1e9e35ab-a9bb-405d-84e4-5cd225129d74.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Mycket gott skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 753320724,
+    "shortDescription": "Uppläggningsfat Rörstrand Blå Eld Hertha Bengtsson",
+    "sellerId": 4716980,
+    "sellerAlias": "LaIhre",
+    "maxBid": 150,
+    "thumbnailLink": "https://img.tradera.net/thumbs/128/662228128_0ff0eb81-a841-4758-808a-15fccbd592b2.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2026-10-15T10:41:21.4493067+02:00",
+    "nextBid": 150,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "Auction",
+    "itemUrl": "http://www.tradera.com/item/341141/753320724/upplaggningsfat-rorstrand-bla-eld-hertha-bengtsson",
+    "categoryId": 341141,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/128/662228128_0ff0eb81-a841-4758-808a-15fccbd592b2.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/128/662228128_0ff0eb81-a841-4758-808a-15fccbd592b2.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/128/662228128_0ff0eb81-a841-4758-808a-15fccbd592b2.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/128/662228128_0ff0eb81-a841-4758-808a-15fccbd592b2.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Gott skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 746175679,
+    "shortDescription": "Rörstrand blå eld 2st med fat och assietter",
+    "buyItNowPrice": 300,
+    "sellerId": 285594,
+    "sellerAlias": "ludde57",
+    "maxBid": 300,
+    "thumbnailLink": "https://img.tradera.net/thumbs/128/656679128_1df03b7f-9287-4379-98c7-5a2ad824e1be.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2026-10-19T12:41:56.263+02:00",
+    "nextBid": 300,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "PureBuyItNow",
+    "itemUrl": "http://www.tradera.com/item/341141/746175679/rorstrand-bla-eld-2st-med-fat-och-assietter",
+    "categoryId": 341141,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/128/656679128_1df03b7f-9287-4379-98c7-5a2ad824e1be.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/128/656679128_1df03b7f-9287-4379-98c7-5a2ad824e1be.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/128/656679128_1df03b7f-9287-4379-98c7-5a2ad824e1be.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/128/656679128_1df03b7f-9287-4379-98c7-5a2ad824e1be.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Okej skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 735694316,
+    "shortDescription": "Rörstrand - Blå-Eld - Mat tallrik vit Design Hertha bengtsson",
+    "buyItNowPrice": 375,
+    "sellerId": 4342793,
+    "sellerAlias": "GlasprinsenInteriorDesign",
+    "maxBid": 375,
+    "thumbnailLink": "https://img.tradera.net/thumbs/535/648654535_83a2acbd-21d9-4198-a105-6ca2b8144e31.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2041-06-05T20:09:01.377+02:00",
+    "nextBid": 375,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "ShopItem",
+    "itemUrl": "http://www.tradera.com/item/341144/735694316/rorstrand-bla-eld-mat-tallrik-vit-design-hertha-bengtsson",
+    "categoryId": 341144,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/535/648654535_83a2acbd-21d9-4198-a105-6ca2b8144e31.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/535/648654535_83a2acbd-21d9-4198-a105-6ca2b8144e31.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/535/648654535_83a2acbd-21d9-4198-a105-6ca2b8144e31.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/535/648654535_83a2acbd-21d9-4198-a105-6ca2b8144e31.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Mycket gott skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 735696485,
+    "shortDescription": "Rörstrand - Blå Eld - Serveringsfat vit 20x29cm Design Hertha bengtsson",
+    "buyItNowPrice": 1490,
+    "sellerId": 4342793,
+    "sellerAlias": "GlasprinsenInteriorDesign",
+    "maxBid": 1490,
+    "thumbnailLink": "https://img.tradera.net/thumbs/327/648656327_04d70bf5-9814-483e-a042-52a73c13d26d.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2041-06-05T20:21:00.97+02:00",
+    "nextBid": 1490,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "ShopItem",
+    "itemUrl": "http://www.tradera.com/item/341144/735696485/rorstrand-bla-eld-serveringsfat-vit-20x29cm-design-hertha-bengtsson",
+    "categoryId": 341144,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/327/648656327_04d70bf5-9814-483e-a042-52a73c13d26d.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/327/648656327_04d70bf5-9814-483e-a042-52a73c13d26d.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/327/648656327_04d70bf5-9814-483e-a042-52a73c13d26d.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/327/648656327_04d70bf5-9814-483e-a042-52a73c13d26d.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Mycket gott skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 751652064,
+    "shortDescription": "Rörstrand Blå Eld – vacker vintage servis i vitt, 16 delar",
+    "buyItNowPrice": 3500,
+    "sellerId": 4848435,
+    "sellerAlias": "FridaMoaOde",
+    "maxBid": 3500,
+    "thumbnailLink": "https://img.tradera.net/thumbs/056/660946056_769fc7d2-a8e6-4e4a-bf72-792002c25bf4.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2026-11-20T12:09:39.627+01:00",
+    "nextBid": 3500,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "PureBuyItNow",
+    "itemUrl": "http://www.tradera.com/item/341144/751652064/rorstrand-bla-eld-vacker-vintage-servis-i-vitt-16-delar",
+    "categoryId": 341144,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/056/660946056_769fc7d2-a8e6-4e4a-bf72-792002c25bf4.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/056/660946056_769fc7d2-a8e6-4e4a-bf72-792002c25bf4.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/056/660946056_769fc7d2-a8e6-4e4a-bf72-792002c25bf4.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/056/660946056_769fc7d2-a8e6-4e4a-bf72-792002c25bf4.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Gott skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 753296507,
+    "shortDescription": "Rörstrand Blå Eld fältspatporslin formgivet av Hertha Bengtson",
+    "sellerId": 4667832,
+    "sellerAlias": "daelsa1",
+    "maxBid": 300,
+    "thumbnailLink": "https://img.tradera.net/thumbs/487/659598487_225fa5fd-0aaa-48fb-b4c6-23e655574723.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2026-10-08T08:25:52.107+02:00",
+    "nextBid": 300,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "Auction",
+    "itemUrl": "http://www.tradera.com/item/341141/753296507/rorstrand-bla-eld-faltspatporslin-formgivet-av-hertha-bengtson",
+    "categoryId": 341141,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/487/659598487_225fa5fd-0aaa-48fb-b4c6-23e655574723.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/487/659598487_225fa5fd-0aaa-48fb-b4c6-23e655574723.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/487/659598487_225fa5fd-0aaa-48fb-b4c6-23e655574723.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/487/659598487_225fa5fd-0aaa-48fb-b4c6-23e655574723.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Mycket gott skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 752581342,
+    "shortDescription": "Rörstrand Blå eld kaffefat 1 st",
+    "sellerId": 1142341,
+    "sellerAlias": "annjohan9",
+    "maxBid": 30,
+    "thumbnailLink": "https://img.tradera.net/thumbs/794/661660794_5c8b0dfc-0ce0-4a90-bbaf-2efbf05fbd56.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2026-10-11T14:53:31.793+02:00",
+    "nextBid": 30,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "Auction",
+    "itemUrl": "http://www.tradera.com/item/341141/752581342/rorstrand-bla-eld-kaffefat-1-st",
+    "categoryId": 341141,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/794/661660794_5c8b0dfc-0ce0-4a90-bbaf-2efbf05fbd56.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/794/661660794_5c8b0dfc-0ce0-4a90-bbaf-2efbf05fbd56.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/794/661660794_5c8b0dfc-0ce0-4a90-bbaf-2efbf05fbd56.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/794/661660794_5c8b0dfc-0ce0-4a90-bbaf-2efbf05fbd56.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 749807090,
+    "shortDescription": "Rörstrand Blå Eld Skål 13 cm",
+    "buyItNowPrice": 390,
+    "sellerId": 6654819,
+    "sellerAlias": "AntikHandlarnaGoteborg",
+    "maxBid": 390,
+    "thumbnailLink": "https://img.tradera.net/thumbs/661/659491661_480c0408-1a93-45cd-98cb-6a2eb2c493f1.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2026-11-10T09:19:21.173+01:00",
+    "nextBid": 390,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "PureBuyItNow",
+    "itemUrl": "http://www.tradera.com/item/341141/749807090/rorstrand-bla-eld-skal-13-cm",
+    "categoryId": 341141,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/661/659491661_480c0408-1a93-45cd-98cb-6a2eb2c493f1.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/661/659491661_480c0408-1a93-45cd-98cb-6a2eb2c493f1.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/661/659491661_480c0408-1a93-45cd-98cb-6a2eb2c493f1.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/661/659491661_480c0408-1a93-45cd-98cb-6a2eb2c493f1.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Mycket gott skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 749806710,
+    "shortDescription": "Rörstrand Blå Eld Serveringsfat 34 cm",
+    "buyItNowPrice": 790,
+    "sellerId": 6654819,
+    "sellerAlias": "AntikHandlarnaGoteborg",
+    "maxBid": 790,
+    "thumbnailLink": "https://img.tradera.net/thumbs/321/659491321_9aa16f90-f6d4-4841-975c-479466e78675.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2026-11-10T09:15:33.757+01:00",
+    "nextBid": 790,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "PureBuyItNow",
+    "itemUrl": "http://www.tradera.com/item/341141/749806710/rorstrand-bla-eld-serveringsfat-34-cm",
+    "categoryId": 341141,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/321/659491321_9aa16f90-f6d4-4841-975c-479466e78675.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/321/659491321_9aa16f90-f6d4-4841-975c-479466e78675.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/321/659491321_9aa16f90-f6d4-4841-975c-479466e78675.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/321/659491321_9aa16f90-f6d4-4841-975c-479466e78675.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Mycket gott skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 753893622,
+    "shortDescription": "Rörstrand - Blå Eld, 2 st tallrikar",
+    "sellerId": 4898746,
+    "sellerAlias": "Atom1",
+    "maxBid": 50,
+    "thumbnailLink": "https://img.tradera.net/thumbs/763/662667763_35724664-6bde-44a5-96a2-20574e9d5383.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2026-10-18T14:24:57.813+02:00",
+    "nextBid": 50,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "Auction",
+    "itemUrl": "http://www.tradera.com/item/341141/753893622/rorstrand-bla-eld-2-st-tallrikar",
+    "categoryId": 341141,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/763/662667763_35724664-6bde-44a5-96a2-20574e9d5383.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/763/662667763_35724664-6bde-44a5-96a2-20574e9d5383.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/763/662667763_35724664-6bde-44a5-96a2-20574e9d5383.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/763/662667763_35724664-6bde-44a5-96a2-20574e9d5383.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Gott skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 751695539,
+    "shortDescription": "Rörstrand Blå Eld Tekanna Hertha Bengtson",
+    "buyItNowPrice": 650,
+    "sellerId": 4301123,
+    "sellerAlias": "odabb",
+    "maxBid": 650,
+    "thumbnailLink": "https://img.tradera.net/thumbs/471/660981471_9b3a86be-f830-4aa8-b4e0-6fd4b0eeb4f3.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2026-11-20T17:27:50.277+01:00",
+    "nextBid": 650,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "PureBuyItNow",
+    "itemUrl": "http://www.tradera.com/item/341141/751695539/rorstrand-bla-eld-tekanna-hertha-bengtson",
+    "categoryId": 341141,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/471/660981471_9b3a86be-f830-4aa8-b4e0-6fd4b0eeb4f3.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/471/660981471_9b3a86be-f830-4aa8-b4e0-6fd4b0eeb4f3.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/471/660981471_9b3a86be-f830-4aa8-b4e0-6fd4b0eeb4f3.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/471/660981471_9b3a86be-f830-4aa8-b4e0-6fd4b0eeb4f3.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Gott skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 735695764,
+    "shortDescription": "Rörstrand - Blå Eld - 6 st Förrättstallrikar blå 19 cm Design Hertha bengtsson",
+    "buyItNowPrice": 1599,
+    "sellerId": 4342793,
+    "sellerAlias": "GlasprinsenInteriorDesign",
+    "maxBid": 1599,
+    "thumbnailLink": "https://img.tradera.net/thumbs/694/648655694_71363a32-f18a-4844-94ca-c51bfc44f423.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2041-06-09T22:12:13.76+02:00",
+    "nextBid": 1599,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "ShopItem",
+    "itemUrl": "http://www.tradera.com/item/341144/735695764/rorstrand-bla-eld-6-st-forrattstallrikar-bla-19-cm-design-hertha-bengtsson",
+    "categoryId": 341144,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/694/648655694_71363a32-f18a-4844-94ca-c51bfc44f423.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/694/648655694_71363a32-f18a-4844-94ca-c51bfc44f423.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/694/648655694_71363a32-f18a-4844-94ca-c51bfc44f423.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/694/648655694_71363a32-f18a-4844-94ca-c51bfc44f423.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Mycket gott skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 749183622,
+    "shortDescription": "Rörstrand Blå Eld Skål Med Handtag 19 cm",
+    "buyItNowPrice": 990,
+    "sellerId": 6654819,
+    "sellerAlias": "AntikHandlarnaGoteborg",
+    "maxBid": 990,
+    "thumbnailLink": "https://img.tradera.net/thumbs/817/659002817_d7f57b15-b737-4379-8043-98e2c477b329.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2026-11-06T09:18:29.667+01:00",
+    "nextBid": 990,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "PureBuyItNow",
+    "itemUrl": "http://www.tradera.com/item/341141/749183622/rorstrand-bla-eld-skal-med-handtag-19-cm",
+    "categoryId": 341141,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/817/659002817_d7f57b15-b737-4379-8043-98e2c477b329.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/817/659002817_d7f57b15-b737-4379-8043-98e2c477b329.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/817/659002817_d7f57b15-b737-4379-8043-98e2c477b329.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/817/659002817_d7f57b15-b737-4379-8043-98e2c477b329.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Mycket gott skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 749624061,
+    "shortDescription": "Rörstrand Blå Eld – serveringsfat – Hertha Bengtsson",
+    "buyItNowPrice": 1500,
+    "sellerId": 6373395,
+    "sellerAlias": "kronmann",
+    "maxBid": 1500,
+    "thumbnailLink": "https://img.tradera.net/thumbs/806/659346806_e75174e4-f593-4a64-a2f1-42d2dbdb44ed.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2026-11-08T21:28:17+01:00",
+    "nextBid": 1500,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "PureBuyItNow",
+    "itemUrl": "http://www.tradera.com/item/341141/749624061/rorstrand-bla-eld-serveringsfat-hertha-bengtsson",
+    "categoryId": 341141,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/806/659346806_e75174e4-f593-4a64-a2f1-42d2dbdb44ed.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/806/659346806_e75174e4-f593-4a64-a2f1-42d2dbdb44ed.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/806/659346806_e75174e4-f593-4a64-a2f1-42d2dbdb44ed.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/806/659346806_e75174e4-f593-4a64-a2f1-42d2dbdb44ed.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Mycket gott skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 735695765,
+    "shortDescription": "Rörstrand - Blå Eld - 6 st Förrättstallrikar vit 19 cm Design Hertha bengtsson",
+    "buyItNowPrice": 1599,
+    "sellerId": 4342793,
+    "sellerAlias": "GlasprinsenInteriorDesign",
+    "maxBid": 1599,
+    "thumbnailLink": "https://img.tradera.net/thumbs/695/648655695_5793b013-ab43-46bc-93b2-eac4a008e183.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2041-06-09T22:12:13.787+02:00",
+    "nextBid": 1599,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "ShopItem",
+    "itemUrl": "http://www.tradera.com/item/341144/735695765/rorstrand-bla-eld-6-st-forrattstallrikar-vit-19-cm-design-hertha-bengtsson",
+    "categoryId": 341144,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/695/648655695_5793b013-ab43-46bc-93b2-eac4a008e183.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/695/648655695_5793b013-ab43-46bc-93b2-eac4a008e183.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/695/648655695_5793b013-ab43-46bc-93b2-eac4a008e183.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/695/648655695_5793b013-ab43-46bc-93b2-eac4a008e183.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Mycket gott skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 749882292,
+    "shortDescription": "Rörstrand Blå eld sju mattallrikar 23cm",
+    "buyItNowPrice": 630,
+    "sellerId": 229185,
+    "sellerAlias": "dagisanna",
+    "maxBid": 630,
+    "thumbnailLink": "https://img.tradera.net/thumbs/082/656612082_5bbebfa0-3b51-46d0-ae7d-6ed5219a1b5b.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2026-11-10T18:55:07.22+01:00",
+    "nextBid": 630,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "PureBuyItNow",
+    "itemUrl": "http://www.tradera.com/item/341141/749882292/rorstrand-bla-eld-sju-mattallrikar-23cm",
+    "categoryId": 341141,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/082/656612082_5bbebfa0-3b51-46d0-ae7d-6ed5219a1b5b.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/082/656612082_5bbebfa0-3b51-46d0-ae7d-6ed5219a1b5b.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/082/656612082_5bbebfa0-3b51-46d0-ae7d-6ed5219a1b5b.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/082/656612082_5bbebfa0-3b51-46d0-ae7d-6ed5219a1b5b.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Okej skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 751106006,
+    "shortDescription": "Rörstrand Blå Eld Tekopp-Fat-Assiett 1950-tal",
+    "buyItNowPrice": 795,
+    "sellerId": 6082086,
+    "sellerAlias": "Rodmar00",
+    "maxBid": 795,
+    "thumbnailLink": "https://img.tradera.net/thumbs/522/660517522_e83fbae9-5fc8-476f-835e-13a822dcf3e7.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2026-11-17T11:27:32.993+01:00",
+    "nextBid": 795,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "PureBuyItNow",
+    "itemUrl": "http://www.tradera.com/item/341141/751106006/rorstrand-bla-eld-tekopp-fat-assiett-1950-tal",
+    "categoryId": 341141,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/522/660517522_e83fbae9-5fc8-476f-835e-13a822dcf3e7.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/522/660517522_e83fbae9-5fc8-476f-835e-13a822dcf3e7.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/522/660517522_e83fbae9-5fc8-476f-835e-13a822dcf3e7.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/522/660517522_e83fbae9-5fc8-476f-835e-13a822dcf3e7.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Mycket gott skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 753223266,
+    "shortDescription": "Rörstrand Blå Eld såssnipa / såskanna – Hertha Bengtson – Vit porslin",
+    "sellerId": 6738774,
+    "sellerAlias": "MissMisia",
+    "maxBid": 150,
+    "thumbnailLink": "https://img.tradera.net/thumbs/595/662159595_d6c6d680-ba44-4372-bdc5-6ccf9012e71a.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2026-10-08T20:42:12.297+02:00",
+    "nextBid": 150,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "Auction",
+    "itemUrl": "http://www.tradera.com/item/341141/753223266/rorstrand-bla-eld-sassnipa-saskanna-hertha-bengtson-vit-porslin",
+    "categoryId": 341141,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/595/662159595_d6c6d680-ba44-4372-bdc5-6ccf9012e71a.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/595/662159595_d6c6d680-ba44-4372-bdc5-6ccf9012e71a.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/595/662159595_d6c6d680-ba44-4372-bdc5-6ccf9012e71a.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/595/662159595_d6c6d680-ba44-4372-bdc5-6ccf9012e71a.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Gott skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 751794991,
+    "shortDescription": "6x Rörstrand Blå Eld Tekoppar med Fat och Assietter",
+    "buyItNowPrice": 2990,
+    "sellerId": 6654819,
+    "sellerAlias": "AntikHandlarnaGoteborg",
+    "maxBid": 2990,
+    "thumbnailLink": "https://img.tradera.net/thumbs/640/661058640_58c915f9-f12a-43d1-95d7-088b35ddf875.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2026-11-21T09:13:17.187+01:00",
+    "nextBid": 2990,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "PureBuyItNow",
+    "itemUrl": "http://www.tradera.com/item/341141/751794991/6x-rorstrand-bla-eld-tekoppar-med-fat-och-assietter",
+    "categoryId": 341141,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/640/661058640_58c915f9-f12a-43d1-95d7-088b35ddf875.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/640/661058640_58c915f9-f12a-43d1-95d7-088b35ddf875.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/640/661058640_58c915f9-f12a-43d1-95d7-088b35ddf875.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/640/661058640_58c915f9-f12a-43d1-95d7-088b35ddf875.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Gott skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 735694799,
+    "shortDescription": "Rörstrand - Blå-Eld - 6 st Mat tallrikar vit 26 cm Design Hertha bengtsson",
+    "buyItNowPrice": 2199,
+    "sellerId": 4342793,
+    "sellerAlias": "GlasprinsenInteriorDesign",
+    "maxBid": 2199,
+    "thumbnailLink": "https://img.tradera.net/thumbs/957/648654957_9c3f4bf9-812b-4dc1-9013-a385cbf56521.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2041-06-09T22:07:13.663+02:00",
+    "nextBid": 2199,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "ShopItem",
+    "itemUrl": "http://www.tradera.com/item/341144/735694799/rorstrand-bla-eld-6-st-mat-tallrikar-vit-26-cm-design-hertha-bengtsson",
+    "categoryId": 341144,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/957/648654957_9c3f4bf9-812b-4dc1-9013-a385cbf56521.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/957/648654957_9c3f4bf9-812b-4dc1-9013-a385cbf56521.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/957/648654957_9c3f4bf9-812b-4dc1-9013-a385cbf56521.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/957/648654957_9c3f4bf9-812b-4dc1-9013-a385cbf56521.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Mycket gott skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 746791197,
+    "shortDescription": "Rörstrand assiett Blå eld",
+    "buyItNowPrice": 139,
+    "sellerId": 537673,
+    "sellerAlias": "hallonglassbåt",
+    "maxBid": 139,
+    "thumbnailLink": "https://img.tradera.net/thumbs/834/657156834_bb496419-54cb-41cf-86fd-47bc839404c0.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2026-10-23T08:55:48.747+02:00",
+    "nextBid": 139,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "PureBuyItNow",
+    "itemUrl": "http://www.tradera.com/item/341144/746791197/rorstrand-assiett-bla-eld",
+    "categoryId": 341144,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/834/657156834_bb496419-54cb-41cf-86fd-47bc839404c0.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/834/657156834_bb496419-54cb-41cf-86fd-47bc839404c0.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/834/657156834_bb496419-54cb-41cf-86fd-47bc839404c0.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/834/657156834_bb496419-54cb-41cf-86fd-47bc839404c0.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Okej skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 753719386,
+    "shortDescription": "Rörstrand Blå Eld RÖD – Gräddkanna / Tillbringare Hertha Bengtson – Sällsynt!",
+    "sellerId": 2914292,
+    "sellerAlias": "kulturfabrkn",
+    "maxBid": 420,
+    "thumbnailLink": "https://img.tradera.net/thumbs/514/662529514_39d5047c-ed58-41f4-ba45-fee96c78e336.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2026-10-17T16:30:47.54+02:00",
+    "nextBid": 440,
+    "hasBids": true,
+    "isEnded": false,
+    "itemType": "Auction",
+    "itemUrl": "http://www.tradera.com/item/341141/753719386/rorstrand-bla-eld-rod-graddkanna-tillbringare-hertha-bengtson-sallsynt-",
+    "categoryId": 341141,
+    "bidCount": 13,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/514/662529514_39d5047c-ed58-41f4-ba45-fee96c78e336.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/514/662529514_39d5047c-ed58-41f4-ba45-fee96c78e336.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/514/662529514_39d5047c-ed58-41f4-ba45-fee96c78e336.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/514/662529514_39d5047c-ed58-41f4-ba45-fee96c78e336.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Mycket gott skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 749183641,
+    "shortDescription": "6x Rörstrand Blå Eld Tekoppar med Fat och Assietter",
+    "buyItNowPrice": 2990,
+    "sellerId": 6654819,
+    "sellerAlias": "AntikHandlarnaGoteborg",
+    "maxBid": 2990,
+    "thumbnailLink": "https://img.tradera.net/thumbs/832/659002832_98f54673-a859-4b84-83cd-897a1de81303.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2026-11-06T09:18:43.577+01:00",
+    "nextBid": 2990,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "PureBuyItNow",
+    "itemUrl": "http://www.tradera.com/item/341141/749183641/6x-rorstrand-bla-eld-tekoppar-med-fat-och-assietter",
+    "categoryId": 341141,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/832/659002832_98f54673-a859-4b84-83cd-897a1de81303.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/832/659002832_98f54673-a859-4b84-83cd-897a1de81303.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/832/659002832_98f54673-a859-4b84-83cd-897a1de81303.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/832/659002832_98f54673-a859-4b84-83cd-897a1de81303.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Gott skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 748478261,
+    "shortDescription": "Rörstrand - Blå Eld, 5 st Tefat",
+    "buyItNowPrice": 200,
+    "sellerId": 5007089,
+    "sellerAlias": "PettersPorslin",
+    "maxBid": 200,
+    "thumbnailLink": "https://img.tradera.net/thumbs/611/658452611_24b184d6-221c-435d-845b-112b96a4921b.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2026-11-02T12:08:50.76+01:00",
+    "nextBid": 200,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "PureBuyItNow",
+    "itemUrl": "http://www.tradera.com/item/341141/748478261/rorstrand-bla-eld-5-st-tefat",
+    "categoryId": 341141,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/611/658452611_24b184d6-221c-435d-845b-112b96a4921b.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/611/658452611_24b184d6-221c-435d-845b-112b96a4921b.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/611/658452611_24b184d6-221c-435d-845b-112b96a4921b.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/611/658452611_24b184d6-221c-435d-845b-112b96a4921b.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Mycket gott skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 703805288,
+    "shortDescription": "Rørstrand Blå Eld / Ild Peberbøsse",
+    "buyItNowPrice": 450,
+    "sellerId": 2813845,
+    "sellerAlias": "Danamantik",
+    "maxBid": 450,
+    "thumbnailLink": "https://img.tradera.net/thumbs/852/623508852_064bae37-2ef8-4d4c-8a3a-a8c6f0fac70e.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2029-11-23T11:37:58.64+01:00",
+    "nextBid": 450,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "ShopItem",
+    "itemUrl": "http://www.tradera.com/item/201208/703805288/r%C3%B8rstrand-bla-eld-ild-peberb%C3%B8sse",
+    "categoryId": 201208,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/852/623508852_064bae37-2ef8-4d4c-8a3a-a8c6f0fac70e.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/852/623508852_064bae37-2ef8-4d4c-8a3a-a8c6f0fac70e.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/852/623508852_064bae37-2ef8-4d4c-8a3a-a8c6f0fac70e.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/852/623508852_064bae37-2ef8-4d4c-8a3a-a8c6f0fac70e.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 745695763,
+    "shortDescription": "Rörstrand Blå Eld assietter 2 st",
+    "buyItNowPrice": 400,
+    "sellerId": 6395119,
+    "sellerAlias": "Butikschef",
+    "maxBid": 400,
+    "thumbnailLink": "https://img.tradera.net/thumbs/355/656300355_76398f46-7dfa-4d10-aa8f-1c1c4b6814d5.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2026-10-16T09:25:23.023+02:00",
+    "nextBid": 400,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "PureBuyItNow",
+    "itemUrl": "http://www.tradera.com/item/341141/745695763/rorstrand-bla-eld-assietter-2-st",
+    "categoryId": 341141,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/355/656300355_76398f46-7dfa-4d10-aa8f-1c1c4b6814d5.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/355/656300355_76398f46-7dfa-4d10-aa8f-1c1c4b6814d5.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/355/656300355_76398f46-7dfa-4d10-aa8f-1c1c4b6814d5.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/355/656300355_76398f46-7dfa-4d10-aa8f-1c1c4b6814d5.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Mycket gott skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 753588995,
+    "shortDescription": "Rörstrand Blå Eld Tekopp med Fat – Hertha Bengtson Retro Vintage",
+    "sellerId": 437811,
+    "sellerAlias": "frufrisk",
+    "maxBid": 550,
+    "thumbnailLink": "https://img.tradera.net/thumbs/372/662429372_a6ba948e-38d9-494c-a958-20ec4f2bc24f.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2026-10-10T19:43:26.33+02:00",
+    "nextBid": 550,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "Auction",
+    "itemUrl": "http://www.tradera.com/item/341141/753588995/rorstrand-bla-eld-tekopp-med-fat-hertha-bengtson-retro-vintage",
+    "categoryId": 341141,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/372/662429372_a6ba948e-38d9-494c-a958-20ec4f2bc24f.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/372/662429372_a6ba948e-38d9-494c-a958-20ec4f2bc24f.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/372/662429372_a6ba948e-38d9-494c-a958-20ec4f2bc24f.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/372/662429372_a6ba948e-38d9-494c-a958-20ec4f2bc24f.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [
+      {
+       "id": 121,
+       "name": "condition",
+       "values": [
+        "Mycket gott skick"
+       ]
+      }
+     ],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 703805039,
+    "shortDescription": "Rørstrand Blå Eld / Blå Ild Frokosttallerken",
+    "buyItNowPrice": 405,
+    "sellerId": 2813845,
+    "sellerAlias": "Danamantik",
+    "maxBid": 405,
+    "thumbnailLink": "https://img.tradera.net/thumbs/638/623508638_5f722a74-fb01-4f4d-9f48-e2b82fe9bb07.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2029-11-23T11:36:34.76+01:00",
+    "nextBid": 405,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "ShopItem",
+    "itemUrl": "http://www.tradera.com/item/201208/703805039/r%C3%B8rstrand-bla-eld-bla-ild-frokosttallerken",
+    "categoryId": 201208,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/638/623508638_5f722a74-fb01-4f4d-9f48-e2b82fe9bb07.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/638/623508638_5f722a74-fb01-4f4d-9f48-e2b82fe9bb07.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/638/623508638_5f722a74-fb01-4f4d-9f48-e2b82fe9bb07.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/638/623508638_5f722a74-fb01-4f4d-9f48-e2b82fe9bb07.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 703805114,
+    "shortDescription": "Rørstrand Blå Eld / Blå Ild Serveringsfad",
+    "buyItNowPrice": 3240,
+    "sellerId": 2813845,
+    "sellerAlias": "Danamantik",
+    "maxBid": 3240,
+    "thumbnailLink": "https://img.tradera.net/thumbs/704/623508704_d013c21d-6643-4076-856d-2ec26c04ab7b.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2029-11-23T11:37:09.673+01:00",
+    "nextBid": 3240,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "ShopItem",
+    "itemUrl": "http://www.tradera.com/item/201208/703805114/r%C3%B8rstrand-bla-eld-bla-ild-serveringsfad",
+    "categoryId": 201208,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/704/623508704_d013c21d-6643-4076-856d-2ec26c04ab7b.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/704/623508704_d013c21d-6643-4076-856d-2ec26c04ab7b.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/704/623508704_d013c21d-6643-4076-856d-2ec26c04ab7b.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/704/623508704_d013c21d-6643-4076-856d-2ec26c04ab7b.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 703805146,
+    "shortDescription": "Rørstrand Blå Eld / Blå Ild Serveringsskål",
+    "buyItNowPrice": 1440,
+    "sellerId": 2813845,
+    "sellerAlias": "Danamantik",
+    "maxBid": 1440,
+    "thumbnailLink": "https://img.tradera.net/thumbs/728/623508728_2660ec61-0162-4b9f-b476-c464d84aac15.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2029-11-23T11:37:21.253+01:00",
+    "nextBid": 1440,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "ShopItem",
+    "itemUrl": "http://www.tradera.com/item/201208/703805146/r%C3%B8rstrand-bla-eld-bla-ild-serveringsskal",
+    "categoryId": 201208,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/728/623508728_2660ec61-0162-4b9f-b476-c464d84aac15.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/728/623508728_2660ec61-0162-4b9f-b476-c464d84aac15.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/728/623508728_2660ec61-0162-4b9f-b476-c464d84aac15.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/728/623508728_2660ec61-0162-4b9f-b476-c464d84aac15.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 703805198,
+    "shortDescription": "Rørstrand Blå Eld / Blå Ild Sovseskål",
+    "buyItNowPrice": 1980,
+    "sellerId": 2813845,
+    "sellerAlias": "Danamantik",
+    "maxBid": 1980,
+    "thumbnailLink": "https://img.tradera.net/thumbs/757/623508757_1bfc546b-f7ab-48e3-910b-a9bf48221c11.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2029-11-23T11:37:28.307+01:00",
+    "nextBid": 1980,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "ShopItem",
+    "itemUrl": "http://www.tradera.com/item/201208/703805198/r%C3%B8rstrand-bla-eld-bla-ild-sovseskal",
+    "categoryId": 201208,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/757/623508757_1bfc546b-f7ab-48e3-910b-a9bf48221c11.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/757/623508757_1bfc546b-f7ab-48e3-910b-a9bf48221c11.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/757/623508757_1bfc546b-f7ab-48e3-910b-a9bf48221c11.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/757/623508757_1bfc546b-f7ab-48e3-910b-a9bf48221c11.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 703805265,
+    "shortDescription": "Rørstrand Blå Eld / Blå Ild Tekande",
+    "buyItNowPrice": 5040,
+    "sellerId": 2813845,
+    "sellerAlias": "Danamantik",
+    "maxBid": 5040,
+    "thumbnailLink": "https://img.tradera.net/thumbs/821/623508821_137365b0-4b65-44e7-9c39-45c0095b5231.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2029-11-23T11:37:43.52+01:00",
+    "nextBid": 5040,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "ShopItem",
+    "itemUrl": "http://www.tradera.com/item/201208/703805265/r%C3%B8rstrand-bla-eld-bla-ild-tekande",
+    "categoryId": 201208,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/821/623508821_137365b0-4b65-44e7-9c39-45c0095b5231.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/821/623508821_137365b0-4b65-44e7-9c39-45c0095b5231.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/821/623508821_137365b0-4b65-44e7-9c39-45c0095b5231.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/821/623508821_137365b0-4b65-44e7-9c39-45c0095b5231.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 703805052,
+    "shortDescription": "Rørstrand Blå Eld / Blå Ild Kande",
+    "buyItNowPrice": 4500,
+    "sellerId": 2813845,
+    "sellerAlias": "Danamantik",
+    "maxBid": 4500,
+    "thumbnailLink": "https://img.tradera.net/thumbs/648/623508648_1b837818-131d-4e1f-9291-4c1510e0fdea.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2029-11-23T11:36:39.327+01:00",
+    "nextBid": 4500,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "ShopItem",
+    "itemUrl": "http://www.tradera.com/item/201208/703805052/r%C3%B8rstrand-bla-eld-bla-ild-kande",
+    "categoryId": 201208,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/648/623508648_1b837818-131d-4e1f-9291-4c1510e0fdea.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/648/623508648_1b837818-131d-4e1f-9291-4c1510e0fdea.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/648/623508648_1b837818-131d-4e1f-9291-4c1510e0fdea.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/648/623508648_1b837818-131d-4e1f-9291-4c1510e0fdea.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 703805235,
+    "shortDescription": "Rørstrand Blå Eld / Blå Ild Spisetallerken",
+    "buyItNowPrice": 540,
+    "sellerId": 2813845,
+    "sellerAlias": "Danamantik",
+    "maxBid": 540,
+    "thumbnailLink": "https://img.tradera.net/thumbs/792/623508792_eb2d88b6-9243-4268-b999-0b167bb33a40.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2029-11-23T11:37:36.313+01:00",
+    "nextBid": 540,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "ShopItem",
+    "itemUrl": "http://www.tradera.com/item/201208/703805235/r%C3%B8rstrand-bla-eld-bla-ild-spisetallerken",
+    "categoryId": 201208,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/792/623508792_eb2d88b6-9243-4268-b999-0b167bb33a40.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/792/623508792_eb2d88b6-9243-4268-b999-0b167bb33a40.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/792/623508792_eb2d88b6-9243-4268-b999-0b167bb33a40.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/792/623508792_eb2d88b6-9243-4268-b999-0b167bb33a40.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 703805106,
+    "shortDescription": "Rørstrand Blå Eld / Blå Ild Serveringsfad",
+    "buyItNowPrice": 1440,
+    "sellerId": 2813845,
+    "sellerAlias": "Danamantik",
+    "maxBid": 1440,
+    "thumbnailLink": "https://img.tradera.net/thumbs/696/623508696_308ce39b-63a1-4467-a5be-04dd59d646b9.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2029-11-23T11:37:05.543+01:00",
+    "nextBid": 1440,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "ShopItem",
+    "itemUrl": "http://www.tradera.com/item/201208/703805106/r%C3%B8rstrand-bla-eld-bla-ild-serveringsfad",
+    "categoryId": 201208,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/696/623508696_308ce39b-63a1-4467-a5be-04dd59d646b9.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/696/623508696_308ce39b-63a1-4467-a5be-04dd59d646b9.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/696/623508696_308ce39b-63a1-4467-a5be-04dd59d646b9.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/696/623508696_308ce39b-63a1-4467-a5be-04dd59d646b9.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 703805121,
+    "shortDescription": "Rørstrand Blå Eld / Blå Ild Serveringsfad",
+    "buyItNowPrice": 2340,
+    "sellerId": 2813845,
+    "sellerAlias": "Danamantik",
+    "maxBid": 2340,
+    "thumbnailLink": "https://img.tradera.net/thumbs/712/623508712_f0dfb9d1-b85d-4798-aff2-3470e19501c5.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2029-11-23T11:37:12.76+01:00",
+    "nextBid": 2340,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "ShopItem",
+    "itemUrl": "http://www.tradera.com/item/201208/703805121/r%C3%B8rstrand-bla-eld-bla-ild-serveringsfad",
+    "categoryId": 201208,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/712/623508712_f0dfb9d1-b85d-4798-aff2-3470e19501c5.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/712/623508712_f0dfb9d1-b85d-4798-aff2-3470e19501c5.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/712/623508712_f0dfb9d1-b85d-4798-aff2-3470e19501c5.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/712/623508712_f0dfb9d1-b85d-4798-aff2-3470e19501c5.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 703805131,
+    "shortDescription": "Rørstrand Blå Eld / Blå Ild Serveringsfad",
+    "buyItNowPrice": 1980,
+    "sellerId": 2813845,
+    "sellerAlias": "Danamantik",
+    "maxBid": 1980,
+    "thumbnailLink": "https://img.tradera.net/thumbs/720/623508720_82633575-c124-4ebe-a8b4-57fa36bcc4e8.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2029-11-23T11:37:17.61+01:00",
+    "nextBid": 1980,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "ShopItem",
+    "itemUrl": "http://www.tradera.com/item/201208/703805131/r%C3%B8rstrand-bla-eld-bla-ild-serveringsfad",
+    "categoryId": 201208,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/720/623508720_82633575-c124-4ebe-a8b4-57fa36bcc4e8.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/720/623508720_82633575-c124-4ebe-a8b4-57fa36bcc4e8.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/720/623508720_82633575-c124-4ebe-a8b4-57fa36bcc4e8.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/720/623508720_82633575-c124-4ebe-a8b4-57fa36bcc4e8.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 703805253,
+    "shortDescription": "Rørstrand Blå Eld / Blå Ild Sukkerskål",
+    "buyItNowPrice": 630,
+    "sellerId": 2813845,
+    "sellerAlias": "Danamantik",
+    "maxBid": 630,
+    "thumbnailLink": "https://img.tradera.net/thumbs/809/623508809_914ac359-9ae8-43b5-9866-7a94d36f49a6.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2029-11-23T11:37:40.253+01:00",
+    "nextBid": 630,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "ShopItem",
+    "itemUrl": "http://www.tradera.com/item/201208/703805253/r%C3%B8rstrand-bla-eld-bla-ild-sukkerskal",
+    "categoryId": 201208,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/809/623508809_914ac359-9ae8-43b5-9866-7a94d36f49a6.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/809/623508809_914ac359-9ae8-43b5-9866-7a94d36f49a6.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/809/623508809_914ac359-9ae8-43b5-9866-7a94d36f49a6.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/809/623508809_914ac359-9ae8-43b5-9866-7a94d36f49a6.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 703805027,
+    "shortDescription": "Rørstrand Blå Eld / Blå Ild Sukkerskål",
+    "buyItNowPrice": 720,
+    "sellerId": 2813845,
+    "sellerAlias": "Danamantik",
+    "maxBid": 720,
+    "thumbnailLink": "https://img.tradera.net/thumbs/627/623508627_5352ab4b-2c75-4b78-bc4c-a21b58ffafa1.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2029-11-23T11:36:27.833+01:00",
+    "nextBid": 720,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "ShopItem",
+    "itemUrl": "http://www.tradera.com/item/201208/703805027/r%C3%B8rstrand-bla-eld-bla-ild-sukkerskal",
+    "categoryId": 201208,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/627/623508627_5352ab4b-2c75-4b78-bc4c-a21b58ffafa1.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/627/623508627_5352ab4b-2c75-4b78-bc4c-a21b58ffafa1.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/627/623508627_5352ab4b-2c75-4b78-bc4c-a21b58ffafa1.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/627/623508627_5352ab4b-2c75-4b78-bc4c-a21b58ffafa1.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [],
+     "numberAttributeValues": []
+    }
+   },
+   {
+    "id": 703805058,
+    "shortDescription": "Rørstrand Blå Eld / Blå Ild Kartoffelskål",
+    "buyItNowPrice": 2520,
+    "sellerId": 2813845,
+    "sellerAlias": "Danamantik",
+    "maxBid": 2520,
+    "thumbnailLink": "https://img.tradera.net/thumbs/653/623508653_6673040d-d7c0-4716-a77a-f08f0c3181e9.jpg",
+    "sellerDsrAverage": 0,
+    "endDate": "2029-11-23T11:36:44.233+01:00",
+    "nextBid": 2520,
+    "hasBids": false,
+    "isEnded": false,
+    "itemType": "ShopItem",
+    "itemUrl": "http://www.tradera.com/item/201208/703805058/r%C3%B8rstrand-bla-eld-bla-ild-kartoffelskal",
+    "categoryId": 201208,
+    "bidCount": 0,
+    "imageLinks": [
+     {
+      "url": "https://img.tradera.net/medium/653/623508653_6673040d-d7c0-4716-a77a-f08f0c3181e9.jpg",
+      "format": "gallery"
+     },
+     {
+      "url": "https://img.tradera.net/images/653/623508653_6673040d-d7c0-4716-a77a-f08f0c3181e9.jpg",
+      "format": "normal"
+     },
+     {
+      "url": "https://img.tradera.net/thumbs/653/623508653_6673040d-d7c0-4716-a77a-f08f0c3181e9.jpg",
+      "format": "thumb"
+     },
+     {
+      "url": "https://img.tradera.net/minithumb/653/623508653_6673040d-d7c0-4716-a77a-f08f0c3181e9.jpg",
+      "format": "minithumb"
+     }
+    ],
+    "attributeValues": {
+     "termAttributeValues": [],
+     "numberAttributeValues": []
+    }
+   }
+  ],
+  "errors": []
+ }
+}
