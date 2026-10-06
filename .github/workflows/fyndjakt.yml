@@ -88,6 +88,16 @@ jobs:
           done
           exit 1
 
+      # Sidan byggs om med den SENASTE koden – annars kan en lång körning publicera en äldre version
+      # av sidan ovanpå ändringar som gjorts medan den pågick.
+      - name: Bygg om sidan med senaste koden
+        if: always()
+        env:
+          FYNDJAKT_BOT_TOKEN: ${{ secrets.FYNDJAKT_BOT_TOKEN }}
+        run: |
+          git fetch -q origin main && git checkout -q origin/main -- . || true
+          python publicera.py
+
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3
