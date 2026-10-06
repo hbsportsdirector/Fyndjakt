@@ -581,3 +581,30 @@ def test_forklaringar_vags_in_forst():
     ogillar = t.split("INTE tyckte passade")[1]
     assert ogillar.index("skål, grön") < ogillar.index("vas, brun")  # med förklaring först
     assert "din bedömning då: Höglund i bärnsten." in t and "inte bara efter namnet" in t
+
+
+def test_smakanalys_cache_och_profil(tmp_path, monkeypatch):
+    from types import SimpleNamespace as NS
+    import smakanalys
+    monkeypatch.setattr(smakanalys, "FIL", tmp_path / "s.json")
+    anrop = []
+
+    class Klient:
+        class messages:
+            @staticmethod
+            def create(**kw):
+                anrop.append(kw)
+                return NS(content=[NS(type="text", text="Här är reglerna:\n- Gillar Höglund i klart blått, inte brunt.\n- Ogillar mörka träslag.")])
+    exp = {"anvandare": [{"user_id": "u1", "admin": True}], "reaktioner": [
+        {"user_id": "u1", "nyckel": "a:1", "typ": "gillar", "spar": "s", "titel": "HÖGLUND vas blå", "bild": "https://x/1.jpg"},
+        {"user_id": "u1", "nyckel": "a:2", "typ": "ogillar", "spar": "s", "titel": "HÖGLUND vas brun", "motivering": "Bärnsten."},
+        {"user_id": "u1", "nyckel": "a:3", "typ": "ogillar", "spar": None, "titel": "Skåp ek"}]}
+    cfg = {"spar": {"s": {"namn": "S", "profil": "BAS", "sokningar": {}}}}
+    smakanalys.analysera(cfg, exp, Klient())
+    assert "klart blått" in cfg["spar"]["s"]["profil"] and cfg["spar"]["s"]["lardomar"].startswith("- Gillar")
+    innehall = anrop[0]["messages"][0]["content"]
+    assert innehall[0]["type"] == "image" and any("👎 HÖGLUND vas brun" in d.get("text", "") for d in innehall)
+    # Samma reaktioner nästa natt: ingen ny fråga, men lärdomarna används ändå
+    cfg2 = {"spar": {"s": {"namn": "S", "profil": "BAS", "sokningar": {}}}}
+    smakanalys.analysera(cfg2, exp, Klient())
+    assert len(anrop) == 1 and "klart blått" in cfg2["spar"]["s"]["profil"]

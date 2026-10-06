@@ -207,6 +207,13 @@ def main() -> int:
         import smak
         export = smak.hamta(cfg)
         smak.tillampa(cfg, export)
+        import smakanalys
+        try:
+            import bedomning as _b
+            klient_analys = None if args.torr else _b._klient()
+        except Exception:
+            klient_analys = None
+        STATISTIK["Smakanalys"] = smakanalys.analysera(cfg, export, klient_analys)
     except Exception as e:  # lärandet får aldrig stoppa körningen
         print(f"Min smak: kunde inte läsa reaktioner – {e}")
         STATISTIK["Min smak"] = {"fel": str(e)[:200]}

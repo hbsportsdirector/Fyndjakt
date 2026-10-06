@@ -82,7 +82,7 @@ def _poster(db, cfg: dict, spar_ids: set[str] | None, rader: list[dict] | None =
 
 def _sparlista(spar_cfg: dict) -> list[dict]:
     return [{"id": sid, "namn": s.get("namn", sid), "kategorier": list(s.get("sokningar", {}).keys()),
-             "sokningar": s.get("sokningar", {})}
+             "sokningar": s.get("sokningar", {}), "lardomar": s.get("lardomar") or ""}
             for sid, s in spar_cfg.items()]
 
 
@@ -322,6 +322,11 @@ MALL = r"""<!doctype html>
   #liknande .salt { font-size: 14px; color: var(--muted); background: var(--panel); border: 1px solid var(--line);
                     border-radius: 10px; padding: 8px 10px; margin-bottom: 8px; }
   #liknande .salt b { color: var(--text); }
+  .lardom { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; font-size: 14px; }
+  .lardom .etik { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--brass); }
+  .lardom ul { margin: 6px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 3px; }
+  .varfor-lank { background: none; border: 0; color: var(--muted); font: inherit; font-size: 12px; text-decoration: underline;
+                 cursor: pointer; padding: 6px 0 0; text-align: left; }
   .notisruta { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px;
                margin: 0 0 14px; font-size: 14px; }
   .lista { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
@@ -523,6 +528,11 @@ MALL = r"""<!doctype html>
       </div>
     </div>
 
+    <h3>🧠 Det här har appen lärt sig</h3>
+    <p class="hj">Varje natt jämför Claude det du gillat med det du inte gillat – bilderna också – och skriver ner vad som skiljer dem.
+      Du behöver inte förklara dig; ju fler 👍 och 👎, desto träffsäkrare.</p>
+    <div id="l-lardomar"></div>
+
     <h3>Säg det med egna ord</h3>
     <form class="falt" id="f-anteckning">
       <select id="a-typ">
@@ -708,10 +718,15 @@ function reaktionsknappar(p, kortEl) {
       if (nu === typ) { await taBortReaktion(p.nyckel); renderTabs(); render(); return; }
       await sparaReaktion(p, typ);
       rad.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b === btn)));
-      const gammal = kortEl.querySelector(".varfor"); if (gammal) gammal.remove();
+      kortEl.querySelectorAll(".varfor, .varfor-lank").forEach(x => x.remove());
       if (typ === "kopt") { kortEl.classList.add("borta"); setTimeout(() => { renderTabs(); render(); }, 380); return; }
-      // Fråga varför – förklaringen säger Claude mer än namnet (samma formgivare kan vara rätt och fel).
-      rad.after(varforRuta(p, typ, kortEl));
+      // Claude räknar själv ut varför (smakanalysen). Vill man rätta kan man skriva – helt valfritt.
+      const lank = document.createElement("button"); lank.type = "button"; lank.className = "varfor-lank";
+      lank.textContent = typ === "gillar" ? "＋ Säg varför (valfritt)" : "Dold · ＋ säg varför (valfritt)";
+      let doljs = null;
+      lank.onclick = (ev) => { ev.preventDefault(); ev.stopPropagation(); clearTimeout(doljs); lank.replaceWith(varforRuta(p, typ, kortEl)); };
+      rad.after(lank);
+      if (typ === "ogillar") doljs = setTimeout(() => { kortEl.classList.add("borta"); setTimeout(() => { renderTabs(); render(); }, 380); }, 2500);
     };
     rad.appendChild(btn);
   }
@@ -811,7 +826,23 @@ function listrad({ bild, etikett, titel, url, onBort }) {
   return li;
 }
 
+function renderLardomar() {
+  const ruta = $("l-lardomar"); ruta.replaceChildren();
+  const med = V.spar.filter(sp => sp.lardomar);
+  if (!med.length) { ruta.innerHTML = '<p class="tom">Inget än – reagera på några fynd (minst tre, varav något 👍) så gör Claude sin första analys i natt.</p>'; return; }
+  for (const sp of med) {
+    const d = document.createElement("div"); d.className = "lardom";
+    const h = document.createElement("div"); h.className = "etik"; h.textContent = sp.namn; d.appendChild(h);
+    const ul = document.createElement("ul");
+    sp.lardomar.split("\n").map(r => r.replace(/^[-•]\s*/, "").trim()).filter(Boolean).forEach(r => {
+      const li = document.createElement("li"); li.textContent = r; ul.appendChild(li);
+    });
+    d.appendChild(ul); ruta.appendChild(d);
+  }
+}
+
 function renderSmak() {
+  renderLardomar();
   const sparNamn = id => (V.spar.find(s => s.id === id) || {}).namn || "Alla flikar";
   const ant = $("l-anteckningar");
   ant.replaceChildren(...konto.anteckningar.map(a => listrad({
@@ -1006,8 +1037,10 @@ function b64TillBytes(s) {
 }
 async function notisPrenumeration() {
   if (!NOTIS.stod) return null;
-  const reg = await navigator.serviceWorker.getRegistration();
-  return reg ? reg.pushManager.getSubscription() : null;
+  try {
+    const reg = await navigator.serviceWorker.getRegistration();
+    return reg ? await reg.pushManager.getSubscription() : null;
+  } catch (x) { return null; }
 }
 async function visaNotisLage() {
   const knapp = $("b-notis");
