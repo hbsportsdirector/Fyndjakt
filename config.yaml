@@ -9,7 +9,7 @@
 bara_sverige: true                 # bara svenska auktionshus på Auctionet (Tradera är alltid svenskt)
 min_betyg: 8                       # krävs för Telegram-notis och för att synas på sidan
 sajt_min_betyg: 8
-sajt_max_per_sokord: 3             # max fynd per sökord på sidan – ger variation
+sajt_max_per_sokord: 6             # max fynd per sökord på sidan – ger variation
 max_pris: 25000                    # kr, 0 = ingen gräns (kan sättas per spår)
 max_bedomningar_per_korning: 800   # fullgranskningar med bilder (ca 2,5 öre styck med batch)
 sallning: true                     # sålla alla annonser på titel+pris först (ca 30 öre för 16 000)
