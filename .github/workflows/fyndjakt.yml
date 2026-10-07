@@ -3,8 +3,15 @@ name: Fyndjakt
 on:
   schedule:
     # GitHub kan försena schemalagda körningar flera timmar – därför tidig start plus en reserv.
+    # GitHub hoppar ibland över schemalagda starter helt. Därför flera försök under morgonen –
+    # varje försök kontrollerar först om dagens körning redan är gjord och avslutas i så fall direkt.
     - cron: "17 3 * * *"   # 05:17 svensk sommartid (04:17 vintertid)
-    - cron: "17 5 * * *"   # reserv 07:17 – körs bara om dagens körning inte redan är gjord
+    - cron: "47 3 * * *"
+    - cron: "23 4 * * *"
+    - cron: "11 5 * * *"
+    - cron: "37 6 * * *"
+    - cron: "13 8 * * *"
+    - cron: "41 10 * * *"
   workflow_dispatch:        # gör att du kan köra den manuellt från fliken Actions
   push:                     # kör direkt när du ändrar stilen, inställningarna eller koden
     branches: [main]
@@ -38,7 +45,7 @@ jobs:
         run: |
           IDAG=$(date -u +%F)
           SENAST=$(python3 -c "import json;print(json.load(open('data/senaste_korning.json')).get('tid','')[:10])" 2>/dev/null || true)
-          if [ "${{ github.event_name }}" = "schedule" ] && [ "${{ github.event.schedule }}" = "17 5 * * *" ] && [ "$SENAST" = "$IDAG" ]; then
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "$SENAST" = "$IDAG" ]; then
             echo "Dagens körning är redan gjord ($SENAST) – hoppar över."
             echo "klar=1" >> "$GITHUB_OUTPUT"
           fi
