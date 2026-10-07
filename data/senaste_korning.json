@@ -1,22 +1,22 @@
 {
-  "tid": "2026-10-07T12:31:14",
-  "annonser_totalt": 18627,
-  "nya": 13497,
+  "tid": "2026-10-07T13:11:48",
+  "annonser_totalt": 18702,
+  "nya": 12855,
   "bedomda": 950,
-  "nya_traffar": 293,
+  "nya_traffar": 322,
   "kallor": {
     "Smakanalys": {
-      "nya": 2
+      "nya": 0
     },
     "Auctionet": {
       "sokningar": 171,
-      "traffar": 5313,
+      "traffar": 5308,
       "fel": 0,
       "felexempel": []
     },
     "Bukowskis": {
       "sokningar": 171,
-      "traffar": 167,
+      "traffar": 165,
       "fel": 0,
       "felexempel": []
     },
@@ -34,14 +34,14 @@
     },
     "Tradera": {
       "sokningar": 171,
-      "traffar": 14162,
+      "traffar": 14182,
       "fel": 0,
       "felexempel": []
     },
     "Sållning": {
-      "sållade": 13411,
-      "bortsållade": 8957,
-      "kvar": 4454
+      "sållade": 12849,
+      "bortsållade": 8472,
+      "kvar": 4377
     },
     "Bedömning": {
       "batch": 950,
@@ -49,11 +49,11 @@
     },
     "Prisjämförelse": {
       "fynd": 120,
-      "med_data": 68
+      "med_data": 60
     },
     "Notiser": {
       "skickade": 0
     }
   },
-  "stadsmissionen_katalog": 1385
+  "stadsmissionen_katalog": 1390
 }
