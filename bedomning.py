@@ -178,13 +178,17 @@ troligt det är att den passar profilen, utifrån enbart titeln. Var generös me
 bilderna granskas sedan noggrant. Ge lågt betyg (0–4) åt det som uppenbart är fel: fel sorts föremål,
 reservdelar, kläder, böcker OM ämnet, affischer och tryck, nytillverkat, samt sådant kunden redan har.
 
+Föremål av en namngiven formgivare, konstnär, fabrik eller serie som nämns i profilen eller reglerna nedan ska
+ALLTID få minst 6 – även om titeln är kort eller osäker ("troligen", "möjligen") – så att bilderna får avgöra.
+{regler}
 Svara ENBART med JSON där nyckeln är numret och värdet betyget, t.ex. {{"1": 7, "2": 2}}."""
 
 
-def sall_forfragan(annonser: list, stilprofil: str, modell: str) -> dict:
+def sall_forfragan(annonser: list, stilprofil: str, modell: str, regler: str | None = None) -> dict:
     lista = "\n".join(f"{i}. {a.titel[:140]} | {a.pris_text}" for i, a in enumerate(annonser, 1))
     return {"model": modell, "max_tokens": 20 + 9 * len(annonser),
-            "system": SALL_INSTRUKTION.format(stil=stilprofil),
+            "system": SALL_INSTRUKTION.format(stil=stilprofil, regler=(
+                f"\nKundens bedömningsregler:\n{regler.strip()}\n" if regler else "")),
             "messages": [{"role": "user", "content": lista}]}
 
 
@@ -205,17 +209,19 @@ def tolka_sallning(text: str, antal: int) -> dict[int, int]:
     return ut
 
 
-def salla(grupper: dict[str, tuple[str, list]], modell: str, klient=None, storlek: int = 80) -> dict[str, int]:
-    """grupper: {spår: (profil, [annonser])}. Returnerar {annonsnyckel: snabbetyg}.
+def salla(grupper: dict[str, tuple], modell: str, klient=None, storlek: int = 80) -> dict[str, int]:
+    """grupper: {spår: (profil, [annonser]) eller (profil, [annonser], regler)}. Returnerar {annonsnyckel: snabbetyg}.
     Allt skickas i en batch (halva priset); annonser utan svar saknas i resultatet och går vidare ogallrade."""
     klient = klient or _klient()
     forfragningar, bitar = {}, {}
-    for sid, (profil, annonser) in grupper.items():
+    for sid, grupp in grupper.items():
+        profil, annonser = grupp[0], grupp[1]
+        regler = grupp[2] if len(grupp) > 2 else None
         for start in range(0, len(annonser), storlek):
             bit = annonser[start:start + storlek]
             cid = f"s{len(bitar)}"
             bitar[cid] = bit
-            forfragningar[cid] = sall_forfragan(bit, profil, modell)
+            forfragningar[cid] = sall_forfragan(bit, profil, modell, regler)
     if not forfragningar:
         return {}
     import time

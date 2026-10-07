@@ -251,7 +251,9 @@ def main() -> int:
         try:
             grupper: dict = {}
             for a in kandidater:
-                grupper.setdefault(a.spar, (cfg["spar"][a.spar]["profil"], []))[1].append(a)
+                sp = cfg["spar"][a.spar]
+                regler = sp.get("bedomningsregler") or (cfg.get("bedomningsregler_anvandare") if sp.get("agare") else None)
+                grupper.setdefault(a.spar, (sp["profil"], [], regler))[1].append(a)
             snabb = bedomning.salla(grupper, cfg["modell"], bedomning._klient())
             grans = cfg.get("sallning_min_betyg", 6)
             kvar = []
