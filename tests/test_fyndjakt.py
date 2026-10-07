@@ -628,3 +628,22 @@ def test_sallning():
     assert ut[ann[0].nyckel] == 2 and ut[ann[1].nyckel] == 4 and ut[ann[4].nyckel] == 2
     assert bedomning.tolka_sallning('{"1": 7, "2": 12, "9": 3}', 3) == {1: 7, 2: 10}
     assert bedomning.tolka_sallning('{"1": 7, "2": 3', 3) == {1: 7, 2: 3}  # avklippt
+
+
+def test_batch_som_droejer_raddas_och_resten_parallellt(monkeypatch):
+    from types import SimpleNamespace as NS
+
+    class Seg:
+        def __init__(s): s.avbruten = False
+        def create(s, requests): return NS(id="b")
+        def retrieve(s, bid): return NS(id=bid, processing_status="ended" if s.avbruten else "in_progress")
+        def cancel(s, bid): s.avbruten = True
+        def results(s, bid):
+            yield NS(custom_id="a0", result=NS(type="succeeded", message=NS(content=[NS(type="text", text='{"betyg": 8, "motivering": "Ok"}')])))
+            yield NS(custom_id="a1", result=NS(type="canceled"))
+    klient = NS(messages=NS(batches=Seg()))
+    ut = bedomning.bedom_batch({"a0": {}, "a1": {}}, klient, max_vant=0, intervall=0)
+    assert ut == {"a0": (8, "Ok", "")}
+    a = auctionet.tolka(AUCTIONET_POST)
+    monkeypatch.setattr(bedomning, "bedom", lambda an, p, m, k, r: (7, "Direkt", "x"))
+    assert bedomning.bedom_parallellt([("a1", a, "P", None)], "m", object()) == {"a1": (7, "Direkt", "x")}

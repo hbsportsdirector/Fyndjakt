@@ -83,7 +83,19 @@ def bedom(annons: Annons, stilprofil: str, modell: str, klient=None,
     return resultat
 
 
-def bedom_batch(forfragningar: dict[str, dict], klient=None, max_vant: int = 75 * 60,
+def _avsluta_batch(klient, batch_id: str, intervall: int):
+    """Avbryter en batch som dröjer och väntar (högst ~10 min) tills den är avslutad,
+    så att det som hann bli klart kan hämtas."""
+    import time
+    klient.messages.batches.cancel(batch_id)
+    for _ in range(max(1, 600 // max(intervall, 1))):
+        if klient.messages.batches.retrieve(batch_id).processing_status == "ended":
+            return True
+        time.sleep(intervall)
+    return False
+
+
+def bedom_batch(forfragningar: dict[str, dict], klient=None, max_vant: int = 40 * 60,
                 intervall: int = 30) -> dict[str, tuple[int, str, str]]:
     """Skickar alla bedömningar som EN batch (halva priset) och väntar på svaren.
     Returnerar {id: (betyg, motivering, jämförelsesökning)} för de som lyckades och gick att tolka;
@@ -101,11 +113,8 @@ def bedom_batch(forfragningar: dict[str, dict], klient=None, max_vant: int = 75 
         if batch.processing_status == "ended":
             break
         if time.time() - start > max_vant:
-            print("  Batchen tog för lång tid – avbryter och bedömer resten direkt.")
-            klient.messages.batches.cancel(batch.id)
-            time.sleep(intervall)
-            batch = klient.messages.batches.retrieve(batch.id)
-            if batch.processing_status != "ended":
+            print("  Batchen tog för lång tid – sparar det som hann bli klart och bedömer resten direkt.")
+            if not _avsluta_batch(klient, batch.id, intervall):
                 return {}
             break
         time.sleep(intervall)
@@ -215,10 +224,11 @@ def salla(grupper: dict[str, tuple[str, list]], modell: str, klient=None, storle
     print(f"  Sållning: {sum(len(b) for b in bitar.values())} annonser i {len(bitar)} delar skickade …")
     start = time.time()
     while klient.messages.batches.retrieve(batch.id).processing_status != "ended":
-        if time.time() - start > 60 * 60:
-            print("  Sållningen tog för lång tid – går vidare utan den.")
-            klient.messages.batches.cancel(batch.id)
-            return {}
+        if time.time() - start > 30 * 60:
+            print("  Sållningen tog för lång tid – använder det som hann bli klart.")
+            if not _avsluta_batch(klient, batch.id, 30):
+                return {}
+            break
         time.sleep(30)
     ut = {}
     for rad in klient.messages.batches.results(batch.id):
@@ -229,3 +239,20 @@ def salla(grupper: dict[str, tuple[str, list]], modell: str, klient=None, storle
             ut[bit[nr - 1].nyckel] = betyg
     print(f"  Sållning klar efter {round((time.time() - start) / 60)} min: {len(ut)} betygsatta.")
     return ut
+
+
+def bedom_parallellt(uppgifter: list[tuple[str, Annons, str, str | None]], modell: str, klient=None,
+                     tradar: int = 8) -> dict[str, tuple[int, str, str]]:
+    """Vanliga anrop, flera samtidigt – reserv när batchen inte hinner. uppgifter: (id, annons, profil, regler)."""
+    from concurrent.futures import ThreadPoolExecutor
+    klient = klient or _klient()
+
+    def en(u):
+        cid, a, profil, regler = u
+        try:
+            return cid, bedom(a, profil, modell, klient, regler)
+        except Exception as e:
+            print(f"  Fel vid bedömning av {a.titel[:50]}: {e}")
+            return cid, None
+    with ThreadPoolExecutor(max_workers=tradar) as pool:
+        return {cid: r for cid, r in pool.map(en, uppgifter) if r}

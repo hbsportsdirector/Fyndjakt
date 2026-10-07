@@ -296,18 +296,17 @@ def main() -> int:
                      for i, a in enumerate(kandidater)}, klient)
             except Exception as e:
                 print(f"  Batch misslyckades ({e}) – bedömer med vanliga anrop.")
-            STATISTIK["Bedömning"] = {"batch": len(fardiga), "direkt": len(kandidater) - len(fardiga)}
+        # Det batchen inte hann med bedöms direkt, åtta åt gången.
+        saknas = [(f"a{i}", a, cfg["spar"][a.spar]["profil"], regler_for(a))
+                  for i, a in enumerate(kandidater) if f"a{i}" not in fardiga]
+        STATISTIK["Bedömning"] = {"batch": len(fardiga), "direkt": len(saknas)}
+        if saknas:
+            fardiga.update(bedomning.bedom_parallellt(saknas, cfg["modell"], klient))
         for i, a in enumerate(kandidater, 1):
-            spar = cfg["spar"][a.spar]
-            try:
-                resultat = fardiga.get(f"a{i - 1}")
-                if not resultat:
-                    resultat = bedomning.bedom(a, spar["profil"], cfg["modell"], klient, regler_for(a))
-                    time.sleep(0.3)
-                betyg, motivering, a.jamforsok = resultat
-            except Exception as e:
-                print(f"  [{i}] fel vid bedömning av {a.titel[:50]}: {e}")
+            resultat = fardiga.get(f"a{i - 1}")
+            if not resultat:
                 continue  # sparas inte – försöker igen nästa gång
+            betyg, motivering, a.jamforsok = resultat
             bra = betyg >= cfg.get("min_betyg", 8)
             db.spara(a, betyg, motivering, bra)
             print(f"  [{i:3}] {betyg:2}/10 [{a.spar}] {a.titel[:60]}")
