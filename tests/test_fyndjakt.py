@@ -608,3 +608,23 @@ def test_smakanalys_cache_och_profil(tmp_path, monkeypatch):
     cfg2 = {"spar": {"s": {"namn": "S", "profil": "BAS", "sokningar": {}}}}
     smakanalys.analysera(cfg2, exp, Klient())
     assert len(anrop) == 1 and "klart blått" in cfg2["spar"]["s"]["profil"]
+
+
+def test_sallning():
+    from types import SimpleNamespace as NS
+    ann = [auctionet.tolka(dict(AUCTIONET_POST, id=i, title=f"Sak {i}")) for i in range(5)]
+
+    class Batches:
+        def create(s, requests): s.req = requests; return NS(id="b")
+        def retrieve(s, bid): return NS(processing_status="ended")
+        def results(s, bid):
+            for r in s.req:
+                n = r["params"]["messages"][0]["content"].count("\n") + 1
+                svar = "{" + ", ".join(f'"{i}": {i * 2}' for i in range(1, n + 1)) + "}"
+                yield NS(custom_id=r["custom_id"], result=NS(type="succeeded", message=NS(content=[NS(type="text", text=svar)])))
+    b = Batches()
+    ut = bedomning.salla({"s": ("PROFIL", ann)}, "m", NS(messages=NS(batches=b)), storlek=2)
+    assert len(b.req) == 3 and "PROFIL" in b.req[0]["params"]["system"]
+    assert ut[ann[0].nyckel] == 2 and ut[ann[1].nyckel] == 4 and ut[ann[4].nyckel] == 2
+    assert bedomning.tolka_sallning('{"1": 7, "2": 12, "9": 3}', 3) == {1: 7, 2: 10}
+    assert bedomning.tolka_sallning('{"1": 7, "2": 3', 3) == {1: 7, 2: 3}  # avklippt

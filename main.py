@@ -243,6 +243,30 @@ def main() -> int:
         else:
             kandidater.append(a)
 
+    # Fler kandidater än vad som hinner granskas med bilder? Sålla först på titel och pris (billigt),
+    # så att de dyra granskningarna går till det som har chans. Uppenbart fel sparas som kollat.
+    tak_totalt = cfg.get("max_bedomningar_per_korning", 150) + cfg.get("max_bedomningar_per_anvandare", 150) * \
+        len({cfg["spar"][a.spar].get("agare") for a in kandidater if cfg["spar"][a.spar].get("agare")})
+    if cfg.get("sallning", True) and len(kandidater) > tak_totalt:
+        try:
+            grupper: dict = {}
+            for a in kandidater:
+                grupper.setdefault(a.spar, (cfg["spar"][a.spar]["profil"], []))[1].append(a)
+            snabb = bedomning.salla(grupper, cfg["modell"], bedomning._klient())
+            grans = cfg.get("sallning_min_betyg", 6)
+            kvar = []
+            for a in kandidater:
+                s = snabb.get(a.nyckel)
+                if s is not None and s < grans:
+                    db.spara(a, s, "Sållad bort på titeln")
+                else:
+                    kvar.append(a)
+            # Mest lovande först (osållade sist), så att taket används på det bästa.
+            kvar.sort(key=lambda a: -(snabb.get(a.nyckel) if a.nyckel in snabb else grans - 0.5))
+            STATISTIK["Sållning"] = {"sållade": len(snabb), "bortsållade": len(kandidater) - len(kvar), "kvar": len(kvar)}
+            kandidater = kvar
+        except Exception as e:
+            print(f"  Sållningen misslyckades ({e}) – går vidare utan den.")
     kandidater = begransa(kandidater, cfg)
 
     # Vissa källor visar ort och beskrivning bara på annonssidan – hämta dem för de som ska bedömas.

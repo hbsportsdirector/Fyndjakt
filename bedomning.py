@@ -155,3 +155,77 @@ def foresla_jamforsok(titel: str, modell: str, klient=None) -> str:
                    "annars föremålstyp + material/epok. Svara bara med frasen.\n\nTitel: " + titel}],
     )
     return svar.content[0].text.strip().strip('"').splitlines()[0][:60]
+
+
+# ── Snabbsållning: titel + pris för många annonser i taget ───────────────────
+SALL_INSTRUKTION = """Du sållar annonser åt en kund som letar begagnade fynd. Här är kundens profil:
+
+<stilprofil>
+{stil}
+</stilprofil>
+
+Du får en numrerad lista med annonser (bara titel och pris). Ge varje annons ett SNABBT betyg 0–10 för hur
+troligt det är att den passar profilen, utifrån enbart titeln. Var generös med det som KAN passa (6 eller mer) –
+bilderna granskas sedan noggrant. Ge lågt betyg (0–4) åt det som uppenbart är fel: fel sorts föremål,
+reservdelar, kläder, böcker OM ämnet, affischer och tryck, nytillverkat, samt sådant kunden redan har.
+
+Svara ENBART med JSON där nyckeln är numret och värdet betyget, t.ex. {{"1": 7, "2": 2}}."""
+
+
+def sall_forfragan(annonser: list, stilprofil: str, modell: str) -> dict:
+    lista = "\n".join(f"{i}. {a.titel[:140]} | {a.pris_text}" for i, a in enumerate(annonser, 1))
+    return {"model": modell, "max_tokens": 20 + 9 * len(annonser),
+            "system": SALL_INSTRUKTION.format(stil=stilprofil),
+            "messages": [{"role": "user", "content": lista}]}
+
+
+def tolka_sallning(text: str, antal: int) -> dict[int, int]:
+    match = re.search(r"\{.*\}", text, re.S)
+    ut = {}
+    if match:
+        try:
+            for k, v in json.loads(match.group(0)).items():
+                if str(k).isdigit() and 1 <= int(k) <= antal:
+                    ut[int(k)] = max(0, min(10, int(v)))
+        except (ValueError, TypeError, json.JSONDecodeError):
+            pass
+    if not ut:  # avklippt svar – plocka det som går
+        for k, v in re.findall(r'"(\d+)"\s*:\s*(\d+)', text):
+            if 1 <= int(k) <= antal:
+                ut[int(k)] = min(10, int(v))
+    return ut
+
+
+def salla(grupper: dict[str, tuple[str, list]], modell: str, klient=None, storlek: int = 80) -> dict[str, int]:
+    """grupper: {spår: (profil, [annonser])}. Returnerar {annonsnyckel: snabbetyg}.
+    Allt skickas i en batch (halva priset); annonser utan svar saknas i resultatet och går vidare ogallrade."""
+    klient = klient or _klient()
+    forfragningar, bitar = {}, {}
+    for sid, (profil, annonser) in grupper.items():
+        for start in range(0, len(annonser), storlek):
+            bit = annonser[start:start + storlek]
+            cid = f"s{len(bitar)}"
+            bitar[cid] = bit
+            forfragningar[cid] = sall_forfragan(bit, profil, modell)
+    if not forfragningar:
+        return {}
+    import time
+    batch = klient.messages.batches.create(
+        requests=[{"custom_id": cid, "params": p} for cid, p in forfragningar.items()])
+    print(f"  Sållning: {sum(len(b) for b in bitar.values())} annonser i {len(bitar)} delar skickade …")
+    start = time.time()
+    while klient.messages.batches.retrieve(batch.id).processing_status != "ended":
+        if time.time() - start > 60 * 60:
+            print("  Sållningen tog för lång tid – går vidare utan den.")
+            klient.messages.batches.cancel(batch.id)
+            return {}
+        time.sleep(30)
+    ut = {}
+    for rad in klient.messages.batches.results(batch.id):
+        if rad.result.type != "succeeded":
+            continue
+        bit = bitar[rad.custom_id]
+        for nr, betyg in tolka_sallning(_text(rad.result.message), len(bit)).items():
+            ut[bit[nr - 1].nyckel] = betyg
+    print(f"  Sållning klar efter {round((time.time() - start) / 60)} min: {len(ut)} betygsatta.")
+    return ut
