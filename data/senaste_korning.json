@@ -1,7 +1,7 @@
 {
-  "tid": "2026-10-08T11:08:58",
-  "annonser_totalt": 18788,
-  "nya": 6314,
+  "tid": "2026-10-08T11:39:44",
+  "annonser_totalt": 18794,
+  "nya": 6381,
   "bedomda": 950,
   "nya_traffar": 0,
   "kallor": {
@@ -10,13 +10,13 @@
     },
     "Auctionet": {
       "sokningar": 171,
-      "traffar": 5270,
+      "traffar": 5272,
       "fel": 0,
       "felexempel": []
     },
     "Bukowskis": {
       "sokningar": 171,
-      "traffar": 170,
+      "traffar": 169,
       "fel": 0,
       "felexempel": []
     },
@@ -34,7 +34,7 @@
     },
     "Tradera": {
       "sokningar": 171,
-      "traffar": 14236,
+      "traffar": 14241,
       "fel": 0,
       "felexempel": []
     },
