@@ -40,6 +40,8 @@ def _skriv(klient, spar: dict, kategori: str, sokord: list[str]) -> str:
         model=MODELL, max_tokens=700,
         system=INSTRUKTION.format(namn=spar.get("namn", ""), kategori=kategori, sokord=", ".join(sokord[:40])),
         messages=[{"role": "user", "content": spar["profil_bas"]}])
+    import bedomning
+    bedomning.registrera("Kategoriprofiler", svar)
     return "".join(b.text for b in svar.content if getattr(b, "type", "text") == "text").strip()
 
 

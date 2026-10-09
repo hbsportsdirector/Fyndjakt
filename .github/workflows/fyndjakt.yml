@@ -18,6 +18,7 @@ on:
     paths:                  # bara när DINA profiler ändras – kodändringar väntar till nattens körning (kostar inget extra)
       - "stil.md"
       - "samlingsprofil.md"
+      - "kor_nu.txt"           # ändras för att starta en körning direkt
 
 permissions:
   contents: write           # för att spara listan över sedda annonser

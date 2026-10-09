@@ -150,6 +150,36 @@ def tolka_grupp(text: str, antal: int) -> dict[int, tuple[int, str, str]]:
     return ut
 
 
+# ── Kostnadsmätare: varje körning redovisar vad den faktiskt kostade per del ──
+PRIS = {  # USD per miljon tokens (in, ut). Batch kostar hälften.
+    "haiku": (1.0, 5.0), "sonnet": (2.0, 10.0), "opus": (5.0, 25.0),
+}
+KOSTNAD: dict[str, dict] = {}
+
+
+def registrera(del_: str, svar, batch: bool = False) -> None:
+    """Lägger till ett svars tokens och kostnad under rubriken del_."""
+    u = getattr(svar, "usage", None)
+    if u is None:
+        return
+    modell = getattr(svar, "model", "") or ""
+    pin, put = next((v for k, v in PRIS.items() if k in modell), PRIS["haiku"])
+    faktor = 0.5 if batch else 1.0
+    tin = (getattr(u, "input_tokens", 0) or 0) + (getattr(u, "cache_creation_input_tokens", 0) or 0)
+    tut = getattr(u, "output_tokens", 0) or 0
+    k = KOSTNAD.setdefault(del_, {"anrop": 0, "in": 0, "ut": 0, "usd": 0.0})
+    k["anrop"] += 1
+    k["in"] += tin
+    k["ut"] += tut
+    k["usd"] += faktor * (tin * pin + tut * put) / 1e6
+
+
+def kostnadsrapport(kurs: float = 10.5) -> dict:
+    ut = {d: {**v, "usd": round(v["usd"], 4), "kr": round(v["usd"] * kurs, 2)} for d, v in KOSTNAD.items()}
+    ut["Totalt"] = {"kr": round(sum(v["usd"] for v in KOSTNAD.values()) * kurs, 2)}
+    return ut
+
+
 def _klient() -> anthropic.Anthropic:
     return anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
@@ -188,6 +218,7 @@ def bedom(annons: Annons, stilprofil: str, modell: str, klient=None,
             # T.ex. en bild som inte gick att hämta – försök med bara text.
             med_bilder = False
             svar = klient.messages.create(**forfragan(annons, stilprofil, modell, kalibrering, med_bilder))
+        registrera("Bedömning direkt", svar)
         resultat = tolka_svar(_text(svar))
         if resultat[1] != "Kunde inte tolka svaret":
             return resultat
@@ -233,6 +264,7 @@ def bedom_batch(forfragningar: dict[str, dict], klient=None, max_vant: int = 40 
     for rad in klient.messages.batches.results(batch.id):
         if rad.result.type != "succeeded":
             continue
+        registrera("Bedömning batch", rad.result.message, batch=True)
         tolkat = tolka_svar(_text(rad.result.message))
         if tolkat[1] != "Kunde inte tolka svaret":
             ut[rad.custom_id] = tolkat
@@ -274,6 +306,7 @@ def foresla_jamforsok(titel: str, modell: str, klient=None) -> str:
                    "auktionssajt för prisjämförelse – konstnär/tillverkare + föremålstyp om det finns, "
                    "annars föremålstyp + material/epok. Svara bara med frasen.\n\nTitel: " + titel}],
     )
+    registrera("Prisjämförelse", svar)
     return svar.content[0].text.strip().strip('"').splitlines()[0][:60]
 
 
@@ -352,6 +385,7 @@ def salla(grupper: dict[str, tuple], modell: str, klient=None, storlek: int = 80
         if rad.result.type != "succeeded":
             continue
         bit = bitar[rad.custom_id]
+        registrera("Sållning", rad.result.message, batch=True)
         for nr, betyg in tolka_sallning(_text(rad.result.message), len(bit)).items():
             ut[bit[nr - 1].nyckel] = betyg
     print(f"  Sållning klar efter {round((time.time() - start) / 60)} min: {len(ut)} betygsatta.")
@@ -430,6 +464,7 @@ def bedom_grupper(kandidater: list, profil_for, regler_for, modell: str, klient=
         if rad.result.type != "succeeded":
             continue
         bit = grupper[rad.custom_id]
+        registrera("Bedömning batch", rad.result.message, batch=True)
         for nr, res in tolka_grupp(_text(rad.result.message), len(bit)).items():
             ut[bit[nr - 1]] = res
     print(f"  Batch klar efter {round((time.time() - start) / 60)} min: {len(ut)} av {len(kandidater)} bedömda.")

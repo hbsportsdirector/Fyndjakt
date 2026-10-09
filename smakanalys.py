@@ -67,6 +67,8 @@ def _fraga(klient, reakt: list[dict]) -> str:
     except anthropic.BadRequestError:  # t.ex. en bild som inte längre finns – försök med bara text
         svar = klient.messages.create(model=MODELL, max_tokens=700, system=INSTRUKTION,
                                       messages=[{"role": "user", "content": [d for d in innehall if d["type"] == "text"]}])
+    import bedomning
+    bedomning.registrera("Smakanalys", svar)
     text = "".join(b.text for b in svar.content if getattr(b, "type", "text") == "text")
     rader = [r.strip() for r in text.splitlines() if r.strip().startswith(("-", "•"))]
     return "\n".join("- " + r.lstrip("-• ").strip() for r in rader[:10])

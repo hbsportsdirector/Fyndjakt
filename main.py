@@ -196,6 +196,7 @@ def spara_rapport(totalt: int, nya: int, bedomda: int, traffar: int) -> None:
         "tid": datetime.now().isoformat(timespec="seconds"),
         "annonser_totalt": totalt, "nya": nya, "bedomda": bedomda, "nya_traffar": traffar,
         "kallor": STATISTIK,
+        "kostnad": __import__("bedomning").kostnadsrapport(),
         "stadsmissionen_katalog": len(stadsmissionen._katalog or []),
     }
     (ROT / "data" / "senaste_korning.json").write_text(json.dumps(rapport, ensure_ascii=False, indent=2), encoding="utf-8")

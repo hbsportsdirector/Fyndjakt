@@ -787,3 +787,13 @@ def test_egen_modell(tmp_path):
     utan = auctionet.tolka(dict(AUCTIONET_POST, id=9003, title="Ulf Lundell cd")); utan.spar = "annat"
     behall, bort = egen_modell.sall(modeller, [ny_bra, ny_dalig, utan])
     assert ny_bra in behall and utan in behall and bort == [ny_dalig]
+
+
+def test_kostnadsmatare():
+    from types import SimpleNamespace as NS
+    bedomning.KOSTNAD.clear()
+    bedomning.registrera("Bedömning batch", NS(model="claude-haiku-4-5-20251001", usage=NS(input_tokens=1_000_000, output_tokens=100_000)), batch=True)
+    bedomning.registrera("Smakanalys", NS(model="claude-sonnet-5-5", usage=NS(input_tokens=100_000, output_tokens=10_000)))
+    r = bedomning.kostnadsrapport(kurs=10)
+    assert r["Bedömning batch"]["usd"] == 0.75 and r["Smakanalys"]["usd"] == 0.3 and r["Totalt"]["kr"] == 10.5
+    bedomning.KOSTNAD.clear()
