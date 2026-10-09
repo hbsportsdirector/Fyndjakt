@@ -1,0 +1,183 @@
+{
+ "shop_s": {
+  "status": 200,
+  "url": "https://www.myrorna.se/shop/?s=vas",
+  "langd": 56595,
+  "annonser": [
+   "vas-stengods-gustavsberg-studio-sven-wejsfelt-unik",
+   "vas-royal-copenhagen-musselmalet-helblond",
+   "vas-flintgods-rorstrand-jugend-1900-talets-borjan",
+   "vas-lladro-spanien-samfraktas-ej",
+   "vas-handblast-kristall-hovmantorp-1950-tal",
+   "vas-gjutet-tenn-schreuder-olsson-tenngjuteri-stockholm-1950",
+   "vas-keramik-bamboo-olle-alberius-rorstrand-1960-tal",
+   "vas-handmalat-tra-indien-samfraktas-ej"
+  ],
+  "borjan": ""
+ },
+ "root_s": {
+  "status": 200,
+  "url": "https://www.myrorna.se/?s=vas",
+  "langd": 80095,
+  "annonser": [
+   "vas-stengods-gustavsberg-studio-sven-wejsfelt-unik",
+   "vas-royal-copenhagen-musselmalet-helblond",
+   "vas-flintgods-rorstrand-jugend-1900-talets-borjan",
+   "vas-lladro-spanien-samfraktas-ej",
+   "vas-handblast-kristall-hovmantorp-1950-tal",
+   "vas-gjutet-tenn-schreuder-olsson-tenngjuteri-stockholm-1950",
+   "vas-keramik-bamboo-olle-alberius-rorstrand-1960-tal",
+   "vas-handmalat-tra-indien-samfraktas-ej"
+  ],
+  "borjan": ""
+ },
+ "root_s_auction": {
+  "status": 200,
+  "url": "https://www.myrorna.se/?s=vas&post_type=auction",
+  "langd": 56595,
+  "annonser": [
+   "vas-stengods-gustavsberg-studio-sven-wejsfelt-unik",
+   "vas-royal-copenhagen-musselmalet-helblond",
+   "vas-flintgods-rorstrand-jugend-1900-talets-borjan",
+   "vas-lladro-spanien-samfraktas-ej",
+   "vas-handblast-kristall-hovmantorp-1950-tal",
+   "vas-gjutet-tenn-schreuder-olsson-tenngjuteri-stockholm-1950",
+   "vas-keramik-bamboo-olle-alberius-rorstrand-1960-tal",
+   "vas-handmalat-tra-indien-samfraktas-ej"
+  ],
+  "borjan": ""
+ },
+ "root_s_product": {
+  "status": 200,
+  "url": "https://www.myrorna.se/?s=vas&post_type=product",
+  "langd": 28632,
+  "annonser": [],
+  "borjan": ""
+ },
+ "shop_sok": {
+  "status": 200,
+  "url": "https://www.myrorna.se/shop/?sok=vas",
+  "langd": 86021,
+  "annonser": [
+   "armband-guld",
+   "skrotsilver-samfraktas-ej",
+   "solglasogon-tom-ford-4",
+   "kjol-dries-van-noten-gron-stl-38",
+   "troja-stone-island-stl-s",
+   "skal-ulrica-hydman-vallien-kosta-boda-samfraktas-ej",
+   "kofta-busnel-brun-100-ull-stl-46",
+   "kappa-acne-studios-stl-36"
+  ],
+  "borjan": ""
+ },
+ "shop_search": {
+  "status": 200,
+  "url": "https://www.myrorna.se/shop/?search=vas",
+  "langd": 86030,
+  "annonser": [
+   "armband-guld",
+   "skrotsilver-samfraktas-ej",
+   "solglasogon-tom-ford-4",
+   "kjol-dries-van-noten-gron-stl-38",
+   "troja-stone-island-stl-s",
+   "skal-ulrica-hydman-vallien-kosta-boda-samfraktas-ej",
+   "kofta-busnel-brun-100-ull-stl-46",
+   "kappa-acne-studios-stl-36"
+  ],
+  "borjan": ""
+ },
+ "shop_q": {
+  "status": 200,
+  "url": "https://www.myrorna.se/shop/?q=vas",
+  "langd": 86015,
+  "annonser": [
+   "armband-guld",
+   "skrotsilver-samfraktas-ej",
+   "solglasogon-tom-ford-4",
+   "kjol-dries-van-noten-gron-stl-38",
+   "troja-stone-island-stl-s",
+   "skal-ulrica-hydman-vallien-kosta-boda-samfraktas-ej",
+   "kofta-busnel-brun-100-ull-stl-46",
+   "kappa-acne-studios-stl-36"
+  ],
+  "borjan": ""
+ },
+ "wp_search": {
+  "status": 401,
+  "url": "https://www.myrorna.se/wp-json/wp/v2/search?search=vas&per_page=20",
+  "langd": 118,
+  "annonser": [],
+  "borjan": "{\"code\":\"rest_cannot_access\",\"message\":\"DRA: Only authenticated users can access the REST API.\",\"data\":{\"status\":401}}"
+ },
+ "wp_types": {
+  "status": 401,
+  "url": "https://www.myrorna.se/wp-json/wp/v2/types",
+  "langd": 118,
+  "annonser": [],
+  "borjan": "{\"code\":\"rest_cannot_access\",\"message\":\"DRA: Only authenticated users can access the REST API.\",\"data\":{\"status\":401}}"
+ },
+ "nyast": {
+  "status": 200,
+  "url": "https://www.myrorna.se/shop/?orderby=date",
+  "langd": 86036,
+  "annonser": [
+   "armband-guld",
+   "skrotsilver-samfraktas-ej",
+   "solglasogon-tom-ford-4",
+   "kjol-dries-van-noten-gron-stl-38",
+   "troja-stone-island-stl-s",
+   "skal-ulrica-hydman-vallien-kosta-boda-samfraktas-ej",
+   "kofta-busnel-brun-100-ull-stl-46",
+   "kappa-acne-studios-stl-36"
+  ],
+  "borjan": ""
+ },
+ "nyast2": {
+  "status": 200,
+  "url": "https://www.myrorna.se/shop/?sort=newest",
+  "langd": 86033,
+  "annonser": [
+   "armband-guld",
+   "skrotsilver-samfraktas-ej",
+   "solglasogon-tom-ford-4",
+   "kjol-dries-van-noten-gron-stl-38",
+   "troja-stone-island-stl-s",
+   "skal-ulrica-hydman-vallien-kosta-boda-samfraktas-ej",
+   "kofta-busnel-brun-100-ull-stl-46",
+   "kappa-acne-studios-stl-36"
+  ],
+  "borjan": ""
+ },
+ "hem": {
+  "status": 200,
+  "url": "https://www.myrorna.se/shop/kategori/hem-prylar/",
+  "langd": 88207,
+  "annonser": [
+   "skrotsilver-samfraktas-ej",
+   "skal-ulrica-hydman-vallien-kosta-boda-samfraktas-ej",
+   "figurin-stengods-lisa-larson-k-studion-gustavsberg",
+   "konstglas-prinsesstarta-karin-hammar-stockholms-glasbruk-samfraktas-ej",
+   "lisa-larson-figurin-lejonpar-noas-ark-gustavsberg",
+   "hogtalare-calrad-ct-4-horn-tweeter",
+   "kaffeskedar-silver-5st",
+   "olja-pa-duk-landskap-monogramsignerad-i-w-1869-endast-avhamtning"
+  ],
+  "borjan": ""
+ },
+ "formular": [
+  "<form role=\"search\" method=\"get\" id=\"shop-search\" action=\"https://www.myrorna.se/shop/\" >\n\t\t\t\t\t\t<input type=\"hidden\" name=\"post_type\" value=\"auction\" />\n\t\t\t\t\t\t<input type=\"search\" value=\"vas\" name=\"s\" id=\"s\" placeholder=\"Sök i webbshopen\" />\n\t\t\t\t\t\t<input type=\"submit\" id=\"searchsubmit\" value=\"Sök\" />\n\t\t\t\t\t</form>",
+  "<form action=\"https://www.myrorna.se/\" method=\"get\" role=\"search\">\n\t\t\t\t<input name=\"s\" id=\"s\" type=\"search\" autofocus=\"autofocus\">\n\t\t\t\t<input type=\"submit\" value=\"Sök\">\n\t\t\t</form>",
+  "<form class=\"newsletter-signup__form\" method=\"post\" action=\"https://www.myrorna.se/wp-json/myrorna/v1/newsletter-signup\" data-endpoint=\"https://www.myrorna.se/wp-json/myrorna/v1/newsletter-signup\" data-nonce=\"e50749ac84\" data-success-message=\"Tack för att du registrerat dig! Bekräfta din e-postadress i mailat som skickas inom kort.\">\n\t\t\t\t<input type=\"hidden\" name=\"form_started_at\" value=\"\">\n\t\t\t\t<input type=\"hidden\" name=\"_wpnonce\" value=\"e50749ac84\">\n\t\t\t\t<div class=\"newsletter-signup__form__honeypot\" aria-hidden=\"true\" style=\"position:absolute;left:-9999px;\">\n\t\t\t\t\t<label for=\"newsletter-website\">Lämna detta fält tomt</label>\n\t\t\t\t\t<input id=\"newsletter-website\" type=\"text\" name=\"website\" tabindex=\"-1\" autocomplete=\"off\">\n\t\t\t\t</div>\n\t\t\t\t<div class=\"newsletter-signup__form__input\">\n\t\t\t\t\t<input type=\"email\" name=\"emailAddress\" required placeholder=\"E-postadress\">\n\t\t\t\t\t<button type=\"submit\">Prenumerera</button>\n\t\t\t\t\t<label>\n\t\t\t\t\t\t<input type=\"checkbox\" name=\"privacy_policy_accepted\" value=\"1\" required>\n\t\t\t\t\t\tJag godkänner Myrornas hantering av mina personuppgifter enligt <a href=\"https://www.myrorna.se/integritetsmeddelande/\" target=\"_blank\" rel=\"noopener noreferrer\">vår integritetsskyddspolicy</a>.\t\t\t\t\t</label>\n\t\t\t\t</div>\n\t\t\t\t<p class=\"newsletter-signup__form__status\" aria-live=\"polite\"></p>\n\t\t\t</form>"
+ ],
+ "select": [
+  "<select  name='shop-category' id='shop-category' class='postform'>\n\t<option value='https://www.myrorna.se/shop/'>Alla kategorier</option>\n<option value=\"accessoarer\" data-uri=\"https://www.myrorna.se/shop/kategori/accessoarer/\">Accessoarer&nbsp;&nbsp;(59)</option>\n<option value=\"klockor\" data-uri=\"https://www.myrorna.se/shop/kategori/accessoarer/klockor/\">&nbsp;&nbsp;&nbsp;Klockor&nbsp;&nbsp;(13)</option>\n<option value=\"solglasogon\" data-uri=\"https://www.myrorna.se/shop/kategori/accessoarer/solglasogon/\">&nbsp;&nbsp;&nbsp;Solglasögon&nbsp;&nbsp;(15)</option>\n<option value=\"vaskor\" data-uri=\"https://www.myrorna.se/shop/kategori/accessoarer/vaskor/\">&nbsp;&nbsp;&nbsp;Väskor&nbsp;&nbsp;(12)</option>\n<option value=\"barn\" data-uri=\"https://www.myrorna.se/shop/kategori/barn/\">Barnartiklar&nbsp;&nbsp;(17)</option>\n<option value=\"barnklader-barnskor\" data-uri=\"https://www.myrorna.se/shop/kategori/barn/barnklader-barnskor/\">&nbsp;&nbsp;&nbsp;Barnkläder &amp; Barnskor&nbsp;&nbsp;(7)</option>\n<option value=\"leksaker\" data-uri=\"https://www.myrorna.se/shop/kategori/barn/leksaker/\">&nbsp;&nbsp;&nbsp;Leksaker&nbsp;&nbsp;(10)</option>\n<option value=\"brollop\" data-uri=\"https://www.myrorna.se/shop/kategori/brollop/\">Bröllop&nbsp;&nbsp;(0)</option>\n<option value=\"bocker-spel\" data-uri=\"https://www.myrorna.se/shop/kategori/bocker-spel/\">Böcker &amp; Spel&nbsp;&nbsp;(96)</option>\n<option value=\"bradspel-sallskapsspel\" data-uri=\"https://www.myrorna.se/shop/kategori/bocker-spel/bradspel-sallskapsspel/\">&nbsp;&nbsp;&nbsp;Brädspel &amp; Sällskapsspel&nbsp;&nbsp;(15)</option>\n<option value=\"bocker\" data-uri=\"https://www.myrorna.se/shop/kategori/bocker-spel/bocker/\">&nbsp;&nbsp;&nbsp;Böcker&nbsp;&nbsp;(65)</option>\n<option value=\"film-musik\" data-uri=\"https://www.myrorna.se/shop/kategori/film-musik/\">Film &amp; Musik&nbsp;&nbsp;(57)</option>\n<option value=\"dvd-video\" data-uri=\"https://www.myrorna.se/shop/kategori/film-musik/dvd-video/\">&nbsp;&nbsp;&nbsp;DVD &amp; Video&nbsp;&nbsp;(3)</option>\n<option value=\"gitarrer-instrument\" data-uri=\"https://www.myrorna.se/shop/kategori/film-musik/gitarrer-instrument/\">&nbsp;&nbsp;&nbsp;Musikinstrument&nbsp;&nbsp;(7)</option>\n<option value=\"vinyl\" data-uri=\"https://www.myrorna.se/shop/kategori/film-musik/vinyl/\">&nbsp;&nbsp;&nbsp;Vinyl&nbsp;&nbsp;(42)</option>\n<option value=\"hem-prylar\" data-uri=\"https://www.myrorna.se/shop/kategori/hem-prylar/\">Hem &amp; Prylar&nbsp;&nbsp;(189)</option>\n<option value=\"glas-porslin\" data-uri=\"https://www.myrorna.se/shop/kategori/hem-prylar/glas-porslin/\">&nbsp;&nbsp;&nbsp;Glas &amp; Porslin&nbsp;&nbsp;(82)</option>\n<option value=\"hemtextil\" data-uri=\"https://www.myrorna.se/shop/kategori/hem-prylar/hemtextil/\">&nbsp;&nbsp;&nbsp;Hemtextil&nbsp;&nbsp;(0)</option>\n<option value=\"husgerad-hushallsmaskiner\" data-uri=\"https://www.myrorna.se/shop/kategori/hem-prylar/husgerad-hushallsmaskiner/\">&nbsp;&nbsp;&nbsp;Husgeråd &amp; Hushållsmaskiner&nbsp;&nbsp;(1)</option>\n<option value=\"inredningsdetaljer\" data-uri=\"https://www.myrorna.se/shop/kategori/hem-prylar/inredningsdetaljer/\">&nbsp;&nbsp;&nbsp;Inredning&nbsp;&nbsp;(0)</option>\n<option value=\"lampor\" data-uri=\"https://www.myrorna.se/shop/kategori/hem-prylar/lampor/\">&nbsp;&nbsp;&nbsp;Lampor&nbsp;&nbsp;(17)</option>\n<option value=\"tavlor-konst\" data-uri=\"https://www.myrorna.se/shop/kategori/hem-prylar/tavlor-konst/\">&nbsp;&nbsp;&nbsp;Tavlor &amp; Konst&nbsp;&nbsp;(6)</option>\n<option value=\"klader\" data-uri=\"https://www.myrorna.se/shop/kategori/klader/\">Kläder&nbsp;&nbsp;(657)</option>\n<option value=\"dam\" data-uri=\"https://www.myrorna.se/shop/kategori/klader/dam/\">&nbsp;&nbsp;&nbsp;Damkläder&nbsp;&nbsp;(400)</option>\n<option value=\"underdel-dam\" data-uri=\"https://www.myrorna.se/shop/kategori/klader/dam/underdel-dam/\">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Underdelar dam&nbsp;&nbsp;(15)</option>\n<option value=\"overdel-dam\" data-uri=\"https://www.myrorna.se/shop/kategori/klader/dam/overdel-dam/\">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Överdelar dam&nbsp;&nbsp;(305)</option>\n<option value=\"herr\" data-uri=\"https://www.myrorna.se/shop/kategori/klader/herr/\">&nbsp;&nbsp;&nbsp;Herrkläder&nbsp;&nbsp;(257)</option>\n<option value=\"underdel-herr\" data-uri=\"https://www.myrorna.se/shop/kategori/klader/herr/underdel-herr/\">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Underdelar herr&nbsp;&nbsp;(26)</option>\n<option value=\"overdel-herr\" data-uri=\"https://www.myrorna.se/shop/kategori/klader/herr/overdel-herr/\">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Överdelar herr&nbsp;&nbsp;(231)</option>\n<option value=\"mobler\" data-uri=\"https://www.myrorna.se/shop/kategori/mobler/\">Möbler&nbsp;&nbsp;(0)</option>\n<option value=\"presentkort\" data-uri=\"https://www.myrorna.se/shop/kategori/presentkort/\">Presentkort&nbsp;&nbsp;(2)</option>\n<option value=\"skor\" data-uri=\"https://www.myrorna.se/shop/kategori/skor/\">Skor&nbsp;&nbsp;(43)</option>\n<option value=\"damskor\" data-uri=\"https://www.myrorna.se/shop/kategori/skor/damskor/\">&nbsp;&nbsp;&nbsp;Damskor&nbsp;&nbsp;(26)</option>\n<option value=\"herrskor\" data-uri=\"https://www.myrorna.se/shop/kategori/skor/herrskor/\">&nbsp;&nbsp;&nbsp;Herrskor&nbsp;&nbsp;(17)</option>\n<option value=\"smycken\" data-uri=\"https://www.myrorna.se/shop/kategori/smycken/\">Smycken&nbsp;&nbsp;(39)</option>\n<option value=\"sport-fritid\" data-uri=\"https://www.myrorna.se/shop/kategori/sport-fritid/\">Sport &amp; Fritid&nbsp;&nbsp;(14)</option>\n<option value=\"ovrigt\" data-uri=\"https://www.myrorna.se/shop/kategori/ovrigt/\">Övrigt&nbsp;&nbsp;(64)</option>\n<option value=\"parfym\" data-uri=\"https://www.myrorna.se/shop/kategori/ovrigt/parfym/\">&nbsp;&nbsp;&nbsp;Parfym&nbsp;&nbsp;(0)</option>\n</select>",
+  "<select id=\"shop-order\">\n\t\t\t\t\t\t\t<option value=\"\" selected=\"selected\">Flest bud först</option>\n\t\t\t\t\t\t\t<option value=\"lagst\">Lägst bud först</option>\n\t\t\t\t\t\t\t<option value=\"hogst\">Högst bud först</option>\n\t\t\t\t\t\t\t<option value=\"nyast\">Nyast först</option>\n\t\t\t\t\t\t</select>"
+ ],
+ "ajax": [
+  "admin-ajax.php",
+  "api/js",
+  "wp-json/myrorna/v1/newsletter-signup",
+  "wp-json/wp/v2/posts"
+ ],
+ "datattr": []
+}
