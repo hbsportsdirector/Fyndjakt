@@ -683,6 +683,6 @@ def test_grupp_bedomning():
     # h: 6 annonser -> grupper om 5 + 1; s: 1 -> totalt 3 anrop; profilen per spår
     assert len(b.req) == 3 and {"PROFIL-h" in r["params"]["system"] for r in b.req} == {True, False}
     bilder = [d for d in b.req[0]["params"]["messages"][0]["content"] if d["type"] == "image"]
-    assert len(bilder) == 2 * 5  # två bilder per annons
+    assert len(bilder) == 1 * 5  # en bild per annons
     assert ut[0] == (6, "M1", "j") and 1 not in ut  # nr 2 saknades i svaret -> bedöms sedan en och en
     assert bedomning.tolka_grupp('[{"nr": 1, "betyg": 9, "motivering": "A"}, {"nr": 2, "betyg": 4, "motiv', 2) == {1: (9, "A", "")}

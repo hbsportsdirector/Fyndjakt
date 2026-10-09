@@ -39,7 +39,7 @@ Svara ENBART med JSON, utan annan text:
 {{"betyg": <heltal 0-10>, "motivering": "<EN kort mening på svenska, max 30 ord>", "jamforsok": "<sökfras>"}}"""
 
 
-BILDER = 2          # bilder per annons – två räcker för stil, färg och skick
+BILDER = 1          # bild per annons – huvudbilden räcker för stil, färg och form
 GRUPPSTORLEK = 5    # annonser per anrop i batchen – profilen skickas en gång per grupp i stället för per annons
 
 GRUPP_INSTRUKTION = """Du är en erfaren inredare och samlingsrådgivare som letar begagnade fynd åt en kund.
