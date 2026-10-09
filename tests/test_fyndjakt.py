@@ -686,3 +686,31 @@ def test_grupp_bedomning():
     assert len(bilder) == 1 * 5  # en bild per annons
     assert ut[0] == (6, "M1", "j") and 1 not in ut  # nr 2 saknades i svaret -> bedöms sedan en och en
     assert bedomning.tolka_grupp('[{"nr": 1, "betyg": 9, "motivering": "A"}, {"nr": 2, "betyg": 4, "motiv', 2) == {1: (9, "A", "")}
+
+
+def test_kategoriprofiler(tmp_path, monkeypatch):
+    from types import SimpleNamespace as NS
+    import kategoriprofil
+    monkeypatch.setattr(kategoriprofil, "FIL", tmp_path / "k.json")
+    anrop = []
+
+    class K:
+        class messages:
+            @staticmethod
+            def create(**kw):
+                anrop.append(kw)
+                return NS(content=[NS(type="text", text=f"Kort profil för {kw['system'].split('«')[2].split('»')[0]}: Rörstrand, Gustavsberg, blått och grönt, 100–600 kr.")])
+    cfg = {"spar": {"s": {"namn": "Samlingen", "profil": "HELA+REAKT", "profil_bas": "HELA PROFILEN",
+                          "sokningar": {"Keramik": ["Rörstrand"], "Glas": ["Höglund"]}, "lardomar": "- Gillar klart blått."}}}
+    korta = kategoriprofil.bygg(cfg, K())
+    assert len(anrop) == 2 and korta[("s", "Keramik")].startswith("Kort profil för Keramik")
+    assert kategoriprofil.bygg(cfg, K()) == korta and len(anrop) == 2  # sparad – inga nya anrop
+    exp = {"anvandare": [{"user_id": "u", "admin": True}], "anteckningar": [], "reaktioner": [
+        {"user_id": "u", "typ": "gillar", "spar": "s", "kategori": "Keramik", "titel": "SKÅL Blå Eld"},
+        {"user_id": "u", "typ": "gillar", "spar": "s", "kategori": "Glas", "titel": "VAS Höglund"}]}
+    a = auctionet.tolka(AUCTIONET_POST, "Keramik"); a.spar = "s"
+    p = kategoriprofil.profil_for(a, cfg, exp, korta)
+    assert "Kort profil för Keramik" in p and "Gillar klart blått" in p
+    assert "SKÅL Blå Eld" in p and "VAS Höglund" not in p and "HELA" not in p
+    a.kategori = "Okänd"
+    assert kategoriprofil.profil_for(a, cfg, exp, korta) == "HELA+REAKT"

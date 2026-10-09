@@ -352,9 +352,9 @@ def bedom_grupper(kandidater: list, profil_for, regler_for, modell: str, klient=
     Returnerar {index i kandidater: resultat}; det som saknas bedöms sedan en och en."""
     import time
     klient = klient or _klient()
-    per_spar: dict[str, list[int]] = {}
+    per_spar: dict[tuple, list[int]] = {}  # per spår OCH kategori – då delar gruppen samma korta profil
     for i, a in enumerate(kandidater):
-        per_spar.setdefault(a.spar, []).append(i)
+        per_spar.setdefault((a.spar, a.kategori), []).append(i)
     grupper, forfragningar = {}, {}
     for sid, index in per_spar.items():
         for start in range(0, len(index), storlek):

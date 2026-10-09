@@ -125,6 +125,7 @@ def lagg_till_profiler(cfg: dict, export: dict | None) -> int:
             "sokningar": sokningar,
             "sidor": 2,
             "profil": profiltext(p),
+            "profil_bas": profiltext(p),
             "uteslut_ord": [],
         }
         if p.get("max_pris"):
@@ -149,10 +150,11 @@ def _agare(spar: dict, export: dict) -> set[str]:
     return {spar["agare"]} if spar.get("agare") else admins(export)
 
 
-def profiltillagg(export: dict, sid: str, agare: set[str] | None = None) -> str:
-    """Text som läggs till i spårets profil."""
+def profiltillagg(export: dict, sid: str, agare: set[str] | None = None, kategori: str | None = None) -> str:
+    """Text som läggs till i spårets profil. Med kategori: bara reaktioner på fynd i den kategorin."""
     agare = agare or set()
-    reakt = [r for r in export.get("reaktioner", []) if _galler(r, sid, agare)]
+    reakt = [r for r in export.get("reaktioner", []) if _galler(r, sid, agare)
+             and (kategori is None or not r.get("kategori") or r.get("kategori") == kategori)]
     ant = [a for a in export.get("anteckningar", []) if _galler(a, sid, agare)]
     if not reakt and not ant:
         return ""

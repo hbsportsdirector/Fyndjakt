@@ -82,6 +82,7 @@ jobs:
           git config user.email "fyndjakt-bot@users.noreply.github.com"
           git add data/sedda.db data/senaste_korning.json
           git add data/smakanalys.json 2>/dev/null || true
+          git add data/kategoriprofiler.json 2>/dev/null || true
           git diff --cached --quiet && exit 0
           git commit -m "Uppdatera sedda annonser"
           # Om något annat laddats upp under körningen: lägg resultaten ovanpå och försök igen.

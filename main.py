@@ -21,6 +21,8 @@ from sources import Annons, auctionet, bukowskis, myrorna, stadsmissionen, trade
 
 ROT = Path(__file__).parent
 STATISTIK: dict = {}
+KORTA: dict = {}      # korta profiler per (spår, kategori)
+EXPORT: dict = {}     # användare, reaktioner m.m. från databasen
 
 
 def las_config() -> dict:
@@ -31,6 +33,7 @@ def las_config() -> dict:
     for sid, spar in cfg["spar"].items():
         spar.setdefault("namn", sid)
         spar["profil"] = bygg_profil(spar)
+        spar["profil_bas"] = spar["profil"]  # före reaktioner och lärdomar – används för kategoriprofilerna
     return cfg
 
 
@@ -206,6 +209,7 @@ def main() -> int:
     try:
         import smak
         export = smak.hamta(cfg)
+        EXPORT.update(export or {})
         smak.tillampa(cfg, export)
         import smakanalys
         try:
@@ -214,6 +218,8 @@ def main() -> int:
         except Exception:
             klient_analys = None
         STATISTIK["Smakanalys"] = smakanalys.analysera(cfg, export, klient_analys)
+        import kategoriprofil
+        KORTA.update(kategoriprofil.bygg(cfg, klient_analys))
     except Exception as e:  # lärandet får aldrig stoppa körningen
         print(f"Min smak: kunde inte läsa reaktioner – {e}")
         STATISTIK["Min smak"] = {"fel": str(e)[:200]}
@@ -232,6 +238,11 @@ def main() -> int:
 
     # Importeras här så att torrkörning fungerar utan nycklar.
     import bedomning
+    import kategoriprofil
+
+    def profil_for(a):
+        """Kort profil för annonsens kategori (+ lärdomar och reaktioner i kategorin), annars hela profilen."""
+        return kategoriprofil.profil_for(a, cfg, EXPORT or None, KORTA)
     import notis
     import sajt
 
@@ -253,7 +264,7 @@ def main() -> int:
             for a in kandidater:
                 sp = cfg["spar"][a.spar]
                 regler = sp.get("bedomningsregler") or (cfg.get("bedomningsregler_anvandare") if sp.get("agare") else None)
-                grupper.setdefault(a.spar, (sp["profil"], [], regler))[1].append(a)
+                grupper.setdefault((a.spar, a.kategori), (profil_for(a), [], regler))[1].append(a)
             snabb = bedomning.salla(grupper, cfg["modell"], bedomning._klient())
             grans = cfg.get("sallning_min_betyg", 6)
             kvar = []
@@ -308,14 +319,14 @@ def main() -> int:
         slut = False
         if cfg.get("batch", True):
             try:
-                gjort = bedomning.bedom_grupper(kandidater, lambda a: cfg["spar"][a.spar]["profil"], regler_for,
+                gjort = bedomning.bedom_grupper(kandidater, profil_for, regler_for,
                                                 cfg["modell"], klient, cfg.get("gruppstorlek", bedomning.GRUPPSTORLEK))
                 fardiga = {f"a{i}": r for i, r in gjort.items()}
             except bedomning.SlutPaKrediter:
                 slut = True
             except Exception as e:
                 print(f"  Batch misslyckades ({e}) – bedömer med vanliga anrop.")
-        saknas = [] if slut else [(f"a{i}", a, cfg["spar"][a.spar]["profil"], regler_for(a))
+        saknas = [] if slut else [(f"a{i}", a, profil_for(a), regler_for(a))
                                   for i, a in enumerate(kandidater) if f"a{i}" not in fardiga]
         STATISTIK["Bedömning"] = {"batch": len(fardiga), "direkt": len(saknas)}
         if saknas:
