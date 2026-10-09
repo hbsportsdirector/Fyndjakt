@@ -681,7 +681,9 @@ function render() {
     pris: (a, b) => (a.pris ?? 9e12) - (b.pris ?? 9e12),
     lage: (a, b) => ((jmf(a) || {}).kvot ?? 9e12) - ((jmf(b) || {}).kvot ?? 9e12),
   }[st.sort];
-  l.sort(s);
+  // Det du inte reagerat på än ligger först – det du redan gillat hamnar längre ner.
+  const markerad = p => konto.reakt.has(p.nyckel) ? 1 : 0;
+  l.sort((a, b) => markerad(a) - markerad(b) || s(a, b));
   $("grid").replaceChildren(...l.map(card));
   $("empty").hidden = l.length > 0;
   const forst = V.egna.has(st.spar) && !V.poster.some(p => p.spar === st.spar);
