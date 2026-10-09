@@ -647,3 +647,16 @@ def test_batch_som_droejer_raddas_och_resten_parallellt(monkeypatch):
     a = auctionet.tolka(AUCTIONET_POST)
     monkeypatch.setattr(bedomning, "bedom", lambda an, p, m, k, r: (7, "Direkt", "x"))
     assert bedomning.bedom_parallellt([("a1", a, "P", None)], "m", object()) == {"a1": (7, "Direkt", "x")}
+
+
+def test_slut_pa_krediter_stoppar_direkt(monkeypatch):
+    import pytest
+    a = auctionet.tolka(AUCTIONET_POST)
+    anrop = []
+    def bedom(*x):
+        anrop.append(1)
+        raise RuntimeError("Your credit balance is too low to access the Anthropic API.")
+    monkeypatch.setattr(bedomning, "bedom", bedom)
+    with pytest.raises(bedomning.SlutPaKrediter):
+        bedomning.bedom_parallellt([("a0", a, "P", None), ("a1", a, "P", None), ("a2", a, "P", None)], "m", object())
+    assert len(anrop) == 1

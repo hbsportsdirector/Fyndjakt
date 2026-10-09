@@ -303,7 +303,11 @@ def main() -> int:
                   for i, a in enumerate(kandidater) if f"a{i}" not in fardiga]
         STATISTIK["Bedömning"] = {"batch": len(fardiga), "direkt": len(saknas)}
         if saknas:
-            fardiga.update(bedomning.bedom_parallellt(saknas, cfg["modell"], klient))
+            try:
+                fardiga.update(bedomning.bedom_parallellt(saknas, cfg["modell"], klient))
+            except bedomning.SlutPaKrediter:
+                print("  ⚠ Anthropic-kontot har slut på krediter – inga bedömningar kunde göras.")
+                STATISTIK["Varning"] = "Slut på krediter hos Anthropic – fyll på under Plans & Billing."
         for i, a in enumerate(kandidater, 1):
             resultat = fardiga.get(f"a{i - 1}")
             if not resultat:
@@ -324,6 +328,8 @@ def main() -> int:
         egna_fynd = sajt.anvandarfynd(db, cfg)
         smak.publicera(cfg, egna_fynd)
         STATISTIK["Notiser"] = smak.notifiera(cfg, export, egna_fynd)
+        if STATISTIK.get("Varning"):
+            smak.varna_admin(cfg, export, STATISTIK["Varning"])
     except Exception as e:
         print(f"Kunde inte lägga upp användarnas fynd: {e}")
         STATISTIK["Egna fynd"] = {"fel": str(e)[:200]}

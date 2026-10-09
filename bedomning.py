@@ -260,5 +260,19 @@ def bedom_parallellt(uppgifter: list[tuple[str, Annons, str, str | None]], model
         except Exception as e:
             print(f"  Fel vid bedömning av {a.titel[:50]}: {e}")
             return cid, None
+    # Kolla först med en enda: är krediterna slut finns ingen anledning att försöka 800 gånger.
+    if uppgifter:
+        cid, a, profil, regler = uppgifter[0]
+        try:
+            forsta = {cid: bedom(a, profil, modell, klient, regler)}
+        except Exception as e:
+            if "credit balance" in str(e).lower():
+                raise SlutPaKrediter(str(e)) from e
+            forsta = {}
+        uppgifter = uppgifter[1:]
     with ThreadPoolExecutor(max_workers=tradar) as pool:
-        return {cid: r for cid, r in pool.map(en, uppgifter) if r}
+        return {**forsta, **{cid: r for cid, r in pool.map(en, uppgifter) if r}}
+
+
+class SlutPaKrediter(RuntimeError):
+    """Anthropic-kontot saknar krediter – inga bedömningar går att göra förrän det fyllts på."""

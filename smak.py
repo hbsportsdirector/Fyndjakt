@@ -260,3 +260,16 @@ def notifiera(cfg: dict, export: dict | None, fynd: dict) -> dict:
                 print(f"  Kunde inte rensa gamla prenumerationer: {e}")
     print(f"Notiser: {skickade} skickade, {len(borta)} borttagna, {fel} fel.")
     return {"skickade": skickade, "borttagna": len(borta), "fel": fel}
+
+
+def varna_admin(cfg: dict, export: dict | None, text: str) -> None:
+    """Skickar en notis till administratörens telefon när något stoppar körningen (t.ex. slut på krediter)."""
+    import webbnotis
+    if not export or not export.get("vapid"):
+        return
+    for pren in [p for p in export.get("push", []) if p["user_id"] in admins(export)]:
+        try:
+            webbnotis.skicka(pren, {"title": "Fyndjakt behöver dig", "body": text, "url": webbnotis.AVSANDARE,
+                                    "tag": "fyndjakt-varning"}, export["vapid"])
+        except Exception as e:
+            print(f"  Kunde inte skicka varning: {e}")
