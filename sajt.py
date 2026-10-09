@@ -82,7 +82,8 @@ def _poster(db, cfg: dict, spar_ids: set[str] | None, rader: list[dict] | None =
 
 def _sparlista(spar_cfg: dict) -> list[dict]:
     return [{"id": sid, "namn": s.get("namn", sid), "kategorier": list(s.get("sokningar", {}).keys()),
-             "sokningar": s.get("sokningar", {}), "lardomar": s.get("lardomar") or ""}
+             "sokningar": s.get("sokningar", {}), "lardomar": s.get("lardomar") or "",
+             "pausade": s.get("pausade") or []}
             for sid, s in spar_cfg.items()]
 
 
@@ -373,6 +374,11 @@ MALL = r"""<!doctype html>
   .forklaring p { margin: 0; } .forklaring p + ol, .forklaring ol + p { margin-top: 8px; }
   .forklaring b { color: var(--text); }
   .forklaring ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
+  .pausade { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
+  .pausade .kat { color: var(--muted); font-size: 12px; margin-bottom: 6px; }
+  .pausade .p-rad { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px;
+                    padding: 4px 0; color: var(--muted); }
+  .pausade .p-rad .knapp { font-size: 12px; padding: 4px 10px; }
   .profilval { display: flex; align-items: center; gap: 10px; margin-top: 16px; }
   .profilval label { color: var(--text); font-weight: 600; font-size: 14px; }
   .profilval select { flex: 1; font-size: 15px; padding: 10px 12px; border-color: var(--brass-dim); }
@@ -1263,7 +1269,7 @@ function profilkort(p) {
     konto.vald = null;
     byggVy(); renderProfiler();
   };
-  if (p.id) kort.dataset.id = p.id;
+  if (p.id) { kort.dataset.id = p.id; const pa = pausadeRuta("p" + p.id); if (pa) kort.appendChild(pa); }
   return kort;
 }
 
@@ -1311,6 +1317,31 @@ function renderProfiler() {
 }
 $("prof-val").onchange = (e) => { konto.vald = e.target.value; renderProfiler(); };
 
+// Sökord som aldrig gett något pausas automatiskt – här kan man slå på dem igen.
+function pausadeRuta(sid) {
+  const sp = ((konto.fynd || {}).spar || []).find(s => s.id === sid);
+  const lista = (sp && sp.pausade) || [];
+  if (!lista.length) return null;
+  const d = document.createElement("div"); d.className = "pausade";
+  const h = document.createElement("div"); h.className = "kat";
+  h.textContent = "⏸ Pausade sökord – gav inget fynd på länge (sparar tid och pengar)"; d.appendChild(h);
+  for (const x of lista) {
+    const rad = document.createElement("div"); rad.className = "p-rad";
+    const t = document.createElement("span"); t.textContent = `${x.sokord} · ${x.bedomda} bedömda, 0 fynd`; rad.appendChild(t);
+    const b = document.createElement("button"); b.type = "button"; b.className = "knapp"; b.textContent = "Slå på igen";
+    b.onclick = async (e) => {
+      e.preventDefault(); b.disabled = true;
+      const { error } = await konto.sb.from("fyndjakt_sokord_val")
+        .upsert({ spar: sid, sokord: x.sokord, aktiv: true, uppdaterad: new Date().toISOString() }, { onConflict: "user_id,spar,sokord" });
+      if (error) { console.error(error); b.disabled = false; b.textContent = "Försök igen"; return; }
+      sp.pausade = sp.pausade.filter(y => y.sokord !== x.sokord);
+      rad.replaceChildren(Object.assign(document.createElement("span"), { textContent: `${x.sokord} – på igen från i natt` }));
+    };
+    rad.appendChild(b); d.appendChild(rad);
+  }
+  return d;
+}
+
 function filkort(sp) {
   const d = document.createElement("div"); d.className = "profilkort filspar";
   const fil = sp.id === "hemmet" ? "stil.md" : sp.id === "samlingen" ? "samlingsprofil.md" : "config.yaml";
@@ -1323,6 +1354,7 @@ function filkort(sp) {
     lista.forEach(q => { const x = document.createElement("span"); x.textContent = q; o.appendChild(x); });
     d.appendChild(o);
   }
+  const pa = pausadeRuta(sp.id); if (pa) d.appendChild(pa);
   return d;
 }
 

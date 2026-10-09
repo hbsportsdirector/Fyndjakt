@@ -61,7 +61,7 @@ def agare_av(spar: dict) -> str:
     return spar.get("agare") or ""
 
 
-def hamta_alla(cfg: dict) -> list[Annons]:
+def hamta_alla(cfg: dict, pausade: set | None = None) -> list[Annons]:
     kallor = cfg.get("kallor", {})
     std_sidor = cfg.get("sidor_per_sokning", 3)
     aktiva = []
@@ -89,6 +89,8 @@ def hamta_alla(cfg: dict) -> list[Annons]:
         for namn, sok, tar_sidor in aktiva:
             for kategori, fragor in spar["sokningar"].items():
                 for fraga in fragor:
+                    if pausade and (sid, fraga) in pausade:
+                        continue  # gav aldrig något – pausat (kan slås på igen i appen)
                     st = STATISTIK.setdefault(namn, {"sokningar": 0, "traffar": 0, "fel": 0, "felexempel": []})
                     nyckel = (namn, fraga.lower(), sidor)
                     if nyckel not in cache:
@@ -227,7 +229,10 @@ def main() -> int:
     db.rensa_gamla()
 
     print("Hämtar annonser …")
-    annonser = hamta_alla(cfg)
+    import sokordsvard
+    pausade = sokordsvard.pausa(cfg, db, export)
+    STATISTIK["Pausade sökord"] = len(pausade)
+    annonser = hamta_alla(cfg, pausade)
     nya = [a for a in annonser if not db.finns(a.nyckel)]
     print(f"\n{len(annonser)} annonser totalt, {len(nya)} nya.")
 
@@ -253,6 +258,33 @@ def main() -> int:
             db.spara(a, -1, skal)
         else:
             kandidater.append(a)
+
+    # Samma föremål som redan bedömts (t.ex. återpublicerat på Tradera) får sitt tidigare betyg – inget nytt anrop.
+    ateranvanda, traffar = 0, []
+    kvar_efter = []
+    for a in kandidater:
+        tidigare = db.tidigare_bedomning(a)
+        if tidigare:
+            a.jamforsok = tidigare.get("jamforsok") or ""
+            bra = tidigare["betyg"] >= cfg.get("min_betyg", 8)
+            db.spara(a, tidigare["betyg"], tidigare["motivering"], bra)
+            if bra:
+                traffar.append((tidigare["betyg"], a, tidigare["motivering"]))
+            ateranvanda += 1
+        else:
+            kvar_efter.append(a)
+    kandidater = kvar_efter
+    STATISTIK["Återanvända betyg"] = ateranvanda
+
+    # Den egna, gratis modellen (tränad på Claudes tidigare bedömningar) sorterar bort det mycket osannolika.
+    if cfg.get("egen_modell", True) and kandidater:
+        import egen_modell
+        modeller = egen_modell.trana_per_spar(db)
+        kandidater, bort = egen_modell.sall(modeller, kandidater)
+        for a in bort:
+            db.spara(a, 2, "Sållad bort av egna modellen")
+        STATISTIK["Egen modell"] = {"bortsorterade": len(bort), "spår med modell": len(modeller)}
+        print(f"Egen modell: {len(bort)} sorterade bort utan Claude.")
 
     # Fler kandidater än vad som hinner granskas med bilder? Sålla först på titel och pris (billigt),
     # så att de dyra granskningarna går till det som har chans. Uppenbart fel sparas som kollat.
@@ -305,7 +337,6 @@ def main() -> int:
             except Exception as e:
                 print(f"  Kunde inte läsa annonssidan för {a.titel[:40]}: {e}")
 
-    traffar = []
     if kandidater:
         klient = bedomning._klient()
 

@@ -11,5 +11,7 @@ smak.tillampa(cfg, export)
 import smakanalys  # noqa: E402
 smakanalys.analysera(cfg, export)  # bara sparade analyser – inga nya anrop
 db = Databas()
+import sokordsvard  # noqa: E402
+sokordsvard.pausa(cfg, db, export)
 sajt.bygg(db, cfg)
 smak.publicera(cfg, sajt.anvandarfynd(db, cfg))

@@ -64,6 +64,49 @@ Svara ENBART med en JSON-lista, en post per annons, utan annan text:
 [{{"nr": 1, "betyg": <heltal 0-10>, "motivering": "<EN kort mening på svenska, max 30 ord>", "jamforsok": "<sökfras>"}}, …]"""
 
 
+# ── Små bilder: Claude behöver inte full upplösning för att se stil, färg och form ──
+BILD_MAX = 400        # pixlar på längsta sidan (~150 tokens i stället för 400–1600)
+_BILDER: dict[str, str | None] = {}
+
+
+def _forminska(url: str) -> str | None:
+    """Hämtar bilden och skalar ner den till en liten JPEG (base64). None om det inte går."""
+    import base64
+    import io
+    try:
+        import requests
+        from PIL import Image
+        r = requests.get(url, timeout=20, headers={"User-Agent": "Fyndjakt/1.0 (privat bevakning)"})
+        r.raise_for_status()
+        bild = Image.open(io.BytesIO(r.content))
+        bild = bild.convert("RGB")
+        bild.thumbnail((BILD_MAX, BILD_MAX))
+        ut = io.BytesIO()
+        bild.save(ut, "JPEG", quality=80)
+        return base64.b64encode(ut.getvalue()).decode()
+    except Exception:
+        return None
+
+
+def forbered_bilder(urls: list[str], tradar: int = 16) -> None:
+    """Hämtar och förminskar alla bilder i förväg, flera samtidigt."""
+    from concurrent.futures import ThreadPoolExecutor
+    nya = [u for u in dict.fromkeys(urls) if u and u not in _BILDER]
+    with ThreadPoolExecutor(max_workers=tradar) as pool:
+        for u, b64 in zip(nya, pool.map(_forminska, nya)):
+            _BILDER[u] = b64
+
+
+def bildblock(url: str) -> dict:
+    """Liten inbäddad bild om den gått att förminska, annars länken (då hämtar Claude själv)."""
+    if url not in _BILDER:
+        _BILDER[url] = _forminska(url)
+    b64 = _BILDER[url]
+    if b64:
+        return {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": b64}}
+    return {"type": "image", "source": {"type": "url", "url": url}}
+
+
 def grupp_forfragan(annonser: list, stilprofil: str, modell: str, kalibrering: str | None = None) -> dict:
     """Flera annonser i ett anrop (samma spår/profil)."""
     innehall = []
@@ -71,7 +114,7 @@ def grupp_forfragan(annonser: list, stilprofil: str, modell: str, kalibrering: s
         innehall.append({"type": "text", "text": (
             f"Annons {nr}:\nTitel: {a.titel}\nPris: {a.pris_text}\nPlats: {a.plats}\n"
             f"Beskrivning: {a.beskrivning[:700]}")})
-        innehall += [{"type": "image", "source": {"type": "url", "url": u}} for u in a.bilder[:BILDER]]
+        innehall += [bildblock(u) for u in a.bilder[:BILDER]]
     return {
         "model": modell,
         "max_tokens": 150 * len(annonser) + 50,
@@ -120,7 +163,7 @@ def forfragan(annons: Annons, stilprofil: str, modell: str, kalibrering: str | N
         f"Plats: {annons.plats}\n"
         f"Beskrivning: {annons.beskrivning[:1200]}"
     )
-    innehall = [{"type": "image", "source": {"type": "url", "url": u}} for u in annons.bilder[:BILDER]] if med_bilder else []
+    innehall = [bildblock(u) for u in annons.bilder[:BILDER]] if med_bilder else []
     innehall.append({"type": "text", "text": text})
     return {
         "model": modell,
@@ -352,6 +395,7 @@ def bedom_grupper(kandidater: list, profil_for, regler_for, modell: str, klient=
     Returnerar {index i kandidater: resultat}; det som saknas bedöms sedan en och en."""
     import time
     klient = klient or _klient()
+    forbered_bilder([u for a in kandidater for u in a.bilder[:BILDER]])
     per_spar: dict[tuple, list[int]] = {}  # per spår OCH kategori – då delar gruppen samma korta profil
     for i, a in enumerate(kandidater):
         per_spar.setdefault((a.spar, a.kategori), []).append(i)

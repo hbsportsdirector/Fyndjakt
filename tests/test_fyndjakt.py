@@ -714,3 +714,76 @@ def test_kategoriprofiler(tmp_path, monkeypatch):
     assert "SKÅL Blå Eld" in p and "VAS Höglund" not in p and "HELA" not in p
     a.kategori = "Okänd"
     assert kategoriprofil.profil_for(a, cfg, exp, korta) == "HELA+REAKT"
+
+
+def test_bilder_forminskas(monkeypatch):
+    import io, base64
+    from PIL import Image
+    buf = io.BytesIO(); Image.new("RGB", (1600, 1200), (20, 60, 200)).save(buf, "JPEG")
+    class R:
+        content = buf.getvalue()
+        def raise_for_status(self): pass
+    import requests
+    monkeypatch.setattr(requests, "get", lambda *a, **k: R())
+    monkeypatch.undo()  # ta bort autouse-stubben för _forminska men behåll requests-stubben nedan
+    monkeypatch.setattr(requests, "get", lambda *a, **k: R())
+    bedomning._BILDER.clear()
+    blk = bedomning.bildblock("https://x/stor.jpg")
+    assert blk["source"]["type"] == "base64"
+    img = Image.open(io.BytesIO(base64.b64decode(blk["source"]["data"])))
+    assert max(img.size) == bedomning.BILD_MAX
+    bedomning._BILDER.clear()
+    monkeypatch.setattr(bedomning, "_forminska", lambda u: None)
+    assert bedomning.bildblock("https://x/trasig.jpg")["source"] == {"type": "url", "url": "https://x/trasig.jpg"}
+
+
+def test_sokord_pausas_och_kan_slas_pa(tmp_path):
+    import sokordsvard
+    db = Databas(tmp_path / "t.db")
+    for i in range(45):
+        a = auctionet.tolka(dict(AUCTIONET_POST, id=i)); a.spar, a.sokord = "h", "silhuett"
+        db.spara(a, 3, "nej")
+    for i in range(45, 60):
+        a = auctionet.tolka(dict(AUCTIONET_POST, id=i)); a.spar, a.sokord = "h", "jordglob"
+        db.spara(a, 9 if i == 50 else 4, "x")
+    cfg = {"spar": {"h": {"sokningar": {"K": ["silhuett", "jordglob", "sextant"]}}}}
+    exp = {"anvandare": [{"user_id": "u", "admin": True}], "sokord_val": []}
+    assert sokordsvard.pausa(cfg, db, exp) == {("h", "silhuett")}
+    assert cfg["spar"]["h"]["pausade"] == [{"sokord": "silhuett", "bedomda": 45}]
+    exp["sokord_val"] = [{"user_id": "u", "spar": "h", "sokord": "silhuett", "aktiv": True},
+                         {"user_id": "x", "spar": "h", "sokord": "jordglob", "aktiv": False}]  # annan användare: gäller inte
+    assert sokordsvard.pausa(cfg, db, exp) == set()
+
+
+def test_samma_foremal_ateranvander_betyg(tmp_path):
+    db = Databas(tmp_path / "t.db")
+    a = auctionet.tolka(dict(AUCTIONET_POST, id=1, title="Rörstrand Blå Eld – 6 st kaffekoppar med fat!"))
+    a.spar = "s"; a.jamforsok = "Blå Eld kopp"
+    db.spara(a, 9, "Fin Blå Eld.")
+    ny = auctionet.tolka(dict(AUCTIONET_POST, id=2, title="RÖRSTRAND BLÅ ELD 6 st kaffekoppar med fat"))
+    ny.spar = "s"
+    t = db.tidigare_bedomning(ny)
+    assert t and t["betyg"] == 9 and t["jamforsok"] == "Blå Eld kopp"
+    ny.spar = "annat"
+    assert db.tidigare_bedomning(ny) is None  # annat spår/annan användare
+    kort = auctionet.tolka(dict(AUCTIONET_POST, id=3, title="Vas, Orrefors")); kort.spar = "s"
+    db.spara(kort, 9, "x")
+    kort2 = auctionet.tolka(dict(AUCTIONET_POST, id=4, title="VAS, Orrefors")); kort2.spar = "s"
+    assert db.tidigare_bedomning(kort2) is None  # för allmän titel
+
+
+def test_egen_modell(tmp_path):
+    import egen_modell
+    db = Databas(tmp_path / "t.db")
+    for i in range(600):
+        bra = i % 5 == 0
+        a = auctionet.tolka(dict(AUCTIONET_POST, id=i, title=("Rörstrand Blå Eld skål" if bra else "Ulf Lundell cd skiva")))
+        a.spar = "s"
+        db.spara(a, 9 if bra else 2, "x")
+    modeller = egen_modell.trana_per_spar(db)
+    assert "s" in modeller
+    ny_bra = auctionet.tolka(dict(AUCTIONET_POST, id=9001, title="Rörstrand Blå Eld skål, stor")); ny_bra.spar = "s"
+    ny_dalig = auctionet.tolka(dict(AUCTIONET_POST, id=9002, title="Ulf Lundell cd")); ny_dalig.spar = "s"
+    utan = auctionet.tolka(dict(AUCTIONET_POST, id=9003, title="Ulf Lundell cd")); utan.spar = "annat"
+    behall, bort = egen_modell.sall(modeller, [ny_bra, ny_dalig, utan])
+    assert ny_bra in behall and utan in behall and bort == [ny_dalig]

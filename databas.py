@@ -30,7 +30,14 @@ KOLUMNER = {
     "jmf_hog": "INTEGER",
     "jmf_antal": "INTEGER",
     "jmf_tid": "INTEGER",
+    "titelnorm": "TEXT",
 }
+
+
+def normalisera(titel: str) -> str:
+    """Titel utan skiljetecken och versaler – samma föremål som läggs upp igen får samma nyckel."""
+    import re
+    return re.sub(r"\s+", " ", re.sub(r"[^\w\s]", " ", (titel or "").lower())).strip()
 
 
 class Databas:
@@ -45,7 +52,28 @@ class Databas:
         for k, t in KOLUMNER.items():
             if k not in finns:
                 self.con.execute(f"ALTER TABLE sedda ADD COLUMN {k} {t.replace('PRIMARY KEY', '')}")
+        # Fyll i normaliserade titlar för äldre rader (en gång) och indexera dem.
+        saknar = self.con.execute("SELECT nyckel, titel FROM sedda WHERE titelnorm IS NULL").fetchall()
+        if saknar:
+            self.con.executemany("UPDATE sedda SET titelnorm=? WHERE nyckel=?",
+                                 [(normalisera(r["titel"]), r["nyckel"]) for r in saknar])
+        self.con.execute("CREATE INDEX IF NOT EXISTS sedda_titelnorm ON sedda(spar, titelnorm)")
         self.con.commit()
+
+    def tidigare_bedomning(self, a, min_langd: int = 25, dagar: int = 60) -> dict | None:
+        """En tidigare Claude-bedömning av samma föremål (samma spår, nästan identisk titel), annars None.
+        Korta, allmänna titlar ("Vas, Orrefors") räknas inte – där kan det vara helt olika föremål."""
+        norm = normalisera(a.titel)
+        if len(norm) < min_langd:
+            return None
+        rad = self.con.execute(
+            """SELECT betyg, motivering, jamforsok FROM sedda
+               WHERE spar = ? AND titelnorm = ? AND betyg >= 0 AND nyckel != ?
+                 AND motivering NOT LIKE 'Sållad%' AND motivering NOT LIKE 'Ej bildgranskad%'
+                 AND sedd > datetime('now', ?)
+               ORDER BY sedd DESC LIMIT 1""",
+            (a.spar, norm, a.nyckel, f"-{dagar} days")).fetchone()
+        return dict(rad) if rad else None
 
     def finns(self, nyckel: str) -> bool:
         return self.con.execute("SELECT 1 FROM sedda WHERE nyckel = ?", (nyckel,)).fetchone() is not None
@@ -54,11 +82,11 @@ class Databas:
         self.con.execute(
             """INSERT OR REPLACE INTO sedda
                (nyckel, titel, url, betyg, motivering, notifierad, kalla, kategori,
-                pris, pris_text, plats, slutar, slutar_ts, bilder, sokord, spar, jamforsok)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                pris, pris_text, plats, slutar, slutar_ts, bilder, sokord, spar, jamforsok, titelnorm)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (a.nyckel, a.titel, a.url, betyg, motivering, int(notifierad), a.kalla, a.kategori,
              a.pris, a.pris_text, a.plats, a.slutar, a.slutar_ts, json.dumps(a.bilder[:4]),
-             a.sokord, a.spar, getattr(a, "jamforsok", "")),
+             a.sokord, a.spar, getattr(a, "jamforsok", ""), normalisera(a.titel)),
         )
         self.con.commit()
 
