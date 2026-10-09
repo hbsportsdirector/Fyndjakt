@@ -1,21 +1,17 @@
-"""Engångsverktyg: sparar ett riktigt svar från Traderas API så att läsaren kan skrivas mot verkliga fältnamn.
-Sparar bara annonsdata (aldrig nycklarna)."""
+"""Felsökning: gör ett minimalt anrop till Claude med samma nyckel som nattkörningen och sparar svaret
+(statuskod och felmeddelande – aldrig nyckeln)."""
 import json, os, pathlib, requests
 UT = pathlib.Path(__file__).parent.parent / "data" / "probe"
 UT.mkdir(parents=True, exist_ok=True)
-H = {"X-App-Id": os.environ.get("TRADERA_APP_ID", ""), "X-App-Key": os.environ.get("TRADERA_APP_KEY", ""),
-     "Accept": "application/json"}
-print("Nycklar finns:", bool(H["X-App-Id"]), bool(H["X-App-Key"]))
-for namn, params in {"tradera_sok": {"query": "Rörstrand Blå Eld", "pageNumber": 1}}.items():
+nyckel = os.environ.get("ANTHROPIC_API_KEY", "")
+ut = {"nyckel_finns": bool(nyckel), "nyckel_langd": len(nyckel)}
+for modell in ("claude-haiku-4-5-20251001", "claude-sonnet-5-5"):
     try:
-        r = requests.get("https://api.tradera.com/v4/search", params=params, headers=H, timeout=30)
-        print(namn, r.status_code, len(r.text))
-        try:
-            data = r.json()
-        except ValueError:
-            data = {"text": r.text[:3000]}
-        (UT / f"{namn}.json").write_text(json.dumps({"status": r.status_code, "svar": data}, ensure_ascii=False, indent=1)[:200000],
-                                        encoding="utf-8")
+        r = requests.post("https://api.anthropic.com/v1/messages", timeout=60, headers={
+            "x-api-key": nyckel, "anthropic-version": "2023-06-01", "content-type": "application/json"},
+            json={"model": modell, "max_tokens": 5, "messages": [{"role": "user", "content": "Svara: ok"}]})
+        ut[modell] = {"status": r.status_code, "svar": r.text[:400]}
     except Exception as e:
-        (UT / f"{namn}.json").write_text(json.dumps({"fel": str(e)}), encoding="utf-8")
-        print(namn, "FEL", e)
+        ut[modell] = {"fel": str(e)[:300]}
+(UT / "anthropic.json").write_text(json.dumps(ut, ensure_ascii=False, indent=1), encoding="utf-8")
+print(ut)
