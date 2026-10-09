@@ -39,6 +39,74 @@ Svara ENBART med JSON, utan annan text:
 {{"betyg": <heltal 0-10>, "motivering": "<EN kort mening på svenska, max 30 ord>", "jamforsok": "<sökfras>"}}"""
 
 
+BILDER = 2          # bilder per annons – två räcker för stil, färg och skick
+GRUPPSTORLEK = 5    # annonser per anrop i batchen – profilen skickas en gång per grupp i stället för per annons
+
+GRUPP_INSTRUKTION = """Du är en erfaren inredare och samlingsrådgivare som letar begagnade fynd åt en kund.
+Här är kundens profil:
+
+<stilprofil>
+{stil}
+</stilprofil>
+
+Du får flera annonser, numrerade "Annons 1", "Annons 2" … – varje annons med sin text och sina bilder direkt efter.
+Bedöm VARJE annons för sig: hur väl passar föremålet kundens profil?
+Titta främst på bilderna (material, färg, form, patina, kvalitet), och använd texten för detaljer.
+Blanda inte ihop annonserna – bilderna hör till annonsen som står närmast före dem.
+
+{kalibrering}
+
+Ge också för varje annons en kort sökfras (2–4 ord, på svenska) som hittar JÄMFÖRBARA föremål på en
+auktionssajt, för prisjämförelse: konstnär/formgivare/tillverkare + föremålstyp om det finns, annars
+föremålstyp + material/epok.
+
+Svara ENBART med en JSON-lista, en post per annons, utan annan text:
+[{{"nr": 1, "betyg": <heltal 0-10>, "motivering": "<EN kort mening på svenska, max 30 ord>", "jamforsok": "<sökfras>"}}, …]"""
+
+
+def grupp_forfragan(annonser: list, stilprofil: str, modell: str, kalibrering: str | None = None) -> dict:
+    """Flera annonser i ett anrop (samma spår/profil)."""
+    innehall = []
+    for nr, a in enumerate(annonser, 1):
+        innehall.append({"type": "text", "text": (
+            f"Annons {nr}:\nTitel: {a.titel}\nPris: {a.pris_text}\nPlats: {a.plats}\n"
+            f"Beskrivning: {a.beskrivning[:700]}")})
+        innehall += [{"type": "image", "source": {"type": "url", "url": u}} for u in a.bilder[:BILDER]]
+    return {
+        "model": modell,
+        "max_tokens": 150 * len(annonser) + 50,
+        "system": GRUPP_INSTRUKTION.format(stil=stilprofil, kalibrering=(kalibrering or STANDARD_KALIBRERING).strip()),
+        "messages": [{"role": "user", "content": innehall}],
+    }
+
+
+def tolka_grupp(text: str, antal: int) -> dict[int, tuple[int, str, str]]:
+    """{nr: (betyg, motivering, jämförelsesökning)} – det som saknas eller är trasigt bedöms sedan en och en."""
+    ut = {}
+    match = re.search(r"\[.*\]", text, re.S)
+    poster = []
+    if match:
+        try:
+            poster = json.loads(match.group(0))
+        except (ValueError, json.JSONDecodeError):
+            poster = []
+    if not poster:  # avklippt svar – rädda de poster som är hela
+        for m in re.finditer(r"\{[^{}]*\}", text):
+            try:
+                poster.append(json.loads(m.group(0)))
+            except (ValueError, json.JSONDecodeError):
+                pass
+    for d in poster:
+        try:
+            nr = int(d.get("nr"))
+            if 1 <= nr <= antal and "betyg" in d:
+                ut[nr] = (max(0, min(10, int(d["betyg"]))), str(d.get("motivering", "")).strip(),
+                          str(d.get("jamforsok", "") or "").strip())
+        except (TypeError, ValueError, AttributeError):
+            continue
+    return ut
+
+
 def _klient() -> anthropic.Anthropic:
     return anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
@@ -52,7 +120,7 @@ def forfragan(annons: Annons, stilprofil: str, modell: str, kalibrering: str | N
         f"Plats: {annons.plats}\n"
         f"Beskrivning: {annons.beskrivning[:1200]}"
     )
-    innehall = [{"type": "image", "source": {"type": "url", "url": u}} for u in annons.bilder[:3]] if med_bilder else []
+    innehall = [{"type": "image", "source": {"type": "url", "url": u}} for u in annons.bilder[:BILDER]] if med_bilder else []
     innehall.append({"type": "text", "text": text})
     return {
         "model": modell,
@@ -276,3 +344,49 @@ def bedom_parallellt(uppgifter: list[tuple[str, Annons, str, str | None]], model
 
 class SlutPaKrediter(RuntimeError):
     """Anthropic-kontot saknar krediter – inga bedömningar går att göra förrän det fyllts på."""
+
+
+def bedom_grupper(kandidater: list, profil_for, regler_for, modell: str, klient=None,
+                  storlek: int = GRUPPSTORLEK, max_vant: int = 40 * 60) -> dict[int, tuple[int, str, str]]:
+    """Bedömer kandidaterna i grupper om `storlek` per spår, allt i en batch.
+    Returnerar {index i kandidater: resultat}; det som saknas bedöms sedan en och en."""
+    import time
+    klient = klient or _klient()
+    per_spar: dict[str, list[int]] = {}
+    for i, a in enumerate(kandidater):
+        per_spar.setdefault(a.spar, []).append(i)
+    grupper, forfragningar = {}, {}
+    for sid, index in per_spar.items():
+        for start in range(0, len(index), storlek):
+            bit = index[start:start + storlek]
+            cid = f"g{len(grupper)}"
+            grupper[cid] = bit
+            a0 = kandidater[bit[0]]
+            forfragningar[cid] = grupp_forfragan([kandidater[i] for i in bit], profil_for(a0), modell, regler_for(a0))
+    if not forfragningar:
+        return {}
+    batch = klient.messages.batches.create(
+        requests=[{"custom_id": cid, "params": p} for cid, p in forfragningar.items()])
+    print(f"  Batch {batch.id}: {len(kandidater)} annonser i {len(grupper)} grupper – väntar på svar …")
+    start = time.time()
+    while True:
+        batch = klient.messages.batches.retrieve(batch.id)
+        if batch.processing_status == "ended":
+            break
+        if time.time() - start > max_vant:
+            print("  Batchen tog för lång tid – sparar det som hann bli klart och bedömer resten direkt.")
+            if not _avsluta_batch(klient, batch.id, 30):
+                return {}
+            break
+        time.sleep(30)
+    ut = {}
+    for rad in klient.messages.batches.results(batch.id):
+        if rad.result.type == "errored" and "credit balance" in str(getattr(rad.result, "error", "")).lower():
+            raise SlutPaKrediter(str(rad.result.error))
+        if rad.result.type != "succeeded":
+            continue
+        bit = grupper[rad.custom_id]
+        for nr, res in tolka_grupp(_text(rad.result.message), len(bit)).items():
+            ut[bit[nr - 1]] = res
+    print(f"  Batch klar efter {round((time.time() - start) / 60)} min: {len(ut)} av {len(kandidater)} bedömda.")
+    return ut

@@ -265,7 +265,20 @@ def main() -> int:
                     kvar.append(a)
             # Mest lovande först (osållade sist), så att taket används på det bästa.
             kvar.sort(key=lambda a: -(snabb.get(a.nyckel) if a.nyckel in snabb else grans - 0.5))
-            STATISTIK["Sållning"] = {"sållade": len(snabb), "bortsållade": len(kandidater) - len(kvar), "kvar": len(kvar)}
+            # Sidan visar ändå bara några få fynd per sökord – bildgranska bara de mest lovande per sökord.
+            max_per = cfg.get("granska_max_per_sokord", 10)
+            per_sokord: dict[tuple, int] = {}
+            gallrad = []
+            for a in kvar:
+                nyckel = (a.spar, a.sokord)
+                per_sokord[nyckel] = per_sokord.get(nyckel, 0) + 1
+                if max_per and a.nyckel in snabb and per_sokord[nyckel] > max_per:
+                    db.spara(a, min(snabb[a.nyckel], 7), "Ej bildgranskad – fler lovande på samma sökord")
+                else:
+                    gallrad.append(a)
+            STATISTIK["Sållning"] = {"sållade": len(snabb), "bortsållade": len(kandidater) - len(kvar),
+                                     "över gränsen per sökord": len(kvar) - len(gallrad), "kvar": len(gallrad)}
+            kvar = gallrad
             kandidater = kvar
         except Exception as e:
             print(f"  Sållningen misslyckades ({e}) – går vidare utan den.")
@@ -289,25 +302,30 @@ def main() -> int:
             spar = cfg["spar"][a.spar]
             return spar.get("bedomningsregler") or (cfg.get("bedomningsregler_anvandare") if spar.get("agare") else None)
 
-        # Först allt i en batch (halva priset); det som inte blir klart där bedöms direkt.
+        # Först allt i en batch (halva priset), fem annonser per anrop så att profilen bara skickas en gång
+        # per fem annonser; det som inte blir klart där bedöms direkt, åtta åt gången.
         fardiga: dict[str, tuple] = {}
+        slut = False
         if cfg.get("batch", True):
             try:
-                fardiga = bedomning.bedom_batch(
-                    {f"a{i}": bedomning.forfragan(a, cfg["spar"][a.spar]["profil"], cfg["modell"], regler_for(a))
-                     for i, a in enumerate(kandidater)}, klient)
+                gjort = bedomning.bedom_grupper(kandidater, lambda a: cfg["spar"][a.spar]["profil"], regler_for,
+                                                cfg["modell"], klient, cfg.get("gruppstorlek", bedomning.GRUPPSTORLEK))
+                fardiga = {f"a{i}": r for i, r in gjort.items()}
+            except bedomning.SlutPaKrediter:
+                slut = True
             except Exception as e:
                 print(f"  Batch misslyckades ({e}) – bedömer med vanliga anrop.")
-        # Det batchen inte hann med bedöms direkt, åtta åt gången.
-        saknas = [(f"a{i}", a, cfg["spar"][a.spar]["profil"], regler_for(a))
-                  for i, a in enumerate(kandidater) if f"a{i}" not in fardiga]
+        saknas = [] if slut else [(f"a{i}", a, cfg["spar"][a.spar]["profil"], regler_for(a))
+                                  for i, a in enumerate(kandidater) if f"a{i}" not in fardiga]
         STATISTIK["Bedömning"] = {"batch": len(fardiga), "direkt": len(saknas)}
         if saknas:
             try:
                 fardiga.update(bedomning.bedom_parallellt(saknas, cfg["modell"], klient))
             except bedomning.SlutPaKrediter:
-                print("  ⚠ Anthropic-kontot har slut på krediter – inga bedömningar kunde göras.")
-                STATISTIK["Varning"] = "Slut på krediter hos Anthropic – fyll på under Plans & Billing."
+                slut = True
+        if slut:
+            print("  ⚠ Anthropic-kontot har slut på krediter – inga bedömningar kunde göras.")
+            STATISTIK["Varning"] = "Slut på krediter hos Anthropic – fyll på under Plans & Billing."
         for i, a in enumerate(kandidater, 1):
             resultat = fardiga.get(f"a{i - 1}")
             if not resultat:

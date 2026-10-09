@@ -13,16 +13,11 @@ on:
     - cron: "13 8 * * *"
     - cron: "41 10 * * *"
   workflow_dispatch:        # gör att du kan köra den manuellt från fliken Actions
-  push:                     # kör direkt när du ändrar stilen, inställningarna eller koden
+  push:                     # kör direkt när du ändrar din stil eller samlingsprofil
     branches: [main]
-    paths:
+    paths:                  # bara när DINA profiler ändras – kodändringar väntar till nattens körning (kostar inget extra)
       - "stil.md"
-      - "config.yaml"
-      - "**.py"
-      - ".github/workflows/**"
-      - "!.github/workflows/publicera.yml"
-      - "!.github/workflows/testnotis.yml"
-      - "!.github/workflows/utforska.yml"
+      - "samlingsprofil.md"
 
 permissions:
   contents: write           # för att spara listan över sedda annonser

@@ -14,6 +14,8 @@ max_pris: 25000                    # kr, 0 = ingen gräns (kan sättas per spår
 max_bedomningar_per_korning: 800   # fullgranskningar med bilder (ca 2,5 öre styck med batch)
 sallning: true                     # sålla alla annonser på titel+pris först (ca 30 öre för 16 000)
 sallning_min_betyg: 5              # under detta: sorteras bort utan bildgranskning
+granska_max_per_sokord: 10         # bildgranska högst så många per sökord och natt (sidan visar 6)
+gruppstorlek: 5                    # annonser per Claude-anrop – profilen skickas en gång per grupp
 max_bedomningar_per_anvandare: 150  # för varje inbjuden användares egna spår
 max_prisjamforelser_per_korning: 120  # sålda föremål på Auctionet hämtas för fynden som visas
 sidor_per_sokning: 4               # hur många resultatsidor per sökning och sajt

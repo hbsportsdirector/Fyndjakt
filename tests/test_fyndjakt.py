@@ -660,3 +660,29 @@ def test_slut_pa_krediter_stoppar_direkt(monkeypatch):
     with pytest.raises(bedomning.SlutPaKrediter):
         bedomning.bedom_parallellt([("a0", a, "P", None), ("a1", a, "P", None), ("a2", a, "P", None)], "m", object())
     assert len(anrop) == 1
+
+
+def test_grupp_bedomning():
+    from types import SimpleNamespace as NS
+    ann = []
+    for i, sp in enumerate(["h", "h", "h", "s", "h", "h", "h"]):
+        a = auctionet.tolka(dict(AUCTIONET_POST, id=i, title=f"Sak {i}"))
+        a.spar, a.bilder = sp, ["https://x/1.jpg", "https://x/2.jpg", "https://x/3.jpg"]
+        ann.append(a)
+
+    class B:
+        def create(s, requests): s.req = requests; return NS(id="b")
+        def retrieve(s, bid): return NS(id=bid, processing_status="ended")
+        def results(s, bid):
+            for r in s.req:
+                n = sum(1 for d in r["params"]["messages"][0]["content"] if d["type"] == "text")
+                poster = ", ".join(f'{{"nr": {i}, "betyg": {i + 5}, "motivering": "M{i}", "jamforsok": "j"}}' for i in range(1, n + 1) if i != 2)
+                yield NS(custom_id=r["custom_id"], result=NS(type="succeeded", message=NS(content=[NS(type="text", text=f"[{poster}]")])))
+    b = B()
+    ut = bedomning.bedom_grupper(ann, lambda a: "PROFIL-" + a.spar, lambda a: None, "m", NS(messages=NS(batches=b)), storlek=5)
+    # h: 6 annonser -> grupper om 5 + 1; s: 1 -> totalt 3 anrop; profilen per spår
+    assert len(b.req) == 3 and {"PROFIL-h" in r["params"]["system"] for r in b.req} == {True, False}
+    bilder = [d for d in b.req[0]["params"]["messages"][0]["content"] if d["type"] == "image"]
+    assert len(bilder) == 2 * 5  # två bilder per annons
+    assert ut[0] == (6, "M1", "j") and 1 not in ut  # nr 2 saknades i svaret -> bedöms sedan en och en
+    assert bedomning.tolka_grupp('[{"nr": 1, "betyg": 9, "motivering": "A"}, {"nr": 2, "betyg": 4, "motiv', 2) == {1: (9, "A", "")}
