@@ -275,6 +275,11 @@ MALL = r"""<!doctype html>
   .varfor .v-knappar { display: flex; gap: 6px; }
   .varfor .v-spara { background: var(--brass); color: #1b1a14; border-color: var(--brass); font-weight: 600; }
   .varfor .v-tack { font-size: 13px; color: var(--brass); }
+  .card.ogillad .img, .card.ogillad .cat, .card.ogillad .title, .card.ogillad .why, .card.ogillad .meta,
+  .card.ogillad .jmf { opacity: .35; filter: grayscale(1); transition: opacity .2s; }
+  .dold-rad { font-size: 12px; color: var(--muted); padding-top: 6px; }
+  .dold-rad button { background: none; border: 0; color: var(--brass); font: inherit; font-size: 12px; font-weight: 600;
+                     text-decoration: underline; cursor: pointer; padding: 0; }
   .card.borta { opacity: 0; transform: scale(.97); transition: opacity .35s, transform .35s; }
 
   /* Panel: logga in / Min smak */
@@ -716,19 +721,39 @@ function reaktionsknappar(p, kortEl) {
     btn.setAttribute("aria-pressed", String((konto.reakt.get(p.nyckel) || {}).typ === typ));
     btn.onclick = async (e) => {
       e.preventDefault(); e.stopPropagation();
+      // Inget flyttar sig medan man tittar: kortet stannar kvar (gråtonat om det dolts) tills nästa omladdning/filterbyte.
       const nu = (konto.reakt.get(p.nyckel) || {}).typ;
-      if (nu === typ) { await taBortReaktion(p.nyckel); renderTabs(); render(); return; }
+      kortEl.querySelectorAll(".varfor, .varfor-lank, .dold-rad").forEach(x => x.remove());
+      if (nu === typ) {
+        await taBortReaktion(p.nyckel);
+        rad.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", "false"));
+        kortEl.classList.remove("ogillad"); renderTabs(); return;
+      }
       await sparaReaktion(p, typ);
       rad.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b === btn)));
-      kortEl.querySelectorAll(".varfor, .varfor-lank").forEach(x => x.remove());
-      if (typ === "kopt") { kortEl.classList.add("borta"); setTimeout(() => { renderTabs(); render(); }, 380); return; }
+      kortEl.classList.toggle("ogillad", typ !== "gillar");
+      renderTabs();
+      let sist = rad;
+      if (typ !== "gillar") {
+        const info = document.createElement("div"); info.className = "dold-rad";
+        info.append(typ === "kopt" ? "Markerad som köpt – döljs nästa gång du laddar om · " : "Dold – försvinner nästa gång du laddar om · ");
+        const angra = document.createElement("button"); angra.type = "button"; angra.textContent = "Ångra";
+        angra.onclick = async (ev) => {
+          ev.preventDefault(); ev.stopPropagation();
+          await taBortReaktion(p.nyckel);
+          rad.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", "false"));
+          kortEl.classList.remove("ogillad");
+          kortEl.querySelectorAll(".varfor, .varfor-lank, .dold-rad").forEach(x => x.remove());
+          renderTabs();
+        };
+        info.appendChild(angra); rad.after(info); sist = info;
+      }
+      if (typ === "kopt") return;
       // Claude räknar själv ut varför (smakanalysen). Vill man rätta kan man skriva – helt valfritt.
       const lank = document.createElement("button"); lank.type = "button"; lank.className = "varfor-lank";
-      lank.textContent = typ === "gillar" ? "＋ Säg varför (valfritt)" : "Dold · ＋ säg varför (valfritt)";
-      let doljs = null;
-      lank.onclick = (ev) => { ev.preventDefault(); ev.stopPropagation(); clearTimeout(doljs); lank.replaceWith(varforRuta(p, typ, kortEl)); };
-      rad.after(lank);
-      if (typ === "ogillar") doljs = setTimeout(() => { kortEl.classList.add("borta"); setTimeout(() => { renderTabs(); render(); }, 380); }, 2500);
+      lank.textContent = "＋ Säg varför (valfritt)";
+      lank.onclick = (ev) => { ev.preventDefault(); ev.stopPropagation(); lank.replaceWith(varforRuta(p, typ, kortEl)); };
+      sist.after(lank);
     };
     rad.appendChild(btn);
   }
@@ -758,8 +783,7 @@ function varforRuta(p, typ, kortEl) {
   ruta.appendChild(inp);
   const knappar = document.createElement("div"); knappar.className = "v-knappar";
   const klar = (sparat) => {
-    if (typ === "ogillar") { kortEl.classList.add("borta"); setTimeout(() => { renderTabs(); render(); }, 380); }
-    else ruta.replaceChildren(Object.assign(document.createElement("div"),
+    ruta.replaceChildren(Object.assign(document.createElement("div"),
       { className: "v-tack", textContent: sparat ? "Tack! Claude tar med det i natt." : "Sparat som gillat." }));
   };
   const spara = document.createElement("button"); spara.type = "button"; spara.className = "v-spara"; spara.textContent = "Spara";
