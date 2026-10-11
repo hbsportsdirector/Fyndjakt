@@ -1,64 +1,56 @@
 {
-  "tid": "2026-10-10T10:49:42",
-  "annonser_totalt": 16030,
-  "nya": 2191,
-  "bedomda": 544,
-  "nya_traffar": 166,
+  "tid": "2026-10-11T10:36:11",
+  "annonser_totalt": 15533,
+  "nya": 1159,
+  "bedomda": 860,
+  "nya_traffar": 146,
   "kallor": {
     "Smakanalys": {
       "nya": 1
     },
-    "Pausade sökord": 24,
+    "Pausade sökord": 26,
     "Auctionet": {
-      "sokningar": 147,
-      "traffar": 4794,
+      "sokningar": 145,
+      "traffar": 4669,
       "fel": 0,
       "felexempel": []
     },
     "Bukowskis": {
-      "sokningar": 147,
-      "traffar": 126,
+      "sokningar": 145,
+      "traffar": 104,
       "fel": 0,
       "felexempel": []
     },
     "Myrorna": {
-      "sokningar": 147,
-      "traffar": 1532,
+      "sokningar": 145,
+      "traffar": 1464,
       "fel": 0,
       "felexempel": []
     },
     "Stadsmissionen": {
-      "sokningar": 147,
-      "traffar": 0,
-      "fel": 1,
-      "felexempel": [
-        "Evert Lundquist: HTTPError: 502 Server Error: Bad Gateway for url: https://www.stadsmissionen.se/shop/hem?page=0"
-      ]
-    },
-    "Tradera": {
-      "sokningar": 147,
-      "traffar": 11468,
+      "sokningar": 145,
+      "traffar": 171,
       "fel": 0,
       "felexempel": []
     },
-    "Återanvända betyg": 75,
-    "Egen modell": {
-      "bortsorterade": 367,
-      "spår med modell": 4
+    "Tradera": {
+      "sokningar": 145,
+      "traffar": 11373,
+      "fel": 0,
+      "felexempel": []
     },
-    "Sållning": {
-      "sållade": 1668,
-      "bortsållade": 683,
-      "över gränsen per sökord": 431,
-      "kvar": 554
+    "Återanvända betyg": 59,
+    "Egen modell": {
+      "bortsorterade": 197,
+      "spår med modell": 3
     },
     "Bedömning": {
-      "batch": 544,
+      "batch": 860,
       "direkt": 0
     },
     "Prisjämförelse": {
       "fynd": 120,
-      "med_data": 67
+      "med_data": 57
     },
     "Notiser": {
       "skickade": 0
@@ -66,29 +58,22 @@
   },
   "kostnad": {
     "Smakanalys": {
-      "anrop": 2,
-      "in": 156950,
-      "ut": 1400,
-      "usd": 0.3279,
-      "kr": 3.44
-    },
-    "Sållning": {
-      "anrop": 33,
-      "in": 203601,
-      "ut": 13670,
-      "usd": 0.136,
-      "kr": 1.43
+      "anrop": 1,
+      "in": 72100,
+      "ut": 700,
+      "usd": 0.1512,
+      "kr": 1.59
     },
     "Bedömning batch": {
-      "anrop": 116,
-      "in": 704242,
-      "ut": 57472,
-      "usd": 0.4958,
-      "kr": 5.21
+      "anrop": 179,
+      "in": 1247276,
+      "ut": 87107,
+      "usd": 0.8414,
+      "kr": 8.83
     },
     "Totalt": {
-      "kr": 10.08
+      "kr": 10.42
     }
   },
-  "stadsmissionen_katalog": 0
+  "stadsmissionen_katalog": 1430
 }
