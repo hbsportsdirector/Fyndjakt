@@ -62,7 +62,7 @@ FALT = ["nyckel", "titel", "url", "betyg", "motivering", "kalla", "kategori",
 
 
 def _poster(db, cfg: dict, spar_ids: set[str] | None, rader: list[dict] | None = None) -> list[dict]:
-    """Fynden som visas, bäst först, med högst sajt_max_per_sokord per sökord och spår."""
+    """Fynden som visas, bäst först. sajt_max_per_sokord (0 = ingen gräns) kan begränsa per sökord och spår."""
     min_betyg = cfg.get("sajt_min_betyg", 6)
     max_per = cfg.get("sajt_max_per_sokord") or 0
     per_sokord: dict[tuple, int] = {}
@@ -73,8 +73,9 @@ def _poster(db, cfg: dict, spar_ids: set[str] | None, rader: list[dict] | None =
         nyckel = (r.get("spar"), r.get("sokord") or r.get("nyckel"))
         if max_per and per_sokord.get(nyckel, 0) >= max_per:
             continue
-        per_sokord[nyckel] = per_sokord.get(nyckel, 0) + 1
         post = {k: r.get(k) for k in FALT}
+        post["rang"] = per_sokord.get(nyckel, 0)  # plats inom sökordet – sidan varvar sökorden med samma betyg
+        per_sokord[nyckel] = post["rang"] + 1
         post["ort"], post["region"] = region_for(r.get("kalla"), r.get("plats"))
         poster.append(post)
     return poster
@@ -695,7 +696,8 @@ function render() {
   let l = V.poster.filter(p =>
     p.spar === st.spar && !dold(p) && (!st.reg || p.region === st.reg) && (!st.cat || p.kategori === st.cat) && (!st.src || p.kalla === st.src) && p.betyg >= st.min);
   const s = {
-    betyg: (a, b) => b.betyg - a.betyg || seddTs(b) - seddTs(a),
+    // Samma betyg: varva sökorden (bästa från varje sökord först), så att ett sökord med många fynd inte tar över.
+    betyg: (a, b) => b.betyg - a.betyg || (a.rang ?? 0) - (b.rang ?? 0) || seddTs(b) - seddTs(a),
     ny: (a, b) => seddTs(b) - seddTs(a),
     slut: (a, b) => (a.slutar_ts || 9e12) - (b.slutar_ts || 9e12),
     pris: (a, b) => (a.pris ?? 9e12) - (b.pris ?? 9e12),
