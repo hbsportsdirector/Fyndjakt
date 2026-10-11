@@ -78,6 +78,13 @@ class Databas:
     def finns(self, nyckel: str) -> bool:
         return self.con.execute("SELECT 1 FROM sedda WHERE nyckel = ?", (nyckel,)).fetchone() is not None
 
+    def vantande(self) -> dict[str, int]:
+        """Annonser som klarade titelsållningen men inte hann bildgranskas – de ska få en ny chans.
+        {nyckel: titelbetyg}, så att de inte behöver sållas om."""
+        return {r[0]: r[1] for r in self.con.execute(
+            "SELECT nyckel, betyg FROM sedda WHERE motivering LIKE 'Ej bildgranskad%' "
+            "AND (slutar_ts IS NULL OR slutar_ts > ?)", (int(time.time()),))}
+
     def spara(self, a, betyg: int, motivering: str, notifierad: bool = False):
         self.con.execute(
             """INSERT OR REPLACE INTO sedda

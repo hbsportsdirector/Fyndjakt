@@ -234,8 +234,11 @@ def main() -> int:
     pausade = sokordsvard.pausa(cfg, db, export)
     STATISTIK["Pausade sökord"] = len(pausade)
     annonser = hamta_alla(cfg, pausade)
-    nya = [a for a in annonser if not db.finns(a.nyckel)]
-    print(f"\n{len(annonser)} annonser totalt, {len(nya)} nya.")
+    vantar = db.vantande()
+    nya = [a for a in annonser if a.nyckel in vantar or not db.finns(a.nyckel)]
+    STATISTIK["Väntande från tidigare"] = sum(1 for a in nya if a.nyckel in vantar)
+    sokord_stat = sokordsvard.statistik(db)
+    print(f"\n{len(annonser)} annonser totalt, {len(nya)} nya (varav {STATISTIK['Väntande från tidigare']} väntande).")
 
     if args.torr:
         for a in nya[:25]:
@@ -297,8 +300,11 @@ def main() -> int:
             for a in kandidater:
                 sp = cfg["spar"][a.spar]
                 regler = sp.get("bedomningsregler") or (cfg.get("bedomningsregler_anvandare") if sp.get("agare") else None)
+                if a.nyckel in vantar:  # redan sållad en tidigare natt
+                    continue
                 grupper.setdefault((a.spar, a.kategori), (profil_for(a), [], regler))[1].append(a)
-            snabb = bedomning.salla(grupper, cfg["modell"], bedomning._klient())
+            snabb = bedomning.salla(grupper, cfg["modell"], bedomning._klient()) if grupper else {}
+            snabb.update({a.nyckel: vantar[a.nyckel] for a in kandidater if a.nyckel in vantar})
             grans = cfg.get("sallning_min_betyg", 6)
             kvar = []
             for a in kandidater:
@@ -309,14 +315,20 @@ def main() -> int:
                     kvar.append(a)
             # Mest lovande först (osållade sist), så att taket används på det bästa.
             kvar.sort(key=lambda a: -(snabb.get(a.nyckel) if a.nyckel in snabb else grans - 0.5))
-            # Sidan visar ändå bara några få fynd per sökord – bildgranska bara de mest lovande per sökord.
+            # Bildgranska bara de mest lovande per sökord – men sökord som ofta ger fynd får fler.
+            # Det som inte hinns med väntar och tas med igen nästa körning.
             max_per = cfg.get("granska_max_per_sokord", 10)
+
+            def tak_for(nyckel):
+                bedomda, fynd = sokord_stat.get(nyckel, (0, 0))
+                andel = fynd / bedomda if bedomda >= 20 else 0
+                return max_per * (4 if andel >= 0.3 else 2 if andel >= 0.15 else 1)
             per_sokord: dict[tuple, int] = {}
             gallrad = []
             for a in kvar:
                 nyckel = (a.spar, a.sokord)
                 per_sokord[nyckel] = per_sokord.get(nyckel, 0) + 1
-                if max_per and a.nyckel in snabb and per_sokord[nyckel] > max_per:
+                if max_per and a.nyckel in snabb and per_sokord[nyckel] > tak_for(nyckel):
                     db.spara(a, min(snabb[a.nyckel], 7), "Ej bildgranskad – fler lovande på samma sökord")
                 else:
                     gallrad.append(a)
