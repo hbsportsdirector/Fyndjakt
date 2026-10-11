@@ -208,6 +208,15 @@ MALL = r"""<!doctype html>
   }
   input[type=range] { accent-color: var(--brass); width: 110px; }
   .count { margin-left: auto; color: var(--muted); font-size: 14px; }
+  /* Mobil: filtren följer inte med när man scrollar, och kategorierna ligger på en rad som går att svepa. */
+  @media (max-width: 720px) {
+    .controls { position: static; backdrop-filter: none; -webkit-backdrop-filter: none; padding: 10px 12px; }
+    #cats { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -12px; padding: 0 12px 2px; }
+    #cats::-webkit-scrollbar { display: none; }
+    #cats .chip { flex: none; padding: 6px 12px; }
+    .controls .row:last-child { gap: 8px 12px; }
+    .controls select { padding: 6px 8px; }
+  }
 
   main { max-width: 1200px; margin: 0 auto; padding: 20px 16px 60px; }
   .grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); }
