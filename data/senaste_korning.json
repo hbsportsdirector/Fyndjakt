@@ -1,23 +1,23 @@
 {
-  "tid": "2026-10-11T10:36:11",
-  "annonser_totalt": 15533,
-  "nya": 1159,
-  "bedomda": 860,
-  "nya_traffar": 146,
+  "tid": "2026-10-11T11:09:48",
+  "annonser_totalt": 15577,
+  "nya": 1190,
+  "bedomda": 880,
+  "nya_traffar": 141,
   "kallor": {
     "Smakanalys": {
-      "nya": 1
+      "nya": 0
     },
     "Pausade sökord": 26,
     "Auctionet": {
       "sokningar": 145,
-      "traffar": 4669,
+      "traffar": 4665,
       "fel": 0,
       "felexempel": []
     },
     "Bukowskis": {
       "sokningar": 145,
-      "traffar": 104,
+      "traffar": 102,
       "fel": 0,
       "felexempel": []
     },
@@ -35,22 +35,22 @@
     },
     "Tradera": {
       "sokningar": 145,
-      "traffar": 11373,
+      "traffar": 11376,
       "fel": 0,
       "felexempel": []
     },
-    "Återanvända betyg": 59,
+    "Återanvända betyg": 58,
     "Egen modell": {
-      "bortsorterade": 197,
+      "bortsorterade": 210,
       "spår med modell": 3
     },
     "Bedömning": {
-      "batch": 860,
+      "batch": 880,
       "direkt": 0
     },
     "Prisjämförelse": {
       "fynd": 120,
-      "med_data": 57
+      "med_data": 54
     },
     "Notiser": {
       "skickade": 0
@@ -65,14 +65,14 @@
       "kr": 1.59
     },
     "Bedömning batch": {
-      "anrop": 179,
-      "in": 1247276,
-      "ut": 87107,
-      "usd": 0.8414,
-      "kr": 8.83
+      "anrop": 182,
+      "in": 1281916,
+      "ut": 89180,
+      "usd": 0.8639,
+      "kr": 9.07
     },
     "Totalt": {
-      "kr": 10.42
+      "kr": 10.66
     }
   },
   "stadsmissionen_katalog": 1430
