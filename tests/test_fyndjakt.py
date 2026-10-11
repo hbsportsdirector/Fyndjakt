@@ -797,3 +797,14 @@ def test_kostnadsmatare():
     r = bedomning.kostnadsrapport(kurs=10)
     assert r["Bedömning batch"]["usd"] == 0.75 and r["Smakanalys"]["usd"] == 0.3 and r["Totalt"]["kr"] == 10.5
     bedomning.KOSTNAD.clear()
+
+
+def test_nekade_sokord_hamnar_i_profilen():
+    import smak
+    export = {"reaktioner": [], "anteckningar": [], "sokord_val": [
+        {"user_id": "per", "spar": "samlingen", "sokord": "Ulrica Hydman-Vallien", "aktiv": False},
+        {"user_id": "per", "spar": "samlingen", "sokord": "Erik Höglund", "aktiv": True},
+        {"user_id": "annan", "spar": "samlingen", "sokord": "Stig Lindberg", "aktiv": False}]}
+    text = smak.profiltillagg(export, "samlingen", {"per"})
+    assert "SAGT NEJ" in text and "Ulrica Hydman-Vallien" in text
+    assert "Höglund" not in text and "Lindberg" not in text

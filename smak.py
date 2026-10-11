@@ -156,7 +156,8 @@ def profiltillagg(export: dict, sid: str, agare: set[str] | None = None, kategor
     reakt = [r for r in export.get("reaktioner", []) if _galler(r, sid, agare)
              and (kategori is None or not r.get("kategori") or r.get("kategori") == kategori)]
     ant = [a for a in export.get("anteckningar", []) if _galler(a, sid, agare)]
-    if not reakt and not ant:
+    nej = nekade(export, sid, agare)
+    if not reakt and not ant and not nej:
         return ""
 
     def lista(rubrik: str, rader: list[str]) -> str:
@@ -182,6 +183,8 @@ def profiltillagg(export: dict, sid: str, agare: set[str] | None = None, kategor
     a_har = [a["text"] for a in ant if a["typ"] == "har"]
 
     delar = [
+        ("KUNDEN HAR SAGT NEJ TILL DESSA – vill inte se dem alls. Föremål av eller i stil med dem får högst 2, "
+         "oavsett vad stilbeskrivningen säger:\n" + "\n".join(f"- {x}" for x in nej)) if nej else "",
         "KUNDENS EGNA REAKTIONER – väg in dem tungt. De säger mer än stilbeskrivningen.\n"
         "Kundens FÖRKLARINGAR väger allra tyngst: de visar vilka egenskaper som avgjorde (färg, form, epok, material, "
         "pris, skick). Samma formgivare eller tillverkare kan vara rätt i ett föremål och fel i ett annat – döm efter "
@@ -195,6 +198,13 @@ def profiltillagg(export: dict, sid: str, agare: set[str] | None = None, kategor
               kopt + a_har),
     ]
     return "\n\n".join(d for d in delar if d)
+
+
+def nekade(export: dict, sid: str, agare: set[str] | None = None) -> list[str]:
+    """Sökord/formgivare som kunden själv har sagt nej till i appen ("Sluta visa")."""
+    agare = agare or set()
+    return sorted({v["sokord"] for v in (export or {}).get("sokord_val", [])
+                   if v.get("spar") == sid and v.get("aktiv") is False and v.get("user_id") in agare and v.get("sokord")})
 
 
 def extra_sokningar(export: dict, sid: str, agare: set[str] | None = None) -> list[str]:

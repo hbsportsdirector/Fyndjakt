@@ -287,6 +287,9 @@ MALL = r"""<!doctype html>
   .varfor .v-spara { background: var(--brass); color: #1b1a14; border-color: var(--brass); font-weight: 600; }
   .varfor .v-tack { font-size: 13px; color: var(--brass); }
   .card.ogillad .img, .card.ogillad .cat, .card.ogillad .title, .card.ogillad .why, .card.ogillad .meta,
+  .nej-fraga { margin: 10px 0 0; padding: 12px; border: 1px solid var(--brass); border-radius: 10px; background: rgba(201,162,90,.08); }
+  .nej-fraga p { margin: 0 0 10px; font-size: 14px; }
+  .nej-knappar { display: flex; gap: 8px; flex-wrap: wrap; }
   .card.ogillad .jmf { opacity: .35; filter: grayscale(1); transition: opacity .2s; }
   .dold-rad { font-size: 12px; color: var(--muted); padding-top: 6px; }
   .dold-rad button { background: none; border: 0; color: var(--brass); font: inherit; font-size: 12px; font-weight: 600;
@@ -622,7 +625,7 @@ function renderTabs() {
     b.setAttribute("aria-selected", String(s.id === st.spar));
     b.textContent = s.namn;
     const n = document.createElement("span"); n.className = "n";
-    n.textContent = V.poster.filter(p => p.spar === s.id && p.betyg >= st.min && (!st.reg || p.region === st.reg)).length;
+    n.textContent = V.poster.filter(p => p.spar === s.id && p.betyg >= st.min && !dold(p) && (!st.reg || p.region === st.reg)).length;
     b.appendChild(n);
     b.onclick = () => { st.spar = s.id; st.cat = ""; renderTabs(); renderChips(); render(); };
     return b;
@@ -728,7 +731,57 @@ const konto = { sb: null, inloggad: false, admin: false, reakt: new Map(), antec
 const TYPNAMN = { gillar: "👍 Gillar", ogillar: "👎 Inte min stil", kopt: "🛒 Köpt" };
 const ANT_NAMN = { gillar: "Gillar", ogillar: "Vill inte ha", har: "Har redan" };
 
-function dold(p) { const r = konto.reakt.get(p.nyckel); return r && (r.typ === "ogillar" || r.typ === "kopt"); }
+function dold(p) { const r = konto.reakt.get(p.nyckel); return (r && (r.typ === "ogillar" || r.typ === "kopt")) || nekad(p); }
+
+// "Sluta visa": om man ogillat många föremål med samma sökord/formgivare (och inte gillat något) frågar appen.
+const NEJ_GRANS = 5;
+const norm = t => (t || "").toLowerCase().normalize("NFD").replace(/[^a-z0-9]/g, "");
+function sokordFor(sid) {
+  const sp = (V.spar || []).find(x => x.id === sid);
+  return sp ? [...new Set(Object.values(sp.sokningar || {}).flat())].filter(q => norm(q).length >= 6) : [];
+}
+function nekad(p) {
+  if (!konto.sokordVal) return false;
+  const t = norm(p.titel);
+  return sokordFor(p.spar).some(q => konto.sokordVal.get(p.spar + "|" + q) === false && t.includes(norm(q)));
+}
+function fragaNej(p) {
+  if (!konto.sokordVal) return null;
+  const t = norm(p.titel);
+  for (const q of sokordFor(p.spar)) {
+    const n = norm(q);
+    if (!t.includes(n) || konto.sokordVal.has(p.spar + "|" + q)) continue;
+    let nej = 0, ja = 0;
+    for (const r of konto.reakt.values()) {
+      if (r.spar !== p.spar || !norm(r.titel).includes(n)) continue;
+      if (r.typ === "ogillar") nej++; else ja++;
+    }
+    if (nej >= NEJ_GRANS && ja === 0) return { q, nej };
+  }
+  return null;
+}
+function nejRuta(p, fraga) {
+  const d = document.createElement("div"); d.className = "nej-fraga";
+  const t = document.createElement("p");
+  t.textContent = `Du har sagt 👎 till ${fraga.nej} föremål från «${fraga.q}» och inte gillat något. Vill du sluta se dem?`;
+  const ja = document.createElement("button"); ja.type = "button"; ja.className = "knapp primar"; ja.textContent = "Ja, sluta visa";
+  const nej = document.createElement("button"); nej.type = "button"; nej.className = "knapp"; nej.textContent = "Nej, fortsätt";
+  const svara = async (aktiv, ev) => {
+    ev.preventDefault(); ev.stopPropagation(); ja.disabled = nej.disabled = true;
+    const { error } = await konto.sb.from("fyndjakt_sokord_val")
+      .upsert({ spar: p.spar, sokord: fraga.q, aktiv, uppdaterad: new Date().toISOString() }, { onConflict: "user_id,spar,sokord" });
+    if (error) { console.error(error); ja.disabled = nej.disabled = false; t.textContent = "Något gick fel – försök igen."; return; }
+    konto.sokordVal.set(p.spar + "|" + fraga.q, aktiv);
+    d.replaceChildren(Object.assign(document.createElement("p"), { textContent: aktiv
+      ? `Okej – «${fraga.q}» fortsätter som vanligt.`
+      : `Klart – «${fraga.q}» visas inte mer och appen slutar leta efter det från i natt. Ångra under Mina bevakningar.` }));
+    renderTabs();
+  };
+  ja.onclick = e => svara(false, e); nej.onclick = e => svara(true, e);
+  const k = document.createElement("div"); k.className = "nej-knappar"; k.append(ja, nej);
+  d.append(t, k);
+  return d;
+}
 
 function reaktionsknappar(p, kortEl) {
   const rad = document.createElement("div"); rad.className = "reakt";
@@ -764,6 +817,10 @@ function reaktionsknappar(p, kortEl) {
           renderTabs();
         };
         info.appendChild(angra); rad.after(info); sist = info;
+      }
+      if (typ === "ogillar") {
+        const fraga = fragaNej(p);
+        if (fraga) { const r = nejRuta(p, fraga); sist.after(r); sist = r; }
       }
       if (typ === "kopt") return;
       // Claude räknar själv ut varför (smakanalysen). Vill man rätta kan man skriva – helt valfritt.
@@ -837,12 +894,14 @@ function alertFel(error) { console.error(error); visaStatus("foto-status", "Någ
 function visaStatus(id, text) { const e = $(id); if (e) e.textContent = text; }
 
 async function laddaMittData() {
-  const [r, a] = await Promise.all([
+  const [r, a, v] = await Promise.all([
     konto.sb.from("fyndjakt_reaktioner").select("*").order("skapad", { ascending: false }),
     konto.sb.from("fyndjakt_anteckningar").select("*").order("skapad", { ascending: false }),
+    konto.sb.from("fyndjakt_sokord_val").select("spar,sokord,aktiv"),
   ]);
   konto.reakt = new Map((r.data || []).map(x => [x.nyckel, x]));
   konto.anteckningar = a.data || [];
+  konto.sokordVal = new Map((v.data || []).map(x => [x.spar + "|" + x.sokord, x.aktiv]));
 }
 
 function oppna(id) { $(id).hidden = false; const f = $(id).querySelector("input,button"); if (f) f.focus(); }
@@ -1331,21 +1390,28 @@ $("prof-val").onchange = (e) => { konto.vald = e.target.value; renderProfiler();
 // Sökord som aldrig gett något pausas automatiskt – här kan man slå på dem igen.
 function pausadeRuta(sid) {
   const sp = ((konto.fynd || {}).spar || []).find(s => s.id === sid);
-  const lista = (sp && sp.pausade) || [];
+  const lista = [...((sp && sp.pausade) || [])];
+  for (const [k, aktiv] of (konto.sokordVal || new Map())) {
+    const [s2, q] = [k.slice(0, k.indexOf("|")), k.slice(k.indexOf("|") + 1)];
+    if (s2 === sid && aktiv === false && !lista.some(x => x.sokord === q)) lista.push({ sokord: q, eget: true });
+  }
   if (!lista.length) return null;
   const d = document.createElement("div"); d.className = "pausade";
   const h = document.createElement("div"); h.className = "kat";
-  h.textContent = "⏸ Pausade sökord – gav inget fynd på länge (sparar tid och pengar)"; d.appendChild(h);
+  h.textContent = "⏸ Pausade sökord – sådant du sagt nej till, eller som inte gett något fynd på länge"; d.appendChild(h);
   for (const x of lista) {
     const rad = document.createElement("div"); rad.className = "p-rad";
-    const t = document.createElement("span"); t.textContent = `${x.sokord} · ${x.bedomda} bedömda, 0 fynd`; rad.appendChild(t);
+    const egen = x.eget || (konto.sokordVal && konto.sokordVal.get(sid + "|" + x.sokord) === false);
+    const t = document.createElement("span");
+    t.textContent = egen ? `${x.sokord} · du har sagt nej` : `${x.sokord} · ${x.bedomda} bedömda, 0 fynd`; rad.appendChild(t);
     const b = document.createElement("button"); b.type = "button"; b.className = "knapp"; b.textContent = "Slå på igen";
     b.onclick = async (e) => {
       e.preventDefault(); b.disabled = true;
       const { error } = await konto.sb.from("fyndjakt_sokord_val")
         .upsert({ spar: sid, sokord: x.sokord, aktiv: true, uppdaterad: new Date().toISOString() }, { onConflict: "user_id,spar,sokord" });
       if (error) { console.error(error); b.disabled = false; b.textContent = "Försök igen"; return; }
-      sp.pausade = sp.pausade.filter(y => y.sokord !== x.sokord);
+      if (sp.pausade) sp.pausade = sp.pausade.filter(y => y.sokord !== x.sokord);
+      if (konto.sokordVal) konto.sokordVal.set(sid + "|" + x.sokord, true);
       rad.replaceChildren(Object.assign(document.createElement("span"), { textContent: `${x.sokord} – på igen från i natt` }));
     };
     rad.appendChild(b); d.appendChild(rad);
