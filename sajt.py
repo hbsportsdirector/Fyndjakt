@@ -208,6 +208,8 @@ MALL = r"""<!doctype html>
     border-radius: 10px; padding: 7px 10px; font: inherit; font-size: 14px;
   }
   input[type=range] { accent-color: var(--brass); width: 110px; }
+  #q { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 10px;
+       padding: 7px 10px; font: inherit; font-size: 14px; min-width: 0; flex: 1 1 180px; max-width: 280px; }
   .count { margin-left: auto; color: var(--muted); font-size: 14px; }
   /* Mobil: filtren följer inte med när man scrollar, och kategorierna ligger på en rad som går att svepa. */
   @media (max-width: 720px) {
@@ -436,6 +438,7 @@ MALL = r"""<!doctype html>
       <select id="src"><option value="">Alla</option></select>
     </label>
     <label>Minst <input id="min" type="range" min="0" max="10" step="1"> <span id="minv"></span>/10</label>
+    <input id="q" type="search" placeholder="Sök i fynden, t.ex. röd eld" aria-label="Sök i fynden">
     <span class="count" id="count"></span>
   </div>
 </div>
@@ -586,7 +589,7 @@ MALL = r"""<!doctype html>
 const D = __DATA__;
 // Det som visas just nu: de publika spåren, eller den inloggades egna.
 const V = { spar: [], poster: [], egna: new Set() };
-const st = { spar: null, cat: "", src: "", reg: "", min: D.standard, sort: "betyg" };
+const st = { spar: null, cat: "", src: "", reg: "", q: "", min: D.standard, sort: "betyg" };
 try { st.reg = localStorage.getItem("fyndjakt-omrade") || ""; } catch (e) {}
 const $ = (id) => document.getElementById(id);
 const NU = Date.now() / 1000;
@@ -625,7 +628,7 @@ function renderTabs() {
     b.setAttribute("aria-selected", String(s.id === st.spar));
     b.textContent = s.namn;
     const n = document.createElement("span"); n.className = "n";
-    n.textContent = V.poster.filter(p => p.spar === s.id && p.betyg >= st.min && !dold(p) && (!st.reg || p.region === st.reg)).length;
+    n.textContent = V.poster.filter(p => p.spar === s.id && p.betyg >= st.min && !dold(p) && iOmrade(p)).length;
     b.appendChild(n);
     b.onclick = () => { st.spar = s.id; st.cat = ""; renderTabs(); renderChips(); render(); };
     return b;
@@ -697,7 +700,7 @@ function jmf(p) {
 
 function render() {
   let l = V.poster.filter(p =>
-    p.spar === st.spar && !dold(p) && (!st.reg || p.region === st.reg) && (!st.cat || p.kategori === st.cat) && (!st.src || p.kalla === st.src) && p.betyg >= st.min);
+    p.spar === st.spar && !dold(p) && iOmrade(p) && (!st.cat || p.kategori === st.cat) && (!st.src || p.kalla === st.src) && p.betyg >= st.min && traffSok(p));
   const s = {
     // Samma betyg: varva sökorden (bästa från varje sökord först), så att ett sökord med många fynd inte tar över.
     betyg: (a, b) => b.betyg - a.betyg || (a.rang ?? 0) - (b.rang ?? 0) || seddTs(b) - seddTs(a),
@@ -725,17 +728,25 @@ $("reg").onchange = e => {
   st.reg = e.target.value; renderTabs(); render();
   try { localStorage.setItem("fyndjakt-omrade", st.reg); } catch (e) {}
 };
+$("q").addEventListener("input", e => { st.q = e.target.value.trim(); render(); });
 $("min").oninput = e => { st.min = +e.target.value; $("minv").textContent = st.min; renderTabs(); render(); };
 // ── Konto, reaktioner och Min smak (Supabase) ─────────────────────────
 const konto = { sb: null, inloggad: false, admin: false, reakt: new Map(), anteckningar: [], profiler: [], fynd: null };
 const TYPNAMN = { gillar: "👍 Gillar", ogillar: "👎 Inte min stil", kopt: "🛒 Köpt" };
 const ANT_NAMN = { gillar: "Gillar", ogillar: "Vill inte ha", har: "Har redan" };
 
+// Ett valt område tar även med annonser utan känd ort (Tradera m.fl.) – de går oftast att få skickade.
+function iOmrade(p) { return !st.reg || p.region === st.reg || p.region === "Okänd ort"; }
+function traffSok(p) {
+  if (!st.q) return true;
+  const t = norm((p.titel || "") + " " + (p.motivering || ""));
+  return st.q.split(/\s+/).map(norm).filter(Boolean).every(o => t.includes(o));
+}
 function dold(p) { const r = konto.reakt.get(p.nyckel); return (r && (r.typ === "ogillar" || r.typ === "kopt")) || nekad(p); }
 
 // "Sluta visa": om man ogillat många föremål med samma sökord/formgivare (och inte gillat något) frågar appen.
-const NEJ_GRANS = 5;
-const norm = t => (t || "").toLowerCase().normalize("NFD").replace(/[^a-z0-9]/g, "");
+var NEJ_GRANS = 5;
+function norm(t) { return (t || "").toLowerCase().normalize("NFD").replace(/[^a-z0-9]/g, ""); }
 function sokordFor(sid) {
   const sp = (V.spar || []).find(x => x.id === sid);
   return sp ? [...new Set(Object.values(sp.sokningar || {}).flat())].filter(q => norm(q).length >= 6) : [];
