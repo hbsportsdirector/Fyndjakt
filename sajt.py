@@ -637,8 +637,10 @@ function renderTabs() {
     b.onclick = () => { st.spar = s.id; st.cat = ""; renderTabs(); renderChips(); render(); };
     return b;
   }));
-  const antal = gillade().length;
-  if (konto.inloggad && antal) {
+  const nuS = Date.now() / 1000;
+  const antal = gillade().filter(p => p._r.typ === "gillar" && !p._gammal && (!p.slutar_ts || p.slutar_ts > nuS)).length;
+  const harNagot = gillade().length;
+  if (konto.inloggad && harNagot) {
     t.hidden = false;
     const b = document.createElement("button");
     b.className = "tab tab-gillade"; b.type = "button"; b.setAttribute("role", "tab");
@@ -664,10 +666,11 @@ function gillade() {
   return ut;
 }
 function renderGillade() {
-  const l = gillade().filter(p => (!st.cat || (st.cat === "kopt" ? p._r.typ === "kopt" : p._r.typ === "gillar")) && traffSok(p));
-  // Pågående först (det som slutar snart överst), sedan avslutade/okända – senast gillade först.
+  // Pågående: gillade annonser som fortfarande går att buda på/köpa. Avslutade och köpta ligger under egna val.
   const nu = Date.now() / 1000;
   const pagar = p => !p._gammal && (!p.slutar_ts || p.slutar_ts > nu);
+  const l = gillade().filter(p => traffSok(p) && (st.cat === "kopt" ? p._r.typ === "kopt"
+    : p._r.typ === "gillar" && (st.cat === "slut" ? !pagar(p) : pagar(p))));
   l.sort((a, b) => (pagar(b) - pagar(a)) || (pagar(a) ? (a.slutar_ts || 9e12) - (b.slutar_ts || 9e12)
     : Date.parse(b._r.skapad || 0) - Date.parse(a._r.skapad || 0)));
   $("grid").replaceChildren(...l.map(p => {
@@ -681,12 +684,15 @@ function renderGillade() {
     return k;
   }));
   $("empty").hidden = l.length > 0;
-  $("empty").textContent = "Inget här än – tryck 👍 på det du gillar så samlas det här.";
-  $("count").textContent = l.length + " sparade";
+  $("empty").textContent = st.cat === "slut" ? "Inga avslutade än." : st.cat === "kopt" ? "Inget markerat som köpt än."
+    : "Inga pågående annonser som du gillat – tryck 👍 på det du gillar så ligger det kvar här tills auktionen är slut.";
+  $("count").textContent = l.length + (st.cat === "slut" ? " avslutade" : st.cat === "kopt" ? " köpta" : " pågående");
 }
 function renderChips() {
   const c = $("cats"); c.replaceChildren(chip("Allt", ""));
-  if (st.spar === GILLADE) { c.append(chip("👍 Gillade", "gillar"), chip("🛒 Köpta", "kopt")); return; }
+  if (st.spar === GILLADE) {
+    c.replaceChildren(chip("Pågående", ""), chip("Avslutade", "slut"), chip("🛒 Köpta", "kopt")); return;
+  }
   aktivtSpar().kategorier.forEach(k => c.appendChild(chip(k, k)));
 }
 function seddTs(p) { return p.sedd ? Date.parse(p.sedd.replace(" ", "T") + "Z") / 1000 : 0; }
