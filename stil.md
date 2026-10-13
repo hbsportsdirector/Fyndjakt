@@ -19,7 +19,7 @@
 | Värme | Cognac / sadelbrun | Chesterfield, klubbfåtölj |
 | Djup | Burgundy / oxblod | Persisk matta |
 | Accent | Mörkgrön sammet | Wingback-fåtölj |
-| Trä | Rökt ek (golv) och mörk valnöt (möbler) | Golv, bokhyllor, bord |
+| Trä | Valnöt (golv) och mahogny/mörk valnöt (möbler) | Golv, bokhyllor, bord |
 | Glans | Mässing, guld, vit/grå marmor | Lampor, beslag, skrivbord, bokryggar |
 
 **Regel:** Golvet är ljusare än väggarna och möblerna. Annars flyter allt ihop.
@@ -28,7 +28,7 @@
 
 - **Väggar och tak:** Obsidian Green, *Intelligent Matt (2 glans)*. Matt yta ger djup och ger mindre ströljus på projektorduken.
 - **Lister, dörrar och foder:** Obsidian Green, *Intelligent Eggshell (15 glans)*. Samma färg med lite mer glans ger en diskret kontur och tål mer.
-- **Golv:** Rökt ek i fiskben, oljad och matt. Förstahand är **Kährs Master Studio Rökt Ek Olja** (7 × 49 cm stav, 3,5 mm slitskikt).
+- **Golv:** Valnöt i fiskben (Jazz, Maxwood).
 - **Textilier:** Läder, sammet, ylle och persiska mattor.
 - **Undvik:** Grå eller vitpigmenterad ek, vinyl- och fanérgolv, blanka lackytor, kalla grå toner och krom.
 
@@ -59,6 +59,26 @@
 - Bokhyllor i mörk valnöt, bland annat en hemlig dörr
 - Marmorskrivbord med mässingsdetaljer och grön bankirlampa
 - Jordglob, Heritage Bar och motoriserad projektorduk
+
+## Det jag letar efter nu (från 14 oktober 2026 – ersätter tidigare)
+
+Fokus är **möbler till det engelska biblioteket**, plus belysning och detaljer i mässing.
+
+**Träslag som passar:** mahogny (klassiskt engelskt), valnöt (matchar golvet), mörkbetsad ek, jakaranda/palisander.
+**Undvik:** ljus bok, björk, furu och andra ljusa träslag. Ljust trä ger lågt betyg oavsett form.
+
+- Bokhylla i mahogny och biblioteksbokhylla
+- Vitrinskåp i mahogny – perfekt för Spode-faten
+- Chesterfield – knappad läderfåtölj eller soffa
+- Skrivbord i mahogny och diplomatskrivbord
+- Läsfåtölj och öronlappsfåtölj
+- Engelsk stil, Chippendale
+- Biblioteksstege
+- Detaljer: mässing med patina, bankirlampa med grön skärm, lampetter och läslampor i mässing, skrivställ, bokstöd, ljusstakar i mässing
+- Kuriosa i mässing: kompass, teleskop, sextant, förstoringsglas
+- Gamla läderband och klotband (helst enhetliga serier, låga priser)
+
+**Letar INTE längre efter:** jordglobar, kartor, sjökort, konst (målningar, gravyrer, planscher) och mattor. Ge sådant lågt betyg.
 
 ## Kök och hall
 

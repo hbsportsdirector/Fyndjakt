@@ -58,9 +58,12 @@ def _innehall(reakt: list[dict]) -> list[dict]:
     return ut
 
 
-def _fraga(klient, reakt: list[dict]) -> str:
+def _fraga(klient, reakt: list[dict], bas: str = "") -> str:
     import anthropic
     innehall = _innehall(reakt)
+    if bas:
+        innehall.append({"type": "text", "text": "Det här vet vi redan om kundens smak – upprepa det inte, "
+                         "skriv bara NYA iakttagelser (eller där reaktionerna tydligt säger emot):\n" + bas})
     try:
         svar = klient.messages.create(model=MODELL, max_tokens=1500, system=INSTRUKTION,
                                       messages=[{"role": "user", "content": innehall}])
@@ -76,30 +79,32 @@ def _fraga(klient, reakt: list[dict]) -> str:
 
 def analysera(cfg: dict, export: dict | None, klient=None) -> dict:
     """Lägger till lärdomar i varje spårs profil (spar["lardomar"]). Utan klient används bara sparade analyser."""
-    if not export:
-        return {}
+    export = export or {}  # utan Min smak-data gäller ändå de synkade lärdomarna
     import smak
     cache = _las()
     nya = 0
     for sid, spar in cfg["spar"].items():
+        bas = str(spar.get("lardomar_bas") or "").strip()  # synkade lärdomar som gäller oavsett reaktioner
         agare = smak._agare(spar, export)
         reakt = [r for r in export.get("reaktioner", []) if smak._galler(r, sid, agare) and r.get("titel")]
-        if len(reakt) < MIN_REAKTIONER or not any(r["typ"] == "gillar" for r in reakt):
-            continue
-        nyckel = _nyckel(reakt)
-        post = cache.get(sid)
-        if (not post or post.get("nyckel") != nyckel) and klient is not None:
-            try:
-                lardomar = _fraga(klient, reakt)
-                if lardomar:
-                    post = cache[sid] = {"nyckel": nyckel, "lardomar": lardomar, "antal": len(reakt)}
-                    nya += 1
-            except Exception as e:  # analysen får aldrig stoppa körningen
-                print(f"  Smakanalys misslyckades för {spar.get('namn')}: {e}")
-        if post and post.get("lardomar"):
-            spar["lardomar"] = post["lardomar"]
-            spar["profil"] += ("\n\nLÄRDOMAR FRÅN KUNDENS REAKTIONER – det här har du själv sett när du jämfört det kunden "
-                               "gillat med det hen inte gillat. Följ det:\n" + post["lardomar"])
+        lardomar = ""
+        if len(reakt) >= MIN_REAKTIONER and any(r["typ"] == "gillar" for r in reakt):
+            nyckel = _nyckel(reakt)
+            post = cache.get(sid)
+            if (not post or post.get("nyckel") != nyckel) and klient is not None:
+                try:
+                    ny = _fraga(klient, reakt, bas)
+                    if ny:
+                        post = cache[sid] = {"nyckel": nyckel, "lardomar": ny, "antal": len(reakt)}
+                        nya += 1
+                except Exception as e:  # analysen får aldrig stoppa körningen
+                    print(f"  Smakanalys misslyckades för {spar.get('namn')}: {e}")
+            if post and post.get("nyckel") == nyckel:  # bara en analys av just de här reaktionerna
+                lardomar = post["lardomar"]
+        allt = "\n".join(x for x in (bas, lardomar) if x)
+        if allt:
+            spar["lardomar"] = allt
+            spar["profil"] += ("\n\nLÄRDOMAR OM KUNDENS SMAK – följ dem:\n" + allt)
     if nya:
         FIL.parent.mkdir(exist_ok=True)
         FIL.write_text(json.dumps(cache, ensure_ascii=False, indent=1), encoding="utf-8")

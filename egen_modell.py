@@ -51,12 +51,17 @@ class Modell:
         return p
 
 
-def trana_per_spar(db, seed: int = 1) -> dict[str, Modell]:
-    """En modell per spår, med gräns vald på testdata. Spår med för lite underlag får ingen modell."""
+def trana_per_spar(db, seed: int = 1, nystart: dict | None = None) -> dict[str, Modell]:
+    """En modell per spår, med gräns vald på testdata. Spår med för lite underlag får ingen modell.
+    nystart {spår: tid}: bara bedömningar efter smakens nystart räknas (äldre gjordes med en annan smak)."""
+    nystart = nystart or {}
     rader: dict[str, list] = {}
-    for spar, titel, kalla, pris, betyg in db.con.execute(
-            "SELECT spar, titel, kalla, pris, betyg FROM sedda WHERE betyg >= 0 AND spar IS NOT NULL "
-            "AND motivering NOT LIKE 'Sållad bort av egna modellen%'"):  # lär bara av Claudes egna bedömningar
+    for spar, titel, kalla, pris, betyg, sedd in db.con.execute(
+            "SELECT spar, titel, kalla, pris, betyg, sedd FROM sedda WHERE betyg >= 0 AND spar IS NOT NULL "
+            "AND motivering NOT LIKE 'Sållad bort av egna modellen%' "
+            "AND motivering NOT LIKE 'Ej bildgranskad%'"):  # lär bara av Claudes egna bedömningar
+        if nystart.get(spar) and str(sedd or "") < nystart[spar]:
+            continue
         rader.setdefault(spar, []).append((_drag(titel, kalla, pris), 1 if betyg >= 8 else 0))
     ut = {}
     rnd = random.Random(seed)

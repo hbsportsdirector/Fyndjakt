@@ -146,8 +146,8 @@ def test_config_laddas():
     hem, saml = cfg["spar"]["hemmet"], cfg["spar"]["samlingen"]
     assert "Obsidian Green" in hem["profil"]            # från stil.md
     assert "Viktigt vid bedömningen" in hem["profil"]   # från tillagg
-    assert "HAR REDAN" in hem["profil"] and "Chesterfield" in hem["profil"]
-    assert "Kartor, glober och kuriosa" in hem["sokningar"]
+    assert "Chesterfield" in hem["profil"]
+    assert "Sittmöbler" in hem["sokningar"] and "Kartor, glober och kuriosa" not in hem["sokningar"]
     assert "Evert Lundquist" in saml["profil"]          # från samlingsprofil.md
     assert "Glas" in saml["sokningar"]
 
@@ -808,3 +808,35 @@ def test_nekade_sokord_hamnar_i_profilen():
     text = smak.profiltillagg(export, "samlingen", {"per"})
     assert "SAGT NEJ" in text and "Ulrica Hydman-Vallien" in text
     assert "Höglund" not in text and "Lindberg" not in text
+
+
+def test_nystart_ignorerar_gamla_reaktioner():
+    import smak
+    smak.NYSTART.clear(); smak.NYSTART["samlingen"] = "2026-10-13 23:30:00"
+    try:
+        gammal = {"user_id": "per", "spar": "samlingen", "typ": "gillar", "titel": "Gammal", "skapad": "2026-10-10T10:00:00+00:00"}
+        ny = {"user_id": "per", "spar": "samlingen", "typ": "gillar", "titel": "Ny", "skapad": "2026-10-14T08:00:00+00:00"}
+        assert not smak._galler(gammal, "samlingen", {"per"})
+        assert smak._galler(ny, "samlingen", {"per"})
+        text = smak.profiltillagg({"reaktioner": [gammal, ny], "anteckningar": []}, "samlingen", {"per"})
+        assert "Ny" in text and "Gammal" not in text
+    finally:
+        smak.NYSTART.clear()
+
+
+def test_omvardering_och_vantande_efter_nystart(tmp_path, monkeypatch):
+    import time as t
+    from sources import Annons
+    db = Databas(tmp_path / "s.db")
+    a = Annons(kalla="tradera", id="1", titel="Röd Eld kanna", url="u", spar="samlingen", slutar_ts=int(t.time()) + 86400,
+               bilder=["b"], prefix="ab12|")
+    db.spara(a, 9, "gammal smak")
+    db.con.execute("UPDATE sedda SET sedd = '2026-10-01 10:00:00'")
+    rader = db.att_omvardera({"samlingen": "2026-10-13 23:30:00"})
+    assert [r["nyckel"] for r in rader] == ["ab12|tradera:1"]
+    igen = main.fran_rad(rader[0])
+    assert igen.nyckel == "ab12|tradera:1" and igen.bilder == ["b"] and igen.spar == "samlingen"
+    db.spara(a, 7, "Ej bildgranskad – fler lovande på samma sökord")
+    db.con.execute("UPDATE sedda SET sedd = '2026-10-01 10:00:00'")
+    assert db.vantande({"samlingen": "2026-10-13 23:30:00"}) == {"ab12|tradera:1": None}
+    assert db.vantande({}) == {"ab12|tradera:1": 7}

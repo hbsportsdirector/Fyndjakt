@@ -139,9 +139,26 @@ def lagg_till_profiler(cfg: dict, export: dict | None) -> int:
 
 # ── Lärande ─────────────────────────────────────────────────────────
 
+# Nystart per spår (UTC, "ÅÅÅÅ-MM-DD HH:MM:SS"): äldre reaktioner och anteckningar styr inte längre spåret.
+NYSTART: dict[str, str] = {}
+
+
+def tid(varde) -> str:
+    """Tidsstämpel i jämförbar form ("2026-10-14T01:02:03+00:00" → "2026-10-14 01:02:03")."""
+    return str(varde or "").replace("T", " ")[:19]
+
+
+def efter_nystart(rad: dict, sid: str) -> bool:
+    ns = NYSTART.get(sid)
+    return not ns or tid(rad.get("skapad")) >= ns
+
+
 def _galler(rad: dict, sid: str, agare: set[str]) -> bool:
-    """Gäller raden för spåret? Bara ägarens egna rader, och bara för rätt spår (eller alla spår)."""
+    """Gäller raden för spåret? Bara ägarens egna rader, bara för rätt spår (eller alla spår),
+    och bara rader från efter spårets nystart."""
     if agare and rad.get("user_id") and rad["user_id"] not in agare:
+        return False
+    if not efter_nystart(rad, sid):
         return False
     return not rad.get("spar") or rad.get("spar") == sid
 
@@ -222,6 +239,7 @@ def tillampa(cfg: dict, export: dict | None) -> None:
     """Lägger in användarnas profiler och uppdaterar varje spårs profil och sökningar på plats."""
     if not export:
         return
+    NYSTART.clear(); NYSTART.update({k: str(v) for k, v in (cfg.get("smak_nystart") or {}).items()})
     cfg["_admins"] = admins(export)  # huvudspårens fynd läggs upp till dem
     lagg_till_profiler(cfg, export)
     for sid, spar in cfg["spar"].items():

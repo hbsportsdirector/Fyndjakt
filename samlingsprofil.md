@@ -1,152 +1,71 @@
-# Samlingsprofil — Konst, Glas & Design
-*Ägare: Per Lundgren | Uppdaterad: oktober 2026*
+# Min smak – Samlingen
+*Ägare: Per Lundgren | Ny profil från 14 oktober 2026 – ersätter all tidigare*
+
+Bevakning av konst, glas och keramik som kompletterar samlingen. Bedöm ENBART efter den här profilen.
 
 ---
 
-## 1. ÄGARFÖRTECKNING
-*Föremål att bevaka priser och auktionsutfall för*
+## Konst – konstnärer att bevaka
+Bara dessa konstnärer. Övrig konst, grafik, posters och editioner är inte intressant.
+- **Evert Lundquist**
+- **Curt Hillfon**
+- **Willie Weberg**
+- **Ulf Lundell** – bara hans konst och grafik (serigrafier, målningar). INTE skivor, böcker, autografer eller memorabilia.
+- **Owe Gustafson**
 
-### KONST — Originalverk
+## Glas – komplettera samlingen
+- **Erik Höglund, Boda** – främst RÖDA föremål (det som saknas i samlingen). Tung, bubblig glasform.
+- **Orrefors Colora** – matchar de gula cylindervaserna i samlingen.
+- **Kosta Boda färgat glas** – starka färger.
+- **Kosta Boda Line** och **Anna Ehrner** – fler champagne- och martiniglas till setet.
+- **Orrefors Difference** och **Orrefors provarglas** – komplettera provarglasen.
+- **Anders Wingård / Wingård Baskemölla** – munblåsta glas med blå kant. En **karaff saknas** – högsta prioritet i den serien.
+- Behålls från tidigare (gillade): **Vicke Lindstrand** (Kosta), **Nils Landberg** och **Sven Palmqvist Kraka** (Orrefors) – tjockt underfång, sommerso, dämpade mörka toner.
 
-| Konstnär | Verk/Motiv | Teknik | År | Nyckelord för sökning |
-|----------|-----------|--------|----|-----------------------|
-| Evert Lundquist | Tre figurer, röd bakgrund | Kol & rödkrita på papper | 1957 | Evert Lundquist kolteckning EL-57 figurkomposition |
-| Curt Hillfon | Abstrakt blå komposition | Akryl/olja på duk | 1990 | Curt Hillfon blå abstrakt 1990 |
-| Willie Weberg | Liggande akt | Olja på duk | Okänt | Willie Weberg oljemålning akt |
-| Ulf Lundell | Bob Dylan — figurmålning | Serigrafi/blandteknik | 1992 | Ulf Lundell Bob Dylan 1992 målning |
-| Owe Gustafson | "PIPA" | Serigrafi, signerad | Okänt | Owe Gustafson PIPA serigrafi |
-| Okänd | Abstrakt expressiv med engelsk text | Serigrafi | ca 1991 | abstrakt expressiv serigrafi 1991 |
+**INTE intresserad av:** Ulrica Hydman-Vallien (inget alls av henne), Bertil Vallien, Kjell Engman, Gunnel Sahlin, Ingeborg Lundin, Bernadotte & Kylberg.
 
-### KONST — Posters & Editioner
+## Keramik & porslin
 
-| Konstnär | Verk | Utgåva | År | Nyckelord |
-|----------|------|--------|----|-----------|
-| Andy Warhol | "Cars" — Mercedes-Benz 300SL, 8 bilar | Achenbach Art Edition / Galerie Hans Mayer Düsseldorf, Best.-Nr. 075 | 1988 | Andy Warhol Cars Mercedes poster Achenbach 1988 |
+### Rörstrand Eld-serierna (Hertha Bengtson, 1951–1971)
+- **Blå Eld** och **Röd Eld** i alla former – fat, skålar, koppar, kannor, tekannor, terriner, servisdelar och blandade poster. Blandade "servisdelar"-poster gömmer ofta den saknade biten.
+- **Röd Eld är ovanligare** – ge den högst.
+- Stavningen varierar: Hertha Bengtson / Hertha Bengtsson.
+- **Nyproduktion** finns sedan Rörstrands 300-årsjubileum – om annonsen eller stämpeln visar nyproduktion: lågt betyg.
+- Andra Bengtson-serier (Koka, Ceylon, Rosmarin, Filippa, Druva) och grå/vit Blå Eld är inte intressanta.
 
-### GLAS — Svenska glasbruk
+### Jie Gantofta (Anita Nylund, 1956–1964)
+- **Janssons frestelse** – äger redan nr **111, 112 och 114**. Andra nummer söks. (Stavas ibland Jäntofta.)
+- Även **Gille**, **Vår lilla stad** och **Familjen Pepparsson**.
 
-| Föremål | Antal | Tillverkare/Serie | Nyckelord |
-|---------|-------|-------------------|-----------|
-| Röda glasföremål (cylindervas, skålar, compote, karaff, pokalglas, fat) | ~10 st | Erik Höglund / Boda Glasbruk, 1950–60-tal | Erik Höglund röd glas Boda rubinrött |
-| Glassamling "Open Minds" + Caramba-glas | ~10 st | Ulrica Hydman-Vallien / Kosta Boda, 1986– | Ulrica Hydman-Vallien Open Minds Caramba Kosta Boda |
-| Gula cylindervaser | 2 st | Orrefors Sweden, troligen Colora-serien | Orrefors gult cylinderglas Colora |
-| Smala tulip-vaser (grön + blå) | 2 st | Kosta Boda/Orrefors | Kosta Boda tulip smal vas grön blå |
-| Vinglas med kulnod på foten | 7–8 st | Orrefors/Kosta, 1960–80-tal | vinglas kulnod nod Orrefors Kosta |
-| Färgade glasskålar (blå, gul, orange, turkos) | 4 st | Kosta Boda / Iittala | Kosta Boda färgad glasskål Iittala |
-| Röda glasskålar (par) | 2 st | Höglund/Boda-stil | röd glasskål par rubinrött |
-| Champagneflöjtliknande vaser (grön, röd, blå) | 3 st | Skandinavisk design | färgade glasvaser fot cylinder |
-| Smaragdgröna glasföremål (skål + pitcher) | 2 st | Skandinavisk | smaragdgrönt glas |
-| Koboltblå pitcher med nypad mynning | 1 st | Skandinavisk | koboltblå glas pitcher |
-| Lila/amethyst glasvas | 1 st | Skandinavisk | amethyst lila glasvas |
-| Stor konisk röd glasvas | 1 st | Skandinavisk | konisk röd glasvas |
+### Spode Blue Italian
+- **Spode Italian / Blue Italian** – många annonser på engelska (tea pot, serving dish, plate).
+- **Copeland Spode** – de äldre delarna (före 1970) är mest intressanta. (Stavas ibland Copland.)
 
-### KERAMIK
-
-| Föremål | Antal | Tillverkare | Nyckelord |
-|---------|-------|-------------|-----------|
-| Svart/vit keramik — konformar, klotform, cylinder, skålar | 8 st | Okänd, samtida | svart vit grafisk keramik geometrisk |
-| Blå/vita vaser med löv/pil-mönster | 5 st | Skandinavisk, 1960–80-tal | marinblå vit keramik löv pil mönster |
-| Lövformat fat, vitt rutnät i relief | 1 st | Möjligen Stig Lindberg/Gustavsberg | Gustavsberg Stig Lindberg lövformat fat |
-| Keramikvaser med rutmönster (vit + blå) | 2 st | Rörstrand/Gustavsberg | Rörstrand rutmönster keramik |
-| Nana-skulpturer | 2 st | Inspirerade av Niki de Saint Phalle | Nana skulptur Niki de Saint Phalle |
-
-### MÖBLER & BELYSNING
-
-| Föremål | Period/Stil | Nyckelord |
-|---------|-------------|-----------|
-| Matbord, rött lackat underrede + glasskiva | Italiensk/nordisk 1980-tal | matbord rött lackat underrede glas 1980-tal |
-| Skåp på ben, mahognyfanér, räfflad front | Svensk 1950-tal | skåp mahogny räfflad 1950-tal retro |
-| Elflugan, adventsljusstake | Lundgren & Strandberg | Elflugan Lundgren Strandberg adventsljusstake |
+### Övrigt i samlingen
+- **Stig Lindberg, Gustavsberg** – formen ska bära: relief, textur eller inpressat mönster (t.ex. Reptil). Målad eller tryckt dekor (Prunus, Comedia, Fallande löv) och fiskfat är inte intressant.
+- **Rörstrand 1960–1980**
+- **Gustavsberg signerad**
+- **Deco Hälsingborg** och **Georg Wide** – fler Skånska-burkar.
+- **Rörstrand Gourmet** och **Rörstrand Valentine**
+- **Gustavsberg Hagtorn** – antika delar 1899–1939.
+- Behålls från tidigare (gillade): **Rörstrand Picknick** (Marianne Westman) – alla delar, och **Pierre Forssell / Skultuna** (t.ex. Prins-ljusstakar).
 
 ---
 
-## 2. SMAKPROFIL
-*Vad ägaren samlar på och uppskattar — används för att hitta liknande föremål*
+## Skick och äkthet
+Kolla alltid stämpel och skick i annonsbilderna. Krackelering, nagg och nyproduktion påverkar mest – dra ner betyget tydligt.
 
-### Konstnärer och formgivare som redan ägs/uppskattas
-- Evert Lundquist
-- Curt Hillfon
-- Willie Weberg
-- Ulf Lundell (bildkonstnär)
-- Ulrica Hydman-Vallien
-- Erik Höglund
-- Andy Warhol (posters/editioner)
-- Owe Gustafson
+## Prisnivåer
+- Konstoriginal: 3 000–80 000 kr. Grafik: 500–8 000 kr.
+- Designglas: 200–2 000 kr per föremål. Keramik: 100–600 kr per föremål.
+- Lågt pris är ett plus. Långt över nivåerna drar ner.
 
-### Stilar och rörelser
-- Nordisk expressionism och abstraktion (1940–1990-tal)
-- Skandinavisk formgivning / Svensk designklassicism (1950–1980-tal)
-- Pop art och postmodern grafik
-- Figurativ konst, aktstudier, porträtt
-- Starka primärfärger — rött, koboltblått, smaragdgrönt, gult
-- Grafiska geometriska mönster (svart/vitt)
-- Handblåst färgat bruksglas
-- Rockikonografi (Bob Dylan, Elvis — Lundell-serien)
-
-### Glasbruk och keramikproducenter av intresse
-- Kosta Boda
-- Orrefors
-- Boda Glasbruk
-- Iittala
-- Gustavsberg
-- Rörstrand
-
-### Priskänslighet (baserat på befintlig samling)
-- Unika konstoriginal: 3 000–80 000 kr
-- Editioner/serigrafier/posters: 500–8 000 kr
-- Designglas (per föremål): 200–2 000 kr
-- Keramik (per föremål): 100–600 kr
-- Möbler: 2 000–6 000 kr
-
-### Vad ägaren INTE samlar på (uteslut ur sökningar)
-- Massproducerade moderna reproduktioner utan konstnärlig proveniens
-- Ostämplad/osignerad keramik utan tydlig tillverkare
-- Möbler utan designhistorisk koppling
-
-### Söktermer för liknande föremål att köpa
-```
-Evert Lundquist OR Curt Hillfon OR Willie Weberg OR Ulrica Hydman-Vallien OR "Erik Höglund"
-Kosta Boda färgat glas OR Orrefors bruksglas OR Boda glasbruk
-nordisk expressionism signerad
-svensk 1950-tal 1960-tal designglas auktion
-Gustavsberg Rörstrand keramik signerad
-Ulf Lundell konst serigrafi original
-abstrakt nordisk målning signerad daterad
-Andy Warhol poster edition signerad
-```
-
-### Auktionshus att bevaka
-- Bukowskis
-- Stockholms Auktionsverk
-- Uppsala Auktionskammare
-- Kalmar Auktionsverk
-- Tradera (begagnat designglas)
-
----
-
-## 3. PRIORITERADE ÅTGÄRDER
-
-1. 🔴 **BRÅDSKANDE** — Autentisera Evert Lundquist-teckning (EL-57) hos Bukowskis
-2. 🟡 Professionell värdering av Curt Hillfon-tavlan (1990)
-3. 🟡 Kontrollera signaturer undertill på alla Ulrica Hydman-Vallien-glas
-4. 🟡 Bekräfta om Bob Dylan-målningen är serigrafi eller unikt original (påverkar värdet kraftigt)
-5. 🟢 Verifiera om lövformat fat är Stig Lindberg/Gustavsberg
-6. 🟢 Identifiera modell på vinglasen med kulnod
-
----
-
-## 4. ESTIMERAT TOTALVÄRDE
-
-| Kategori | Lägst | Högst |
-|----------|-------|-------|
-| Konstverk & grafik | 43 000 kr | 135 000 kr |
-| Skulpturer | 1 000 kr | 3 000 kr |
-| Möbler | 4 000 kr | 11 000 kr |
-| Belysning | 1 200 kr | 1 800 kr |
-| Ulrica Hydman-Vallien / Kosta Boda | 3 000 kr | 8 000 kr |
-| Rött glas (Höglund-stil) | 2 250 kr | 4 400 kr |
-| Övrigt designglas | 4 300 kr | 9 700 kr |
-| Keramik | 3 650 kr | 10 700 kr |
-| **TOTALT** | **~62 400 kr** | **~183 600 kr** |
-
-> ⚠️ Värden baserade på visuell bedömning och auktionsdatabaser. Professionell autentisering kan förändra värdet avsevärt, särskilt för Evert Lundquist-teckningen.
+## Redan i samlingen (ge lågt åt exakt samma sak)
+- Evert Lundquist, "Tre figurer, röd bakgrund", kol och rödkrita 1957
+- Curt Hillfon, abstrakt blå komposition 1990
+- Willie Weberg, liggande akt
+- Ulf Lundell, Bob Dylan-målning 1992
+- Owe Gustafson, "PIPA" serigrafi
+- ~10 röda glas av Erik Höglund/Boda (cylindervas, skålar, compote, karaff, pokalglas, fat)
+- 2 gula Orrefors Colora-cylindervaser
+- Jie Janssons frestelse nr 111, 112, 114

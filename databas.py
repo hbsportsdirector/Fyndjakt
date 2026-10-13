@@ -60,7 +60,7 @@ class Databas:
         self.con.execute("CREATE INDEX IF NOT EXISTS sedda_titelnorm ON sedda(spar, titelnorm)")
         self.con.commit()
 
-    def tidigare_bedomning(self, a, min_langd: int = 25, dagar: int = 60) -> dict | None:
+    def tidigare_bedomning(self, a, min_langd: int = 25, dagar: int = 60, efter: str = "") -> dict | None:
         """En tidigare Claude-bedömning av samma föremål (samma spår, nästan identisk titel), annars None.
         Korta, allmänna titlar ("Vas, Orrefors") räknas inte – där kan det vara helt olika föremål."""
         norm = normalisera(a.titel)
@@ -70,20 +70,35 @@ class Databas:
             """SELECT betyg, motivering, jamforsok FROM sedda
                WHERE spar = ? AND titelnorm = ? AND betyg >= 0 AND nyckel != ?
                  AND motivering NOT LIKE 'Sållad%' AND motivering NOT LIKE 'Ej bildgranskad%'
-                 AND sedd > datetime('now', ?)
+                 AND sedd > datetime('now', ?) AND sedd >= ?
                ORDER BY sedd DESC LIMIT 1""",
-            (a.spar, norm, a.nyckel, f"-{dagar} days")).fetchone()
+            (a.spar, norm, a.nyckel, f"-{dagar} days", efter or "")).fetchone()
         return dict(rad) if rad else None
 
     def finns(self, nyckel: str) -> bool:
         return self.con.execute("SELECT 1 FROM sedda WHERE nyckel = ?", (nyckel,)).fetchone() is not None
 
-    def vantande(self) -> dict[str, int]:
+    def vantande(self, nystart: dict | None = None) -> dict[str, int | None]:
         """Annonser som klarade titelsållningen men inte hann bildgranskas – de ska få en ny chans.
-        {nyckel: titelbetyg}, så att de inte behöver sållas om."""
-        return {r[0]: r[1] for r in self.con.execute(
-            "SELECT nyckel, betyg FROM sedda WHERE motivering LIKE 'Ej bildgranskad%' "
-            "AND (slutar_ts IS NULL OR slutar_ts > ?)", (int(time.time()),))}
+        {nyckel: titelbetyg}, så att de inte behöver sållas om. None = sållades med en äldre smak – sålla om."""
+        nystart = nystart or {}
+        ut = {}
+        for nyckel, betyg, spar, sedd in self.con.execute(
+                "SELECT nyckel, betyg, spar, sedd FROM sedda WHERE motivering LIKE 'Ej bildgranskad%' "
+                "AND (slutar_ts IS NULL OR slutar_ts > ?)", (int(time.time()),)):
+            ut[nyckel] = None if nystart.get(spar) and str(sedd or "") < nystart[spar] else betyg
+        return ut
+
+    def att_omvardera(self, nystart: dict, min_betyg: int = 8, max_antal: int = 1500) -> list[dict]:
+        """Aktiva fynd som bedömdes med en äldre smak än spårets nystart – bäst först."""
+        ut = []
+        for spar, tid in nystart.items():
+            ut += [dict(r) for r in self.con.execute(
+                """SELECT * FROM sedda WHERE spar = ? AND betyg >= ? AND sedd < ?
+                     AND (slutar_ts IS NULL OR slutar_ts > ?)""",
+                (spar, min_betyg, tid, int(time.time()) + 3600))]
+        ut.sort(key=lambda r: -r["betyg"])
+        return ut[:max_antal]
 
     def spara(self, a, betyg: int, motivering: str, notifierad: bool = False):
         self.con.execute(

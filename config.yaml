@@ -21,6 +21,14 @@ max_prisjamforelser_per_korning: 120  # sålda föremål på Auctionet hämtas f
 sidor_per_sokning: 4               # hur många resultatsidor per sökning och sajt
 modell: claude-haiku-4-5-20251001  # byt till claude-sonnet-5-5 för skarpare omdömen
 
+# Nystart av smaken (UTC). Reaktioner, anteckningar och betyg från före tidpunkten styr inte längre
+# bedömningen i spåret – bara profilen, lardomar_bas och det som händer efteråt. Aktiva fynd (8+)
+# som bedömdes före tidpunkten betygsätts om en gång med den nya smaken.
+smak_nystart:
+  samlingen: "2026-10-13 23:30:00"
+  hemmet: "2026-10-13 23:30:00"
+max_omvarderingar_per_korning: 1500
+
 # Betygsregler för inbjudna användares egna spår (de skapar sina profiler på hemsidan).
 bedomningsregler_anvandare: |
   Var kräsen men rättvis – kunden vill se ett urval, inte allt. Ungefär 1 av 6 annonser bör få 8 eller mer.
@@ -60,91 +68,66 @@ spar:
     namn: The Reading Room
     profilfil: stil.md
     tillagg: |
-      Jag letar begagnade/vintage-föremål till det här hemmet. Fokusera på lösa föremål –
-      inte golv, färg eller lister.
-      Mest av allt söker jag: stora bokhyllor och bokskåp i mörkt trä, gamla kartor och
-      sjökort, jordglober och vetenskaplig kuriosa (teleskop, kompasser, instrument),
-      konst för väggarna (oljemålningar, porträtt, grafik) och udda detaljer med historia
-      (byster, mässingsobjekt, skrivbordsföremål, naturalier).
-      Mässing, mörk valnöt, mahogny, cognacfärgat läder, mörkgrön sammet, burgundy/oxblod och
-      vit/grå marmor med mässing är rätt. Patina och ålder är ett plus.
+      Jag letar begagnade/vintage-möbler och detaljer till det engelska biblioteket – inte golv, färg eller lister.
+      Mest av allt: bokhyllor och biblioteksbokhyllor, vitrinskåp, Chesterfield (fåtölj eller soffa),
+      skrivbord (mahogny, diplomatskrivbord), läsfåtölj/öronlappsfåtölj, Chippendale och engelsk stil,
+      biblioteksstege, samt mässing: bankirlampa med grön skärm, lampetter, läslampor, ljusstakar,
+      skrivställ, bokstöd och kuriosa (kompass, teleskop, sextant). Gamla läder- och klotband.
+      Träslag: mahogny, valnöt, mörkbetsad ek, jakaranda/palisander. Ljus bok, björk, furu = lågt betyg.
+      Mässing med patina, cognacfärgat läder och mörkgrön sammet är rätt.
+      Letar INTE längre efter jordglobar, kartor, sjökort, konst (målningar, gravyrer, planscher) eller
+      mattor – ge sådant högst 3.
       Fel: krom, blanka lackytor, kalla grå toner, ljus/vitpigmenterad ek, ljus skandinavisk minimalism.
-    har_redan:
-      - Chesterfield-soffa
-      - bordslampor och bankirlampa
-      - klubbfåtölj i läder
-      - wingback-fåtölj
-    har_redan_ord: [chesterfield, bordslampa, bordlampe, bordlampa, bankirlampa, bankerlampa,
-                    klubbfåtölj, wingback, öronlappsfåtölj, öronlappsstol]
-    uteslut_ord: [högglans, krom, vitpigmenterad, affisch, poster]
+    uteslut_ord: [högglans, krom, vitpigmenterad, affisch, poster, furu, björk]
+    # Synkade lärdomar 14 okt 2026: ny smak + det som stämmer från tidigare reaktioner.
+    lardomar_bas: |
+      - Mahogny, valnöt, mörkbetsad ek och jakaranda/palisander är rätt. Ljus bok, björk och furu är fel – även om formen är bra.
+      - Engelsk biblioteksstil: Chesterfield, Chippendale, öronlappsfåtölj, diplomatskrivbord och biblioteksstege ger högt.
+      - Mässing med patina och bruksslitage (ljusstakar, lampetter, skrivställ) gillas; blankt nytt mässing mindre.
+      - Bankirlampa med grön skärm passar perfekt.
+      - Gamla läderband gillas när de är enhetliga serier eller små klassiker till lågt pris (ca 100–400 kr). Dyra rese- och polarböcker avvisas trots fina band.
+      - Mikroskop och andra stora instrument har fått nej; små mässingsobjekt (kompass, förstoringsglas) är bättre.
     sokningar:
-      Bokhyllor och möbler:
-      - bokhylla valnöt
+      Bokhyllor och skåp:
       - bokhylla mahogny
-      - bokhylla mörkt trä
-      - bokhylla glasdörrar
+      - bokhylla valnöt
+      - biblioteksbokhylla
       - bibliotekshylla
       - biblioteksskåp
-      - bokskåp
+      - bokskåp mahogny
       - engelsk bokhylla
       - vitrinskåp mahogny
-      - skrivbord marmor
+      - vitrinskåp valnöt
+      Sittmöbler:
+      - chesterfield fåtölj
+      - chesterfield soffa
+      - chesterfield läder
+      - läsfåtölj
+      - öronlappsfåtölj
+      - engelsk fåtölj
+      Skrivbord och bord:
+      - skrivbord mahogny
+      - diplomatskrivbord
       - partnerskrivbord
-      - sekretär mahogny
-      - globbar
-      - sidobord marmor
-      Kartor, glober och kuriosa:
-      - jordglob
-      - himmelsglob
-      - glob 1800-tal
-      - antik karta
-      - karta 1700-tal
-      - karta 1800-tal
-      - världskarta
-      - sjökort
-      - stjärnkarta
-      - teleskop mässing
-      - kompass mässing
-      - sextant
-      - mikroskop mässing
-      - vetenskapligt instrument
-      - anatomisk plansch
-      - skolplansch
-      Konst:
-      - oljemålning porträtt
-      - oljemålning interiör
-      - oljemålning stilleben
-      - oljemålning landskap 1800-tal
-      - porträtt förgylld ram
-      - kopparstick
-      - gravyr
-      - litografi arkitektur
-      - silhuett
-      Detaljer och dekor:
-      - byst brons
-      - byst gips
-      - skulptur brons
-      - skrivställ
-      - bläckhorn
-      - förstoringsglas mässing
-      - bokstöd
+      - skrivbord engelsk stil
+      - chippendale
+      - engelsk stil mahogny
+      - biblioteksstege
+      Belysning och mässing:
+      - bankirlampa
+      - bankers lamp
+      - lampett mässing
+      - läslampa mässing
+      - vägglampa mässing
       - ljusstakar mässing
-      - karaff kristall
-      - cigarrlåda
-      - fjärilar inramade
-      - naturalier
+      - skrivställ
+      - bokstöd mässing
+      - kompass mässing
+      - teleskop mässing
+      - förstoringsglas mässing
+      Böcker:
       - läderband böcker
       - klotband
-      Belysning:
-      - tavelbelysning mässing
-      - golvlampa mässing
-      - läslampa golv mässing
-      - vägglampa mässing
-      - lampett mässing
-      Mattor och textilier:
-      - persisk matta
-      - kelim
-      - sammet kudde grön
 
   # ── 2. Konst, glas och design ────────────────────────────────
   samlingen:
@@ -152,85 +135,92 @@ spar:
     prioritet: 1          # söks först: föremål som båda spåren hittar hamnar här
     profilfil: samlingsprofil.md
     tillagg: |
-      Hitta LIKNANDE fynd som passar samlingen – nya namn och föremål i samma anda,
-      inte bara exakt samma konstnärer. Nordisk expressionism och abstraktion 1940–1990,
-      signerad grafik och serigrafier, pop art, handblåst färgat svenskt designglas
-      (starka färger: rött, koboltblått, smaragdgrönt, gult), signerad keramik från
-      Gustavsberg/Rörstrand med grafiska mönster.
-      Följ prisnivåerna i profilen: original 3 000–80 000 kr, grafik 500–8 000 kr,
-      glas 200–2 000 kr, keramik 100–600 kr. Räkna ner för föremål långt över de nivåerna.
-      Räkna ner för osignerat, omärkt, reproduktioner och tryck utan upplaga/signatur.
-      Ge låga betyg åt dubbletter av sådant som redan finns i ägarförteckningen.
-    uteslut_ord: [affischtryck, offsettryck, print on canvas]
-    # Egna betygsregler för samlingen (ersätter den stränga standarden som gäller för hemmet).
+      Bedöm ENBART efter profilen ovan (ny från 14 oktober 2026). Det kunden inte nämner där är inte intressant.
+      Ulrica Hydman-Vallien och Bertil Vallien: högst 2, oavsett föremål.
+      Konst: bara de fem namngivna konstnärerna – övrig konst, grafik och posters högst 3.
+      Ulf Lundell: bara konst/grafik – skivor, böcker och memorabilia högst 2.
+      Följ prisnivåerna i profilen och räkna ner för sådant som redan finns i samlingen.
+    uteslut_ord: [affischtryck, offsettryck, print on canvas, vinylskiva, lp-skiva, cd-skiva]
+    # Synkade lärdomar 14 okt 2026: ny smak + det som stämmer från tidigare reaktioner.
+    lardomar_bas: |
+      - Rörstrand Blå Eld och Röd Eld (Hertha Bengtson) i alla former – även kannor, tekannor och servisdelar. Röd Eld är ovanligare och ska ha högst.
+      - Koka, Ceylon, Rosmarin och grå/vit Blå Eld är inte intressant. Nyproduktion (efter jubileet) ger lågt.
+      - Erik Höglund/Boda: röda föremål först, i tung bubblig glasform. Bärnsten och koboltblått är okej men lägre.
+      - Stig Lindberg gillas när formen bär (relief, textur, inpressat mönster som Reptil) – inte målad eller tryckt dekor (Prunus, Comedia, Fallande löv) och inte fiskfat.
+      - Orrefors i dämpade mörka toner med tjockt underfång (Nils Landberg, Sven Palmqvist Kraka) och Vicke Lindstrands färgade Kosta-glas gillas.
+      - Rörstrand Picknick gillas i alla delar; lågt pris (ca 280–650 kr) är ett plus.
+      - Pierre Forssell/Skultuna Prins gillas; Festivitas och Gense-ströare gjorde det inte.
+      - Ulrica Hydman-Vallien, Bertil Vallien, Ingeborg Lundin, Gunnel Sahlin, Kjell Engman och Bernadotte & Kylberg: nej.
+      - Krackelering, nagg och nyproduktion drar ner tydligt.
+    # Egna betygsregler för samlingen.
     bedomningsregler: |
-      Kunden SAMLAR svensk och nordisk designkeramik, porslin och glas från kända formgivare och
-      fabriker (Rörstrand, Gustavsberg, Orrefors, Kosta Boda, Boda, Skultuna, Iittala m.fl.).
-      Serietillverkade föremål ur namngivna serier är PRECIS vad hen söker – dra INTE ner för att
-      något är serietillverkat, välkänt, vanligt på auktion eller ett bruksföremål.
-      - 10: Eftersökt serie/formgivare i ovanlig färg, form eller variant, eller ett tydligt fynd långt under marknadspris.
-      - 9: Känd formgivare eller eftertraktad serie (t.ex. Picknick, Swedish Grace, Blå Eld) i gott skick till bra pris.
-      - 8: Namngiven formgivare eller fabrik med tydlig designhistoria som passar samlingen.
-      - 6–7: Rätt fabrik men anonym eller ointressant form, eller dåligt skick.
-      - 4–5: Osäker tillverkare, eller fel stil (t.ex. romantiskt, dekorporslin utan designhistoria).
-      - 0–3: Fel kategori, reproduktion, eller exakt det kunden redan har.
+      Kunden SAMLAR utvalda svenska och engelska serier och formgivare (se profilen). Serietillverkade föremål
+      ur de namngivna serierna är PRECIS vad hen söker – dra inte ner för att något är bruksföremål eller vanligt.
+      Var sparsam med 9 och 10 så att det verkligt intressanta syns:
+      - 10: Ovanlig variant eller något som uttryckligen saknas (Röd Eld, röd Höglund, Wingård-karaff,
+            Janssons frestelse-nummer som saknas) – eller ett tydligt fynd långt under marknadspris.
+      - 9: Eftersökt serie/formgivare ur profilen i gott skick till bra pris, med en form som inte är vardaglig
+           (kanna, terrin, vas, större fat).
+      - 8: Rätt serie eller formgivare ur profilen, vanlig form (assiett, tefat, enstaka kopp) i gott skick.
+      - 6–7: Rätt fabrik men fel serie, anonym form, osäker stämpel eller dåligt skick.
+      - 4–5: Osäker tillverkare, nyproduktion, eller utanför profilen men i närheten.
+      - 0–3: Fel kategori, något kunden sagt nej till, reproduktion, eller exakt det kunden redan har.
       Ett lågt pris är ett plus, inte ett tecken på låg kvalitet.
-      Samlingen omfattar också DESIGNADE BRUKSFÖREMÅL i metall och glas: Skultuna, Bernadotte & Kylberg
-      (t.ex. Infinity), Pierre Forssell, Gense samt Orrefors-serier som Eternell (Owe Elvén). Sådana
-      ska INTE dras ner för att de är mässing/metall eller "inte konst" – namngiven formgivare ger minst 8.
     max_pris: 40000
     sokningar:
       Konst:
         - Evert Lundquist
         - Curt Hillfon
         - Willie Weberg
-        - Ulf Lundell
+        - Ulf Lundell serigrafi
+        - Ulf Lundell litografi
+        - Ulf Lundell målning
         - Owe Gustafson
-        - Lennart Rodhe
-        - Olle Bonniér
-        - Pierre Olofsson
-        - Torsten Renqvist
-        - Peter Dahl
-        - Carl Fredrik Reuterswärd
-        - Jan Håfström
-        - Philip von Schantz
-        - nordisk abstraktion
-        - abstrakt komposition signerad
-        - serigrafi signerad numrerad
-        - litografi signerad numrerad
-        - Andy Warhol edition
-        - Roy Lichtenstein poster
       Glas:
+        - Erik Höglund röd
         - Erik Höglund
-        - Ulrica Hydman-Vallien
-        - Bertil Vallien
-        - Kjell Engman
-        - Gunnel Sahlin
-        - Nils Landberg
-        - Vicke Lindstrand
-        - Sven Palmqvist
-        - Gunnar Cyrén
-        - Ingeborg Lundin
-        - Monica Bratt Reijmyre
-        - Boda glas
-        - Kosta glas
+        - Boda röd glas
         - Orrefors Colora
-        - Iittala Kastehelmi
-      Keramik och design:
-        - Stig Lindberg
-        - Lisa Larson
+        - Kosta Boda färgat glas
+        - Kosta Boda Line
+        - Anna Ehrner
+        - Orrefors Difference
+        - Orrefors provarglas
+        - Anders Wingård
+        - Wingård Baskemölla
+        - Baskemölla karaff
+        - Vicke Lindstrand
+        - Nils Landberg
+        - Orrefors Kraka
+      Eld-serierna:
+        - Blå Eld
+        - Röd Eld
+        - Eld Rörstrand
         - Hertha Bengtson
-        - Marianne Westman
-        - Rörstrand keramik
-        - Gustavsberg keramik
-        - Gunnar Nylund
-        - Carl-Harry Stålhane
-        - Bjørn Wiinblad
+        - Hertha Bengtsson
+      Jie Gantofta:
+        - Anita Nylund
+        - Janssons frestelse Jie
+        - Jie Gantofta
+        - Jäntofta
+        - Vår lilla stad Jie
+        - Familjen Pepparsson
+      Spode:
+        - Spode Italian
+        - Blue Italian
+        - Copeland Spode
+        - Copland Spode
+        - Spode tea pot
+        - Spode serving dish
+      Keramik och design:
+        - Stig Lindberg Gustavsberg
+        - Rörstrand 1960
+        - Rörstrand 1970
+        - Gustavsberg signerad
+        - Deco Hälsingborg
+        - Georg Wide
+        - Rörstrand Gourmet
+        - Rörstrand Valentine
+        - Gustavsberg Hagtorn
         - Rörstrand Picknick
-        - Swedish Grace
-        - Skultuna
-        - Bernadotte Kylberg
         - Pierre Forssell
-        - Owe Elvén
-        - Signe Persson-Melin
-        - Niki de Saint Phalle

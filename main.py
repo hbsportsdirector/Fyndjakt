@@ -202,6 +202,22 @@ def spara_rapport(totalt: int, nya: int, bedomda: int, traffar: int) -> None:
     (ROT / "data" / "senaste_korning.json").write_text(json.dumps(rapport, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+def fran_rad(r: dict) -> Annons:
+    """En sparad rad i databasen som annons igen (för att kunna bedömas om)."""
+    import json
+    nyckel = r["nyckel"]
+    prefix = nyckel[:nyckel.index("|") + 1] if "|" in nyckel else ""
+    kalla, _, id_ = nyckel[len(prefix):].partition(":")
+    try:
+        bilder = json.loads(r.get("bilder") or "[]")
+    except ValueError:
+        bilder = []
+    return Annons(kalla=kalla, id=id_, titel=r["titel"], url=r["url"], pris=r.get("pris"),
+                  pris_text=r.get("pris_text") or "", bilder=bilder, plats=r.get("plats") or "",
+                  slutar=r.get("slutar") or "", slutar_ts=r.get("slutar_ts"), kategori=r.get("kategori") or "",
+                  sokord=r.get("sokord") or "", spar=r["spar"], prefix=prefix)
+
+
 def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--torr", action="store_true", help="Ingen AI, inga notiser, inget sparas")
@@ -234,7 +250,8 @@ def main() -> int:
     pausade = sokordsvard.pausa(cfg, db, export)
     STATISTIK["Pausade sökord"] = len(pausade)
     annonser = hamta_alla(cfg, pausade)
-    vantar = db.vantande()
+    nystart = {k: str(v) for k, v in (cfg.get("smak_nystart") or {}).items() if k in cfg["spar"]}
+    vantar = db.vantande(nystart)
     nya = [a for a in annonser if a.nyckel in vantar or not db.finns(a.nyckel)]
     STATISTIK["Väntande från tidigare"] = sum(1 for a in nya if a.nyckel in vantar)
     sokord_stat = sokordsvard.statistik(db)
@@ -267,7 +284,7 @@ def main() -> int:
     ateranvanda, traffar = 0, []
     kvar_efter = []
     for a in kandidater:
-        tidigare = db.tidigare_bedomning(a)
+        tidigare = db.tidigare_bedomning(a, efter=nystart.get(a.spar, ""))
         if tidigare:
             a.jamforsok = tidigare.get("jamforsok") or ""
             bra = tidigare["betyg"] >= cfg.get("min_betyg", 8)
@@ -283,7 +300,7 @@ def main() -> int:
     # Den egna, gratis modellen (tränad på Claudes tidigare bedömningar) sorterar bort det mycket osannolika.
     if cfg.get("egen_modell", True) and kandidater:
         import egen_modell
-        modeller = egen_modell.trana_per_spar(db)
+        modeller = egen_modell.trana_per_spar(db, nystart=nystart)
         kandidater, bort = egen_modell.sall(modeller, kandidater)
         for a in bort:
             db.spara(a, 2, "Sållad bort av egna modellen")
@@ -300,11 +317,11 @@ def main() -> int:
             for a in kandidater:
                 sp = cfg["spar"][a.spar]
                 regler = sp.get("bedomningsregler") or (cfg.get("bedomningsregler_anvandare") if sp.get("agare") else None)
-                if a.nyckel in vantar:  # redan sållad en tidigare natt
+                if vantar.get(a.nyckel) is not None:  # redan sållad en tidigare natt (med nuvarande smak)
                     continue
                 grupper.setdefault((a.spar, a.kategori), (profil_for(a), [], regler))[1].append(a)
             snabb = bedomning.salla(grupper, cfg["modell"], bedomning._klient()) if grupper else {}
-            snabb.update({a.nyckel: vantar[a.nyckel] for a in kandidater if a.nyckel in vantar})
+            snabb.update({a.nyckel: vantar[a.nyckel] for a in kandidater if vantar.get(a.nyckel) is not None})
             grans = cfg.get("sallning_min_betyg", 6)
             kvar = []
             for a in kandidater:
@@ -339,6 +356,17 @@ def main() -> int:
         except Exception as e:
             print(f"  Sållningen misslyckades ({e}) – går vidare utan den.")
     kandidater = begransa(kandidater, cfg)
+
+    # Ny smak i ett spår: aktiva fynd som bedömdes med den gamla smaken betygsätts om en gång.
+    if nystart:
+        redan = {a.nyckel for a in kandidater}
+        om = [r for r in db.att_omvardera(nystart, cfg.get("min_betyg", 8),
+                                          cfg.get("max_omvarderingar_per_korning", 1500)) if r["nyckel"] not in redan]
+        for r in om:
+            kandidater.append(fran_rad(r))
+        if om:
+            STATISTIK["Omvärdering med ny smak"] = len(om)
+            print(f"Ny smak: {len(om)} aktiva fynd betygsätts om.")
 
     # Vissa källor visar ort och beskrivning bara på annonssidan – hämta dem för de som ska bedömas.
     moduler = {"bukowskis": bukowskis}
