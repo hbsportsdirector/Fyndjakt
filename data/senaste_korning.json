@@ -1,9 +1,9 @@
 {
-  "tid": "2026-10-13T11:11:41",
-  "annonser_totalt": 15168,
-  "nya": 2679,
-  "bedomda": 647,
-  "nya_traffar": 196,
+  "tid": "2026-10-13T11:51:52",
+  "annonser_totalt": 15221,
+  "nya": 2703,
+  "bedomda": 643,
+  "nya_traffar": 193,
   "kallor": {
     "Smakanalys": {
       "nya": 0
@@ -11,7 +11,7 @@
     "Pausade sökord": 29,
     "Auctionet": {
       "sokningar": 143,
-      "traffar": 4573,
+      "traffar": 4567,
       "fel": 0,
       "felexempel": []
     },
@@ -29,35 +29,35 @@
     },
     "Stadsmissionen": {
       "sokningar": 143,
-      "traffar": 165,
+      "traffar": 164,
       "fel": 0,
       "felexempel": []
     },
     "Tradera": {
       "sokningar": 143,
-      "traffar": 10961,
+      "traffar": 10966,
       "fel": 0,
       "felexempel": []
     },
-    "Väntande från tidigare": 1273,
-    "Återanvända betyg": 112,
+    "Väntande från tidigare": 1277,
+    "Återanvända betyg": 115,
     "Egen modell": {
-      "bortsorterade": 370,
+      "bortsorterade": 363,
       "spår med modell": 4
     },
     "Sållning": {
-      "sållade": 2122,
-      "bortsållade": 438,
-      "över gränsen per sökord": 1010,
-      "kvar": 674
+      "sållade": 2147,
+      "bortsållade": 409,
+      "över gränsen per sökord": 1065,
+      "kvar": 673
     },
     "Bedömning": {
-      "batch": 647,
+      "batch": 643,
       "direkt": 0
     },
     "Prisjämförelse": {
       "fynd": 120,
-      "med_data": 64
+      "med_data": 67
     },
     "Notiser": {
       "skickade": 0
@@ -65,22 +65,22 @@
   },
   "kostnad": {
     "Sållning": {
-      "anrop": 26,
-      "in": 135376,
-      "ut": 7830,
-      "usd": 0.0873,
-      "kr": 0.92
+      "anrop": 27,
+      "in": 141102,
+      "ut": 7913,
+      "usd": 0.0903,
+      "kr": 0.95
     },
     "Bedömning batch": {
       "anrop": 136,
-      "in": 914875,
-      "ut": 67028,
-      "usd": 0.625,
-      "kr": 6.56
+      "in": 911410,
+      "ut": 67157,
+      "usd": 0.6236,
+      "kr": 6.55
     },
     "Totalt": {
-      "kr": 7.48
+      "kr": 7.5
     }
   },
-  "stadsmissionen_katalog": 1411
+  "stadsmissionen_katalog": 1408
 }
