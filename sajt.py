@@ -289,6 +289,10 @@ MALL = r"""<!doctype html>
   .varfor .v-spara { background: var(--brass); color: #1b1a14; border-color: var(--brass); font-weight: 600; }
   .varfor .v-tack { font-size: 13px; color: var(--brass); }
   .card.ogillad .img, .card.ogillad .cat, .card.ogillad .title, .card.ogillad .why, .card.ogillad .meta,
+  .tab-gillade { margin-left: auto; }
+  .card.avslutad .img img { filter: grayscale(.7); opacity: .6; }
+  .slut-etikett { position: absolute; left: 10px; bottom: 10px; background: rgba(0,0,0,.7); color: #fff;
+                  font-size: 12px; padding: 4px 8px; border-radius: 6px; }
   .nej-fraga { margin: 10px 0 0; padding: 12px; border: 1px solid var(--brass); border-radius: 10px; background: rgba(201,162,90,.08); }
   .nej-fraga p { margin: 0 0 10px; font-size: 14px; }
   .nej-knappar { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -633,9 +637,56 @@ function renderTabs() {
     b.onclick = () => { st.spar = s.id; st.cat = ""; renderTabs(); renderChips(); render(); };
     return b;
   }));
+  const antal = gillade().length;
+  if (konto.inloggad && antal) {
+    t.hidden = false;
+    const b = document.createElement("button");
+    b.className = "tab tab-gillade"; b.type = "button"; b.setAttribute("role", "tab");
+    b.setAttribute("aria-selected", String(st.spar === GILLADE));
+    b.textContent = "👍 Gillade";
+    const n = document.createElement("span"); n.className = "n"; n.textContent = antal; b.appendChild(n);
+    b.onclick = () => { st.spar = GILLADE; st.cat = ""; renderTabs(); renderChips(); render(); };
+    t.appendChild(b);
+  }
+}
+// ── Gillade: allt du tryckt 👍 eller 🛒 på, från alla bevakningar, samlat på ett ställe ──
+const GILLADE = "__gillade";
+function gillade() {
+  const live = new Map(V.poster.map(p => [p.nyckel, p]));
+  const ut = [];
+  for (const r of konto.reakt.values()) {
+    if (r.typ !== "gillar" && r.typ !== "kopt") continue;
+    const p = live.get(r.nyckel);
+    ut.push(p ? { ...p, _r: r } : { nyckel: r.nyckel, titel: r.titel, url: r.url, spar: r.spar, kategori: r.kategori,
+      bilder: r.bild ? [r.bild] : [], pris_text: r.pris_text, motivering: r.motivering, kalla: (r.nyckel || "").split(":")[0].split("|").pop(),
+      _r: r, _gammal: true });
+  }
+  return ut;
+}
+function renderGillade() {
+  const l = gillade().filter(p => (!st.cat || (st.cat === "kopt" ? p._r.typ === "kopt" : p._r.typ === "gillar")) && traffSok(p));
+  // Pågående först (det som slutar snart överst), sedan avslutade/okända – senast gillade först.
+  const nu = Date.now() / 1000;
+  const pagar = p => !p._gammal && (!p.slutar_ts || p.slutar_ts > nu);
+  l.sort((a, b) => (pagar(b) - pagar(a)) || (pagar(a) ? (a.slutar_ts || 9e12) - (b.slutar_ts || 9e12)
+    : Date.parse(b._r.skapad || 0) - Date.parse(a._r.skapad || 0)));
+  $("grid").replaceChildren(...l.map(p => {
+    const k = card(p);
+    if (!pagar(p)) {
+      k.classList.add("avslutad");
+      const e = document.createElement("span"); e.className = "slut-etikett";
+      e.textContent = p._gammal ? "Inte längre i listan – kan vara såld" : "Avslutad";
+      const img = k.querySelector(".img"); if (img) img.appendChild(e);
+    }
+    return k;
+  }));
+  $("empty").hidden = l.length > 0;
+  $("empty").textContent = "Inget här än – tryck 👍 på det du gillar så samlas det här.";
+  $("count").textContent = l.length + " sparade";
 }
 function renderChips() {
   const c = $("cats"); c.replaceChildren(chip("Allt", ""));
+  if (st.spar === GILLADE) { c.append(chip("👍 Gillade", "gillar"), chip("🛒 Köpta", "kopt")); return; }
   aktivtSpar().kategorier.forEach(k => c.appendChild(chip(k, k)));
 }
 function seddTs(p) { return p.sedd ? Date.parse(p.sedd.replace(" ", "T") + "Z") / 1000 : 0; }
@@ -651,7 +702,7 @@ function card(p) {
     i.onerror = () => { i.remove(); img.insertAdjacentHTML("afterbegin", '<div class="none">Ingen bild</div>'); };
     img.appendChild(i);
   } else img.insertAdjacentHTML("afterbegin", '<div class="none">Ingen bild</div>');
-  const s = document.createElement("span"); s.className = "score"; s.textContent = "★ " + p.betyg + "/10"; img.appendChild(s);
+  if (p.betyg != null) { const s = document.createElement("span"); s.className = "score"; s.textContent = "★ " + p.betyg + "/10"; img.appendChild(s); }
   if (NU - seddTs(p) < 86400 * 1.5) { const n = document.createElement("span"); n.className = "new"; n.textContent = "NY"; img.appendChild(n); }
   a.appendChild(img);
 
@@ -699,6 +750,7 @@ function jmf(p) {
 }
 
 function render() {
+  if (st.spar === GILLADE) return renderGillade();
   let l = V.poster.filter(p =>
     p.spar === st.spar && !dold(p) && iOmrade(p) && (!st.cat || p.kategori === st.cat) && (!st.src || p.kalla === st.src) && p.betyg >= st.min && traffSok(p));
   const s = {
