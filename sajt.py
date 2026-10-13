@@ -742,7 +742,22 @@ function traffSok(p) {
   const t = norm((p.titel || "") + " " + (p.motivering || ""));
   return st.q.split(/\s+/).map(norm).filter(Boolean).every(o => t.includes(o));
 }
-function dold(p) { const r = konto.reakt.get(p.nyckel); return (r && (r.typ === "ogillar" || r.typ === "kopt")) || nekad(p); }
+// Allt du redan reagerat på (👍 👎 🛒) döljs i listan – 👍 finns kvar under Min smak. Samma föremål som lagts ut
+// igen (ny annons, samma titel) räknas som sett. Korta, allmänna titlar ("Ljusstake i mässing") jämförs inte.
+function titelNyckel(spar, titel) { const t = norm(titel); return t.length >= 20 ? spar + "|" + t : null; }
+function sedda() {
+  if (!konto._sedda || konto._seddaAntal !== konto.reakt.size) {
+    konto._sedda = new Set();
+    for (const r of konto.reakt.values()) { const k = titelNyckel(r.spar, r.titel); if (k) konto._sedda.add(k); }
+    konto._seddaAntal = konto.reakt.size;
+  }
+  return konto._sedda;
+}
+function dold(p) {
+  if (konto.reakt.has(p.nyckel) || nekad(p)) return true;
+  const k = titelNyckel(p.spar, p.titel);
+  return !!(k && sedda().has(k));
+}
 
 // "Sluta visa": om man ogillat många föremål med samma sökord/formgivare (och inte gillat något) frågar appen.
 var NEJ_GRANS = 5;
@@ -891,13 +906,13 @@ function varforRuta(p, typ, kortEl) {
 async function sparaReaktion(p, typ) {
   const rad = { nyckel: p.nyckel, typ, spar: p.spar, kategori: p.kategori, titel: p.titel, url: p.url,
                 bild: (p.bilder || [])[0] || null, pris_text: p.pris_text, motivering: p.motivering };
-  konto.reakt.set(p.nyckel, rad);
+  konto.reakt.set(p.nyckel, rad); konto._sedda = null;
   const { error } = await konto.sb.from("fyndjakt_reaktioner").upsert(rad, { onConflict: "user_id,nyckel" });
   if (error) { alertFel(error); konto.reakt.delete(p.nyckel); }
 }
 async function taBortReaktion(nyckel) {
   const gammal = konto.reakt.get(nyckel);
-  konto.reakt.delete(nyckel);
+  konto.reakt.delete(nyckel); konto._sedda = null;
   const { error } = await konto.sb.from("fyndjakt_reaktioner").delete().eq("nyckel", nyckel);
   if (error) { alertFel(error); if (gammal) konto.reakt.set(nyckel, gammal); }
 }
