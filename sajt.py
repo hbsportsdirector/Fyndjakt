@@ -288,7 +288,6 @@ MALL = r"""<!doctype html>
   .varfor .v-knappar { display: flex; gap: 6px; }
   .varfor .v-spara { background: var(--brass); color: #1b1a14; border-color: var(--brass); font-weight: 600; }
   .varfor .v-tack { font-size: 13px; color: var(--brass); }
-  .card.ogillad .img, .card.ogillad .cat, .card.ogillad .title, .card.ogillad .why, .card.ogillad .meta,
   .tab-gillade { margin-left: auto; }
   .card.avslutad .img img { filter: grayscale(.7); opacity: .6; }
   .slut-etikett { position: absolute; left: 10px; bottom: 10px; background: rgba(0,0,0,.7); color: #fff;
@@ -296,9 +295,12 @@ MALL = r"""<!doctype html>
   .nej-fraga { margin: 10px 0 0; padding: 12px; border: 1px solid var(--brass); border-radius: 10px; background: rgba(201,162,90,.08); }
   .nej-fraga p { margin: 0 0 10px; font-size: 14px; }
   .nej-knappar { display: flex; gap: 8px; flex-wrap: wrap; }
+  .card.ogillad .img, .card.ogillad .cat, .card.ogillad .title, .card.ogillad .why, .card.ogillad .meta,
   .card.ogillad .jmf { opacity: .35; filter: grayscale(1); transition: opacity .2s; }
-  .dold-rad { font-size: 12px; color: var(--muted); padding-top: 6px; }
-  .dold-rad button { background: none; border: 0; color: var(--brass); font: inherit; font-size: 12px; font-weight: 600;
+  .visa-fler { grid-column: 1 / -1; justify-self: center; margin: 8px 0 20px; }
+  .r-status { min-height: 18px; font-size: 12px; color: var(--muted); line-height: 18px; white-space: nowrap;
+              overflow: hidden; text-overflow: ellipsis; margin-top: -2px; }
+  .r-status button, .dold-rad button { background: none; border: 0; color: var(--brass); font: inherit; font-size: 12px; font-weight: 600;
                      text-decoration: underline; cursor: pointer; padding: 0; }
   .card.borta { opacity: 0; transform: scale(.97); transition: opacity .35s, transform .35s; }
 
@@ -593,7 +595,8 @@ MALL = r"""<!doctype html>
 const D = __DATA__;
 // Det som visas just nu: de publika spåren, eller den inloggades egna.
 const V = { spar: [], poster: [], egna: new Set() };
-const st = { spar: null, cat: "", src: "", reg: "", q: "", min: D.standard, sort: "betyg" };
+const PER_SIDA = 50;
+const st = { spar: null, cat: "", src: "", reg: "", q: "", min: D.standard, sort: "betyg", visa: PER_SIDA };
 try { st.reg = localStorage.getItem("fyndjakt-omrade") || ""; } catch (e) {}
 const $ = (id) => document.getElementById(id);
 const NU = Date.now() / 1000;
@@ -735,7 +738,10 @@ function card(p) {
   if (p.slutar) mm(p.slutar_ts && p.slutar_ts - NU < 86400 * 2 ? "soon" : "", "Slutar " + p.slutar);
   mm("", KALLNAMN[p.kalla] || p.kalla);
   b.appendChild(m);
-  if (konto.inloggad) b.appendChild(reaktionsknappar(p, a));
+  if (konto.inloggad) {
+    b.appendChild(reaktionsknappar(p, a));
+    const st = document.createElement("div"); st.className = "r-status"; b.appendChild(st);
+  }
   a.appendChild(b);
   return a;
 }
@@ -755,7 +761,10 @@ function jmf(p) {
   return { kvot };
 }
 
+let senasteFilter = "";
 function render() {
+  const f = [st.spar, st.cat, st.src, st.reg, st.q, st.min, st.sort].join("|");
+  if (f !== senasteFilter) { st.visa = PER_SIDA; senasteFilter = f; }
   if (st.spar === GILLADE) return renderGillade();
   let l = V.poster.filter(p =>
     p.spar === st.spar && !dold(p) && iOmrade(p) && (!st.cat || p.kategori === st.cat) && (!st.src || p.kalla === st.src) && p.betyg >= st.min && traffSok(p));
@@ -770,14 +779,22 @@ function render() {
   // Det du inte reagerat på än ligger först – det du redan gillat hamnar längre ner.
   const markerad = p => konto.reakt.has(p.nyckel) ? 1 : 0;
   l.sort((a, b) => markerad(a) - markerad(b) || s(a, b));
-  $("grid").replaceChildren(...l.map(card));
+  // Lagom att ta ställning till: de 50 bästa först, resten bakom en knapp.
+  const visas = l.slice(0, st.visa);
+  $("grid").replaceChildren(...visas.map(card));
+  if (l.length > visas.length) {
+    const mer = document.createElement("button"); mer.type = "button"; mer.className = "knapp visa-fler";
+    mer.textContent = `Visa ${Math.min(PER_SIDA, l.length - visas.length)} till (${l.length - visas.length} kvar)`;
+    mer.onclick = () => { st.visa += PER_SIDA; const y = window.scrollY; render(); window.scrollTo(0, y); };
+    $("grid").appendChild(mer);
+  }
   $("empty").hidden = l.length > 0;
   const forst = V.egna.has(st.spar) && !V.poster.some(p => p.spar === st.spar);
   $("empty").textContent = !konto.inloggad ? "Logga in för att se dina fynd."
     : !V.spar.length ? "Skapa en bevakning under ”Mina bevakningar” så börjar appen leta åt dig."
     : forst ? "Inga fynd här än – tryck 🔎 Leta nu under Mina bevakningar, eller vänta till i morgon bitti."
     : "Inga fynd med de här filtren ännu.";
-  $("count").textContent = l.length + (l.length === 1 ? " fynd" : " fynd");
+  $("count").textContent = l.length > visas.length ? `${visas.length} av ${l.length} fynd` : l.length + " fynd";
 }
 
 $("sort").onchange = e => { st.sort = e.target.value; render(); };
@@ -877,7 +894,10 @@ function reaktionsknappar(p, kortEl) {
       e.preventDefault(); e.stopPropagation();
       // Inget flyttar sig medan man tittar: kortet stannar kvar (gråtonat om det dolts) tills nästa omladdning/filterbyte.
       const nu = (konto.reakt.get(p.nyckel) || {}).typ;
-      kortEl.querySelectorAll(".varfor, .varfor-lank, .dold-rad").forEach(x => x.remove());
+      // Allt som visas efter en reaktion hamnar i en rad med fast höjd – kortet byter aldrig storlek av ett tryck.
+      const status = kortEl.querySelector(".r-status");
+      kortEl.querySelectorAll(".varfor, .nej-fraga").forEach(x => x.remove());
+      status.replaceChildren();
       if (nu === typ) {
         await taBortReaktion(p.nyckel);
         rad.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", "false"));
@@ -887,31 +907,29 @@ function reaktionsknappar(p, kortEl) {
       rad.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b === btn)));
       kortEl.classList.toggle("ogillad", typ !== "gillar");
       renderTabs();
-      let sist = rad;
-      if (typ !== "gillar") {
-        const info = document.createElement("div"); info.className = "dold-rad";
-        info.append(typ === "kopt" ? "Markerad som köpt – döljs nästa gång du laddar om · " : "Dold – försvinner nästa gång du laddar om · ");
-        const angra = document.createElement("button"); angra.type = "button"; angra.textContent = "Ångra";
-        angra.onclick = async (ev) => {
-          ev.preventDefault(); ev.stopPropagation();
-          await taBortReaktion(p.nyckel);
-          rad.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", "false"));
-          kortEl.classList.remove("ogillad");
-          kortEl.querySelectorAll(".varfor, .varfor-lank, .dold-rad").forEach(x => x.remove());
-          renderTabs();
-        };
-        info.appendChild(angra); rad.after(info); sist = info;
+      status.append(typ === "gillar" ? "Sparad under 👍 Gillade" : typ === "kopt" ? "Markerad som köpt" : "Dold");
+      const angra = document.createElement("button"); angra.type = "button"; angra.textContent = "Ångra";
+      angra.onclick = async (ev) => {
+        ev.preventDefault(); ev.stopPropagation();
+        await taBortReaktion(p.nyckel);
+        rad.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", "false"));
+        kortEl.classList.remove("ogillad");
+        kortEl.querySelectorAll(".varfor, .nej-fraga").forEach(x => x.remove());
+        status.replaceChildren();
+        renderTabs();
+      };
+      status.append(" · ", angra);
+      if (typ !== "kopt") {
+        // Claude räknar själv ut varför (smakanalysen). Vill man rätta kan man skriva – helt valfritt.
+        const lank = document.createElement("button"); lank.type = "button";
+        lank.textContent = "Säg varför";
+        lank.onclick = (ev) => { ev.preventDefault(); ev.stopPropagation(); lank.disabled = true; status.after(varforRuta(p, typ, kortEl)); };
+        status.append(" · ", lank);
       }
       if (typ === "ogillar") {
         const fraga = fragaNej(p);
-        if (fraga) { const r = nejRuta(p, fraga); sist.after(r); sist = r; }
+        if (fraga) status.after(nejRuta(p, fraga));
       }
-      if (typ === "kopt") return;
-      // Claude räknar själv ut varför (smakanalysen). Vill man rätta kan man skriva – helt valfritt.
-      const lank = document.createElement("button"); lank.type = "button"; lank.className = "varfor-lank";
-      lank.textContent = "＋ Säg varför (valfritt)";
-      lank.onclick = (ev) => { ev.preventDefault(); ev.stopPropagation(); lank.replaceWith(varforRuta(p, typ, kortEl)); };
-      sist.after(lank);
     };
     rad.appendChild(btn);
   }
