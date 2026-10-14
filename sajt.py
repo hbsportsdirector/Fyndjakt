@@ -774,7 +774,12 @@ function sorterare() {
   }[st.sort];
 }
 let senasteFilter = "";
+function minnsVy() {
+  if (!st.spar || !konto.inloggad) return;  // spara bara riktiga val, inte startläget före inloggning
+  try { localStorage.setItem("fyndjakt-vy", JSON.stringify({ spar: st.spar, cat: st.cat, sort: st.sort })); } catch (e) {}
+}
 function render() {
+  minnsVy();
   const f = [st.spar, st.cat, st.src, st.reg, st.q, st.min, st.sort].join("|");
   if (f !== senasteFilter) { st.visa = PER_SIDA; senasteFilter = f; }
   if (st.spar === GILLADE) return renderGillade();
@@ -1353,7 +1358,14 @@ function byggVy() {
     V.poster = (f.poster || []).filter(p => synliga.has(p.spar));
     $("upd").textContent = f.uppdaterad || "–";
   }
-  if (!V.spar.some(s => s.id === st.spar)) { st.spar = (V.spar[0] || {}).id; st.cat = ""; }
+  // Stanna kvar där man var – även efter att ha varit i en annan flik eller laddat om sidan.
+  if (!st.spar) { try { const v = JSON.parse(localStorage.getItem("fyndjakt-vy") || "{}"); Object.assign(st, v); } catch (e) {} }
+  const finnsVy = st.spar === GILLADE ? konto.inloggad : V.spar.some(s => s.id === st.spar);
+  if (!finnsVy) { st.spar = (V.spar[0] || {}).id; st.cat = ""; }
+  const katOk = st.spar === GILLADE ? ["", "slut", "kopt"].includes(st.cat)
+    : !st.cat || (V.spar.find(x => x.id === st.spar) || { kategorier: [] }).kategorier.includes(st.cat);
+  if (!katOk) st.cat = "";
+  $("sort").value = st.sort;
   byggFilter(); renderTabs(); renderChips(); render();
 }
 
