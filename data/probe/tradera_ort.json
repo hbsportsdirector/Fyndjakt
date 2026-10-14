@@ -1,0 +1,87 @@
+{
+ "search_status": 200,
+ "item_id": {
+  "status": 404,
+  "borjan": ""
+ },
+ "seller_id": 4785264,
+ "items_id": {
+  "status": 200,
+  "borjan": "{\"shippingOptions\":[{\"shippingOptionId\":7,\"cost\":78,\"shippingWeight\":3,\"shippingWeightSpecified\":true,\"shippingProductId\":2,\"shippingProductIdSpecified\":true,\"shippingProviderId\":7,\"sellerSurchargeSpe",
+  "falt": [
+   "acceptedBuyerId",
+   "acceptsPickup",
+   "attributeValues",
+   "bold",
+   "buyItNowPrice",
+   "buyItNowPriceSpecified",
+   "buyerList",
+   "categoryId",
+   "creationDate",
+   "detailedImageLinks",
+   "duration",
+   "endDate",
+   "featuredItem",
+   "hasImage",
+   "highlight",
+   "id",
+   "imageId",
+   "imageLinks",
+   "internalType",
+   "itemAttributes",
+   "itemLink",
+   "itemType",
+   "longDescription",
+   "maxBid",
+   "maxBidSpecified",
+   "nextBid",
+   "nextBidSpecified",
+   "numberOfImages",
+   "openingBid",
+   "openingBidSpecified",
+   "ownReferences",
+   "paymentCondition",
+   "paymentOptions",
+   "paymentTypeId",
+   "paypal",
+   "remainingQuantity",
+   "reservePrice",
+   "reservePriceManuallySet",
+   "reservePriceSpecified",
+   "restarts",
+   "seller",
+   "shippingCondition",
+   "shippingOptions",
+   "shortDescription",
+   "startDate",
+   "startQuantity",
+   "status",
+   "statusId",
+   "thumbnail",
+   "thumbnailLink",
+   "totalBids",
+   "userSelectedEndDate",
+   "vat",
+   "vatSpecified"
+  ],
+  "ort": [
+   "\"city\": \"Göteborg\", \"countryName\": \"Sverige\", \"transactionId\": 0, \"transactionIdSpecified\": false}, \"userSelectedEndDate"
+  ]
+ },
+ "items_q": {
+  "status": 404,
+  "borjan": ""
+ },
+ "users_id": {
+  "status": 404,
+  "borjan": ""
+ },
+ "user_id": {
+  "status": 404,
+  "borjan": ""
+ },
+ "members_id": {
+  "status": 404,
+  "borjan": ""
+ }
+}
