@@ -161,6 +161,27 @@ def begransa(kandidater: list[Annons], cfg: dict) -> list[Annons]:
     return ut
 
 
+def tradera_orter(db: Databas, max_antal: int = 600) -> int:
+    """Fyller i säljarens ort för aktiva Tradera-fynd som sparades innan orten hämtades."""
+    if not tradera.aktiverad():
+        return 0
+    rader = db.con.execute(
+        "SELECT nyckel FROM sedda WHERE kalla = 'tradera' AND plats = 'Tradera' AND betyg >= 8 "
+        "AND (slutar_ts IS NULL OR slutar_ts > ?) LIMIT ?", (int(time.time()), max_antal)).fetchall()
+
+    def en(rad):
+        try:
+            return rad[0], tradera.ort_ur(tradera.detaljer(rad[0].rsplit(":", 1)[-1]))
+        except Exception:
+            return rad[0], ""
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(6) as pool:
+        klara = [(f"Tradera, {ort}", n) for n, ort in pool.map(en, rader) if ort]
+    db.con.executemany("UPDATE sedda SET plats = ? WHERE nyckel = ?", klara)
+    db.con.commit()
+    return len(klara)
+
+
 def prisjamfor(db: Databas, cfg: dict) -> None:
     """Hämtar vad liknande föremål sålts för på Auctionet, för fynden som visas på sidan."""
     import bedomning
@@ -331,7 +352,9 @@ def main() -> int:
                 else:
                     kvar.append(a)
             # Mest lovande först (osållade sist), så att taket används på det bästa.
-            kvar.sort(key=lambda a: -(snabb.get(a.nyckel) if a.nyckel in snabb else grans - 0.5))
+            import sajt as _sajt
+            kvar.sort(key=lambda a: (-(snabb.get(a.nyckel) if a.nyckel in snabb else grans - 0.5),
+                                     0 if _sajt.region_for(a.kalla, a.plats)[1] == "Stockholm" else 1))
             # Bildgranska bara de mest lovande per sökord – men sökord som ofta ger fynd får fler.
             # Det som inte hinns med väntar och tas med igen nästa körning.
             max_per = cfg.get("granska_max_per_sokord", 10)
@@ -369,14 +392,17 @@ def main() -> int:
             print(f"Ny smak: {len(om)} aktiva fynd betygsätts om.")
 
     # Vissa källor visar ort och beskrivning bara på annonssidan – hämta dem för de som ska bedömas.
-    moduler = {"bukowskis": bukowskis}
-    for a in kandidater:
+    moduler = {"bukowskis": bukowskis, "tradera": tradera}
+    def berika(a):
         modul = moduler.get(a.kalla)
         if modul and hasattr(modul, "berika"):
             try:
                 modul.berika(a)
             except Exception as e:
                 print(f"  Kunde inte läsa annonssidan för {a.titel[:40]}: {e}")
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(6) as pool:
+        list(pool.map(berika, kandidater))
 
     if kandidater:
         klient = bedomning._klient()
@@ -420,6 +446,10 @@ def main() -> int:
             if bra:
                 traffar.append((betyg, a, motivering))
 
+    try:
+        STATISTIK["Tradera-orter ifyllda"] = tradera_orter(db)
+    except Exception as e:
+        print(f"  Kunde inte fylla i Tradera-orter: {e}")
     prisjamfor(db, cfg)
 
     # Hemsidan byggs om varje gång, även om inget nytt hittades (utgångna annonser försvinner).

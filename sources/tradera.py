@@ -130,3 +130,34 @@ def sok(fraga: str, kategori: str = "", sidor: int = 1) -> list[Annons]:
                 resultat.append(a)
         time.sleep(1)
     return resultat
+
+
+def detaljer(item_id: str) -> dict:
+    """Annonsens detaljer (säljarens ort, beskrivning, avhämtning). Ett anrop – görs bara för det som bedöms."""
+    r = requests.get(f"https://api.tradera.com/v4/items/{item_id}", timeout=30, headers={
+        "X-App-Id": os.environ["TRADERA_APP_ID"], "X-App-Key": os.environ["TRADERA_APP_KEY"], "Accept": "application/json"})
+    r.raise_for_status()
+    return r.json()
+
+
+def ort_ur(d: dict) -> str:
+    saljare = _hamta(d, "seller", default={}) or {}
+    return (_hamta(saljare, "city", default="") or "").strip().title() if isinstance(saljare, dict) else ""
+
+
+def berika(a: Annons) -> None:
+    """Lägger till säljarens ort ("Tradera, Göteborg") och den längre beskrivningen."""
+    if not aktiverad():
+        return
+    d = detaljer(a.id)
+    ort = ort_ur(d)
+    if ort:
+        a.plats = f"Tradera, {ort}"
+    import re
+    lang = re.sub(r"<[^>]+>", " ", _hamta(d, "longDescription", default="") or "")
+    lang = " ".join(lang.split())
+    if lang and len(lang) > len(a.beskrivning or ""):
+        a.beskrivning = lang[:1500]
+    if _hamta(d, "acceptsPickup"):
+        a.beskrivning = (a.beskrivning + "\nKan hämtas hos säljaren.").strip()
+    time.sleep(0.2)

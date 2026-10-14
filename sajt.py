@@ -38,8 +38,8 @@ def region_for(kalla: str, plats: str) -> tuple[str, str]:
         return "Stockholm", "Stockholm"
     if kalla == "myrorna":
         return "Stockholm (Ropsten)", "Stockholm"
-    if kalla == "tradera":
-        return "", "Okänd ort"
+    if kalla == "tradera" and not (plats or "").startswith("Tradera, "):
+        return "", "Okänd ort"  # äldre annonser utan säljarens ort
     ort = (plats or "").split(", ")[-1].strip()
     if kalla == "bukowskis" and ort.lower() == "bukowskis":
         return "Stockholm", "Stockholm"  # äldre annonser utan läst placering; huvudlagret ligger i Stockholm
@@ -763,10 +763,12 @@ function jmf(p) {
   return { kvot };
 }
 
+function sthlm(p) { return p.region === "Stockholm" ? 1 : 0; }
 function sorterare() {
   return {
     // Samma betyg: varva sökorden (bästa från varje sökord först), så att ett sökord med många fynd inte tar över.
-    betyg: (a, b) => b.betyg - a.betyg || (a.rang ?? 0) - (b.rang ?? 0) || seddTs(b) - seddTs(a),
+    // Samma betyg: Stockholm först – kunden kan hämta själv.
+    betyg: (a, b) => b.betyg - a.betyg || sthlm(b) - sthlm(a) || (a.rang ?? 0) - (b.rang ?? 0) || seddTs(b) - seddTs(a),
     ny: (a, b) => seddTs(b) - seddTs(a),
     slut: (a, b) => (a.slutar_ts || 9e12) - (b.slutar_ts || 9e12),
     pris: (a, b) => (a.pris ?? 9e12) - (b.pris ?? 9e12),

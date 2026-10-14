@@ -840,3 +840,12 @@ def test_omvardering_och_vantande_efter_nystart(tmp_path, monkeypatch):
     db.con.execute("UPDATE sedda SET sedd = '2026-10-01 10:00:00'")
     assert db.vantande({"samlingen": "2026-10-13 23:30:00"}) == {"ab12|tradera:1": None}
     assert db.vantande({}) == {"ab12|tradera:1": 7}
+
+
+def test_tradera_ort_och_region():
+    import sajt
+    d = {"seller": {"alias": "x", "city": "SOLNA"}, "longDescription": "<p>Fin</p>"}
+    assert tradera.ort_ur(d) == "Solna"
+    assert sajt.region_for("tradera", "Tradera, Solna")[1] == "Stockholm"
+    assert sajt.region_for("tradera", "Tradera, Göteborg")[1] == "Västsverige och Värmland"
+    assert sajt.region_for("tradera", "Tradera")[1] == "Okänd ort"
