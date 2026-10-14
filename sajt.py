@@ -672,9 +672,11 @@ function renderGillade() {
   // Pågående: gillade annonser som fortfarande går att buda på/köpa. Avslutade och köpta ligger under egna val.
   const nu = Date.now() / 1000;
   const pagar = p => !p._gammal && (!p.slutar_ts || p.slutar_ts > nu);
-  const l = gillade().filter(p => traffSok(p) && (st.cat === "kopt" ? p._r.typ === "kopt"
+  const l = gillade().filter(p => traffSok(p) && iOmrade(p) && (!st.src || p.kalla === st.src) && (st.cat === "kopt" ? p._r.typ === "kopt"
     : p._r.typ === "gillar" && (st.cat === "slut" ? !pagar(p) : pagar(p))));
-  l.sort((a, b) => (pagar(b) - pagar(a)) || (pagar(a) ? (a.slutar_ts || 9e12) - (b.slutar_ts || 9e12)
+  // Samma sortering som i listan (Bäst matchning, Nyast, Slutar snart …). Avslutade: senast gillade först.
+  const s = sorterare();
+  l.sort((a, b) => (pagar(b) - pagar(a)) || (pagar(a) ? s(a, b) || (a.slutar_ts || 9e12) - (b.slutar_ts || 9e12)
     : Date.parse(b._r.skapad || 0) - Date.parse(a._r.skapad || 0)));
   $("grid").replaceChildren(...l.map(p => {
     const k = card(p);
@@ -761,14 +763,8 @@ function jmf(p) {
   return { kvot };
 }
 
-let senasteFilter = "";
-function render() {
-  const f = [st.spar, st.cat, st.src, st.reg, st.q, st.min, st.sort].join("|");
-  if (f !== senasteFilter) { st.visa = PER_SIDA; senasteFilter = f; }
-  if (st.spar === GILLADE) return renderGillade();
-  let l = V.poster.filter(p =>
-    p.spar === st.spar && !dold(p) && iOmrade(p) && (!st.cat || p.kategori === st.cat) && (!st.src || p.kalla === st.src) && p.betyg >= st.min && traffSok(p));
-  const s = {
+function sorterare() {
+  return {
     // Samma betyg: varva sökorden (bästa från varje sökord först), så att ett sökord med många fynd inte tar över.
     betyg: (a, b) => b.betyg - a.betyg || (a.rang ?? 0) - (b.rang ?? 0) || seddTs(b) - seddTs(a),
     ny: (a, b) => seddTs(b) - seddTs(a),
@@ -776,6 +772,15 @@ function render() {
     pris: (a, b) => (a.pris ?? 9e12) - (b.pris ?? 9e12),
     lage: (a, b) => ((jmf(a) || {}).kvot ?? 9e12) - ((jmf(b) || {}).kvot ?? 9e12),
   }[st.sort];
+}
+let senasteFilter = "";
+function render() {
+  const f = [st.spar, st.cat, st.src, st.reg, st.q, st.min, st.sort].join("|");
+  if (f !== senasteFilter) { st.visa = PER_SIDA; senasteFilter = f; }
+  if (st.spar === GILLADE) return renderGillade();
+  let l = V.poster.filter(p =>
+    p.spar === st.spar && !dold(p) && iOmrade(p) && (!st.cat || p.kategori === st.cat) && (!st.src || p.kalla === st.src) && p.betyg >= st.min && traffSok(p));
+  const s = sorterare();
   // Det du inte reagerat på än ligger först – det du redan gillat hamnar längre ner.
   const markerad = p => konto.reakt.has(p.nyckel) ? 1 : 0;
   l.sort((a, b) => markerad(a) - markerad(b) || s(a, b));
