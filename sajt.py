@@ -986,7 +986,8 @@ function varforRuta(p, typ, kortEl) {
 
 async function sparaReaktion(p, typ) {
   const rad = { nyckel: p.nyckel, typ, spar: p.spar, kategori: p.kategori, titel: p.titel, url: p.url,
-                bild: (p.bilder || [])[0] || null, pris_text: p.pris_text, motivering: p.motivering };
+                bild: (p.bilder || [])[0] || null, pris_text: p.pris_text, motivering: p.motivering,
+                skapad: new Date().toISOString() };  // en ny reaktion på ett gammalt föremål räknas som ny
   konto.reakt.set(p.nyckel, rad); konto._sedda = null;
   const { error } = await konto.sb.from("fyndjakt_reaktioner").upsert(rad, { onConflict: "user_id,nyckel" });
   if (error) { alertFel(error); konto.reakt.delete(p.nyckel); }
@@ -1000,9 +1001,19 @@ async function taBortReaktion(nyckel) {
 function alertFel(error) { console.error(error); visaStatus("foto-status", "Något gick fel – försök igen."); }
 function visaStatus(id, text) { const e = $(id); if (e) e.textContent = text; }
 
+// Databasen lämnar högst 1000 rader per anrop – hämta sida för sida så att inga reaktioner faller bort.
+async function hamtaAlla(fraga) {
+  const ut = [];
+  for (let fran = 0; ; fran += 1000) {
+    const { data, error } = await fraga().range(fran, fran + 999);
+    if (error) return { data: ut, error };
+    ut.push(...(data || []));
+    if (!data || data.length < 1000) return { data: ut };
+  }
+}
 async function laddaMittData() {
   const [r, a, v] = await Promise.all([
-    konto.sb.from("fyndjakt_reaktioner").select("*").order("skapad", { ascending: false }),
+    hamtaAlla(() => konto.sb.from("fyndjakt_reaktioner").select("*").order("skapad", { ascending: false }).order("nyckel")),
     konto.sb.from("fyndjakt_anteckningar").select("*").order("skapad", { ascending: false }),
     konto.sb.from("fyndjakt_sokord_val").select("spar,sokord,aktiv"),
   ]);
