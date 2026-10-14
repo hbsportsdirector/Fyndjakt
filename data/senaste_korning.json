@@ -1,100 +1,100 @@
 {
-  "tid": "2026-10-14T00:14:09",
-  "annonser_totalt": 9038,
-  "nya": 3554,
-  "bedomda": 1651,
-  "nya_traffar": 395,
+  "tid": "2026-10-14T01:34:38",
+  "annonser_totalt": 7810,
+  "nya": 1020,
+  "bedomda": 235,
+  "nya_traffar": 51,
   "kallor": {
     "Smakanalys": {
-      "nya": 0
+      "nya": 2
     },
-    "Pausade sökord": 6,
+    "Pausade sökord": 14,
     "Auctionet": {
-      "sokningar": 135,
-      "traffar": 2130,
+      "sokningar": 127,
+      "traffar": 1967,
       "fel": 0,
       "felexempel": []
     },
     "Bukowskis": {
-      "sokningar": 135,
-      "traffar": 119,
+      "sokningar": 127,
+      "traffar": 116,
       "fel": 0,
       "felexempel": []
     },
     "Myrorna": {
-      "sokningar": 135,
-      "traffar": 929,
+      "sokningar": 127,
+      "traffar": 816,
       "fel": 0,
       "felexempel": []
     },
     "Stadsmissionen": {
-      "sokningar": 135,
-      "traffar": 121,
+      "sokningar": 127,
+      "traffar": 117,
       "fel": 0,
       "felexempel": []
     },
     "Tradera": {
-      "sokningar": 135,
-      "traffar": 7226,
+      "sokningar": 127,
+      "traffar": 5912,
       "fel": 0,
       "felexempel": []
     },
-    "Väntande från tidigare": 515,
+    "Väntande från tidigare": 1000,
     "Återanvända betyg": 15,
     "Egen modell": {
-      "bortsorterade": 14,
-      "spår med modell": 2
+      "bortsorterade": 16,
+      "spår med modell": 4
     },
     "Sållning": {
-      "sållade": 3293,
-      "bortsållade": 1243,
-      "över gränsen per sökord": 1496,
-      "kvar": 554
+      "sållade": 989,
+      "bortsållade": 15,
+      "över gränsen per sökord": 739,
+      "kvar": 235
     },
-    "Omvärdering med ny smak": 1105,
     "Bedömning": {
-      "batch": 1641,
-      "direkt": 10
+      "batch": 235,
+      "direkt": 0
     },
+    "Tradera-orter ifyllda": 436,
     "Prisjämförelse": {
       "fynd": 120,
-      "med_data": 61
+      "med_data": 49
     },
     "Notiser": {
       "skickade": 0
     }
   },
   "kostnad": {
+    "Smakanalys": {
+      "anrop": 2,
+      "in": 118115,
+      "ut": 2833,
+      "usd": 0.2646,
+      "kr": 2.78
+    },
     "Kategoriprofiler": {
       "anrop": 11,
-      "in": 30315,
-      "ut": 6950,
-      "usd": 0.1301,
-      "kr": 1.37
+      "in": 31657,
+      "ut": 7211,
+      "usd": 0.1354,
+      "kr": 1.42
     },
     "Sållning": {
-      "anrop": 55,
-      "in": 210532,
-      "ut": 25155,
-      "usd": 0.1682,
-      "kr": 1.77
+      "anrop": 5,
+      "in": 17307,
+      "ut": 365,
+      "usd": 0.0096,
+      "kr": 0.1
     },
     "Bedömning batch": {
-      "anrop": 341,
-      "in": 1160884,
-      "ut": 156397,
-      "usd": 0.9714,
-      "kr": 10.2
-    },
-    "Bedömning direkt": {
-      "anrop": 10,
-      "in": 27981,
-      "ut": 878,
-      "usd": 0.0324,
-      "kr": 0.34
+      "anrop": 52,
+      "in": 248844,
+      "ut": 23852,
+      "usd": 0.1841,
+      "kr": 1.93
     },
     "Totalt": {
-      "kr": 13.67
+      "kr": 6.23
     }
   },
   "stadsmissionen_katalog": 1411
