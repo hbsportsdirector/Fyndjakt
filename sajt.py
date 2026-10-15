@@ -72,7 +72,7 @@ def region_for(kalla: str, plats: str) -> tuple[str, str]:
 
 FALT = ["nyckel", "titel", "url", "betyg", "motivering", "kalla", "kategori",
         "pris", "pris_text", "plats", "slutar", "slutar_ts", "bilder", "sedd", "spar",
-        "jamforsok", "jmf_median", "jmf_lag", "jmf_hog", "jmf_antal"]
+        "jamforsok", "jmf_median", "jmf_lag", "jmf_hog", "jmf_antal", "sokord"]
 
 
 def _poster(db, cfg: dict, spar_ids: set[str] | None, rader: list[dict] | None = None) -> list[dict]:
@@ -777,12 +777,15 @@ function jmf(p) {
   return { kvot };
 }
 
+function vikt(p) { return p.betyg - 0.25 * (p._rang ?? p.rang ?? 0); }
 function sthlm(p) { return p.region === "Stockholm" ? 1 : 0; }
 function sorterare() {
   return {
     // Samma betyg: varva sökorden (bästa från varje sökord först), så att ett sökord med många fynd inte tar över.
     // Samma betyg: Stockholm först – kunden kan hämta själv.
-    betyg: (a, b) => b.betyg - a.betyg || sthlm(b) - sthlm(a) || (a.rang ?? 0) - (b.rang ?? 0) || seddTs(b) - seddTs(a),
+    // Variation: varje ytterligare fynd från samma sökord räknas lite lägre (5:e ljusstaken ≈ ett steg ner),
+    // så att ett sökord med många träffar inte fyller hela listan.
+    betyg: (a, b) => vikt(b) - vikt(a) || sthlm(b) - sthlm(a) || seddTs(b) - seddTs(a),
     ny: (a, b) => seddTs(b) - seddTs(a),
     slut: (a, b) => (a.slutar_ts || 9e12) - (b.slutar_ts || 9e12),
     pris: (a, b) => (a.pris ?? 9e12) - (b.pris ?? 9e12),
@@ -801,6 +804,10 @@ function render() {
   if (st.spar === GILLADE) return renderGillade();
   let l = V.poster.filter(p =>
     p.spar === st.spar && !dold(p) && iOmrade(p) && (!st.cat || p.kategori === st.cat) && (!st.src || p.kalla === st.src) && p.betyg >= st.min && traffSok(p));
+  // Plats inom sitt sökord bland det som faktiskt visas (bäst först) – används för variationen i sorteringen.
+  const perSokord = {};
+  [...l].sort((a, b) => b.betyg - a.betyg || seddTs(b) - seddTs(a)).forEach(p => {
+    const k = p.sokord || p.nyckel; p._rang = perSokord[k] = (perSokord[k] ?? -1) + 1; });
   const s = sorterare();
   // Det du inte reagerat på än ligger först – det du redan gillat hamnar längre ner.
   const markerad = p => konto.reakt.has(p.nyckel) ? 1 : 0;

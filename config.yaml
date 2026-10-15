@@ -28,6 +28,9 @@ smak_nystart:
   samlingen: "2026-10-13 23:30:00"
   hemmet: "2026-10-13 23:30:00"
 max_omvarderingar_per_korning: 1500
+# Betygsätt om aktiva fynd i ett spår efter skärpta regler (behåller det appen lärt sig).
+omvardera_fore:
+  hemmet: "2026-10-15 12:10:00"
 
 # Betygsregler för inbjudna användares egna spår (de skapar sina profiler på hemsidan).
 bedomningsregler_anvandare: |
@@ -81,7 +84,12 @@ spar:
       PLATS: Kunden bor i Stockholm och vill helst hämta själv. Föremål i Stockholmsområdet: +1 (högst 10).
       Stora eller ömtåliga föremål (möbler, stora fat, glas i set) långt från Stockholm utan frakt: −2.
       Små saker som enkelt skickas: ingen skillnad.
-    uteslut_ord: [högglans, krom, vitpigmenterad, affisch, poster, furu, björk]
+      MÖBLER ÄR HUVUDSAKEN. Ljusstakar, lampetter och andra småsaker i mässing är bara komplement:
+      vanliga ljusstakar (enkla, nya, massproducerade, utan särskild form) högst 6. 8+ bara för något
+      ovanligt – äldre med tydlig patina och fin form, ett riktigt par i engelsk/klassisk stil, eller en
+      känd formgivare – till bra pris.
+      Chippendale betyder möbler här – bestick, silver, film och musik med namnet är fel (0–2).
+    uteslut_ord: [högglans, krom, vitpigmenterad, affisch, poster, furu, björk, bestick, dvd, cd-singel]
     # Synkade lärdomar 14 okt 2026: ny smak + det som stämmer från tidigare reaktioner.
     lardomar_bas: |
       - Mahogny, valnöt, mörkbetsad ek och jakaranda/palisander är rätt. Ljus bok, björk och furu är fel – även om formen är bra.
@@ -108,12 +116,19 @@ spar:
       - läsfåtölj
       - öronlappsfåtölj
       - engelsk fåtölj
+      - klubbfåtölj
+      - läderfåtölj
+      - chesterfield
       Skrivbord och bord:
       - skrivbord mahogny
       - diplomatskrivbord
       - partnerskrivbord
       - skrivbord engelsk stil
-      - chippendale
+      - chippendale stol
+      - chippendale byrå
+      - chippendale bord
+      - chippendale skrivbord
+      - byrå mahogny
       - engelsk stil mahogny
       - biblioteksstege
       Belysning och mässing:

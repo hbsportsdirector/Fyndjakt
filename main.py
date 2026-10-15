@@ -381,9 +381,12 @@ def main() -> int:
     kandidater = begransa(kandidater, cfg)
 
     # Ny smak i ett spår: aktiva fynd som bedömdes med den gamla smaken betygsätts om en gång.
-    if nystart:
+    # omvardera_fore {spår: tid}: betygsätt om aktiva fynd från före tidpunkten (t.ex. efter skärpta regler),
+    # utan att nollställa det appen lärt sig som smak_nystart gör.
+    omv = {**nystart, **{k: str(v) for k, v in (cfg.get("omvardera_fore") or {}).items() if k in cfg["spar"]}}
+    if omv:
         redan = {a.nyckel for a in kandidater}
-        om = [r for r in db.att_omvardera(nystart, cfg.get("min_betyg", 8),
+        om = [r for r in db.att_omvardera(omv, cfg.get("min_betyg", 8),
                                           cfg.get("max_omvarderingar_per_korning", 1500)) if r["nyckel"] not in redan]
         for r in om:
             kandidater.append(fran_rad(r))
