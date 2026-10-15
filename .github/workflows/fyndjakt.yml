@@ -2,16 +2,15 @@ name: Fyndjakt
 
 on:
   schedule:
-    # GitHub kan försena schemalagda körningar flera timmar – därför tidig start plus en reserv.
-    # GitHub hoppar ibland över schemalagda starter helt. Därför flera försök under morgonen –
-    # varje försök kontrollerar först om dagens körning redan är gjord och avslutas i så fall direkt.
-    - cron: "17 3 * * *"   # 05:17 svensk sommartid (04:17 vintertid)
-    - cron: "47 3 * * *"
-    - cron: "23 4 * * *"
+    # GitHub försenar schemalagda körningar 5–7 timmar (uppmätt okt 2026) och hoppar ibland över dem.
+    # Därför många försök från sen kväll – det första som faktiskt startar gör jobbet, resten avslutas direkt.
+    - cron: "7 21 * * *"    # 23:07 svensk sommartid
+    - cron: "37 22 * * *"
+    - cron: "7 0 * * *"
+    - cron: "37 1 * * *"
+    - cron: "17 3 * * *"
     - cron: "11 5 * * *"
-    - cron: "37 6 * * *"
     - cron: "13 8 * * *"
-    - cron: "41 10 * * *"
   workflow_dispatch:        # gör att du kan köra den manuellt från fliken Actions
   push:                     # kör direkt när du ändrar din stil eller samlingsprofil
     branches: [main]
@@ -37,12 +36,20 @@ jobs:
       klar: ${{ steps.koll.outputs.klar }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main   # senaste läget – en körning som väntat i kö ska se att en annan redan är klar
       - id: koll
         run: |
-          IDAG=$(date -u +%F)
-          SENAST=$(python3 -c "import json;print(json.load(open('data/senaste_korning.json')).get('tid','')[:10])" 2>/dev/null || true)
-          if [ "${{ github.event_name }}" = "schedule" ] && [ "$SENAST" = "$IDAG" ]; then
-            echo "Dagens körning är redan gjord ($SENAST) – hoppar över."
+          # Hoppa över om en körning blev klar de senaste 12 timmarna (en per natt räcker).
+          TIMMAR=$(python3 -c "
+          import json, datetime
+          try:
+              t = datetime.datetime.fromisoformat(json.load(open('data/senaste_korning.json'))['tid'])
+              print(int((datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None) - t).total_seconds() // 3600))
+          except Exception:
+              print(999)")
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "$TIMMAR" -lt 12 ]; then
+            echo "Senaste körningen var för $TIMMAR timmar sedan – hoppar över."
             echo "klar=1" >> "$GITHUB_OUTPUT"
           fi
 
@@ -56,6 +63,8 @@ jobs:
       url: ${{ steps.publicera.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
 
       - uses: actions/setup-python@v5
         with:
