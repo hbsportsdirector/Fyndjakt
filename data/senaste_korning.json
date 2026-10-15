@@ -1,9 +1,9 @@
 {
-  "tid": "2026-10-15T08:49:20",
-  "annonser_totalt": 7803,
-  "nya": 1445,
-  "bedomda": 291,
-  "nya_traffar": 76,
+  "tid": "2026-10-15T09:23:51",
+  "annonser_totalt": 7826,
+  "nya": 1477,
+  "bedomda": 299,
+  "nya_traffar": 84,
   "kallor": {
     "Smakanalys": {
       "nya": 0
@@ -11,7 +11,7 @@
     "Pausade sökord": 14,
     "Auctionet": {
       "sokningar": 127,
-      "traffar": 1979,
+      "traffar": 1978,
       "fel": 0,
       "felexempel": []
     },
@@ -39,26 +39,26 @@
       "fel": 0,
       "felexempel": []
     },
-    "Väntande från tidigare": 658,
-    "Återanvända betyg": 41,
+    "Väntande från tidigare": 675,
+    "Återanvända betyg": 42,
     "Egen modell": {
-      "bortsorterade": 156,
+      "bortsorterade": 155,
       "spår med modell": 4
     },
     "Sållning": {
-      "sållade": 1195,
-      "bortsållade": 254,
-      "över gränsen per sökord": 650,
-      "kvar": 291
+      "sållade": 1227,
+      "bortsållade": 274,
+      "över gränsen per sökord": 654,
+      "kvar": 299
     },
     "Bedömning": {
-      "batch": 291,
+      "batch": 299,
       "direkt": 0
     },
-    "Tradera-orter ifyllda": 15,
+    "Tradera-orter ifyllda": 16,
     "Prisjämförelse": {
       "fynd": 120,
-      "med_data": 43
+      "med_data": 41
     },
     "Notiser": {
       "skickade": 0
@@ -67,20 +67,20 @@
   "kostnad": {
     "Sållning": {
       "anrop": 22,
-      "in": 75751,
-      "ut": 4611,
-      "usd": 0.0494,
-      "kr": 0.52
+      "in": 76311,
+      "ut": 4771,
+      "usd": 0.0501,
+      "kr": 0.53
     },
     "Bedömning batch": {
-      "anrop": 68,
-      "in": 314730,
-      "ut": 30074,
-      "usd": 0.2325,
-      "kr": 2.44
+      "anrop": 69,
+      "in": 315242,
+      "ut": 30285,
+      "usd": 0.2333,
+      "kr": 2.45
     },
     "Totalt": {
-      "kr": 2.96
+      "kr": 2.98
     }
   },
   "stadsmissionen_katalog": 1417
