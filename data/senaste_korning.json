@@ -1,89 +1,74 @@
 {
-  "tid": "2026-10-15T14:12:18",
-  "annonser_totalt": 7649,
-  "nya": 308,
-  "bedomda": 337,
-  "nya_traffar": 57,
+  "tid": "2026-10-16T04:48:45",
+  "annonser_totalt": 7567,
+  "nya": 418,
+  "bedomda": 276,
+  "nya_traffar": 40,
   "kallor": {
     "Smakanalys": {
-      "nya": 2
+      "nya": 0
     },
-    "Pausade sökord": 14,
+    "Pausade sökord": 15,
     "Auctionet": {
-      "sokningar": 134,
-      "traffar": 1872,
+      "sokningar": 133,
+      "traffar": 1837,
       "fel": 0,
       "felexempel": []
     },
     "Bukowskis": {
-      "sokningar": 134,
-      "traffar": 148,
+      "sokningar": 133,
+      "traffar": 152,
       "fel": 0,
       "felexempel": []
     },
     "Myrorna": {
-      "sokningar": 134,
+      "sokningar": 133,
       "traffar": 787,
       "fel": 0,
       "felexempel": []
     },
     "Stadsmissionen": {
-      "sokningar": 134,
+      "sokningar": 133,
       "traffar": 120,
       "fel": 0,
       "felexempel": []
     },
     "Tradera": {
-      "sokningar": 134,
-      "traffar": 5881,
+      "sokningar": 133,
+      "traffar": 5791,
       "fel": 0,
       "felexempel": []
     },
-    "Väntande från tidigare": 26,
-    "Återanvända betyg": 10,
+    "Väntande från tidigare": 21,
+    "Återanvända betyg": 42,
     "Egen modell": {
-      "bortsorterade": 22,
+      "bortsorterade": 77,
       "spår med modell": 4
     },
-    "Omvärdering med ny smak": 91,
     "Bedömning": {
-      "batch": 337,
+      "batch": 276,
       "direkt": 0
     },
-    "Tradera-orter ifyllda": 0,
+    "Tradera-orter ifyllda": 7,
     "Prisjämförelse": {
       "fynd": 120,
-      "med_data": 64
+      "med_data": 38
     },
     "Notiser": {
       "skickade": 0
     }
   },
   "kostnad": {
-    "Smakanalys": {
-      "anrop": 2,
-      "in": 111149,
-      "ut": 3000,
-      "usd": 0.2523,
-      "kr": 2.65
-    },
-    "Kategoriprofiler": {
-      "anrop": 5,
-      "in": 16947,
-      "ut": 3461,
-      "usd": 0.0685,
-      "kr": 0.72
-    },
     "Bedömning batch": {
-      "anrop": 78,
-      "in": 382060,
-      "ut": 32618,
-      "usd": 0.2726,
-      "kr": 2.86
+      "anrop": 64,
+      "in": 304796,
+      "ut": 27396,
+      "usd": 0.2209,
+      "kr": 2.32
     },
     "Totalt": {
-      "kr": 6.23
+      "kr": 2.32
     }
   },
-  "stadsmissionen_katalog": 1446
+  "stadsmissionen_katalog": 1445
 }
