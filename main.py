@@ -362,7 +362,7 @@ def main() -> int:
             def tak_for(nyckel):
                 bedomda, fynd = sokord_stat.get(nyckel, (0, 0))
                 andel = fynd / bedomda if bedomda >= 20 else 0
-                return max_per * (4 if andel >= 0.3 else 2 if andel >= 0.15 else 1)
+                return int(max_per * (2 if andel >= 0.3 else 1.5 if andel >= 0.15 else 1))
             per_sokord: dict[tuple, int] = {}
             gallrad = []
             for a in kvar:
