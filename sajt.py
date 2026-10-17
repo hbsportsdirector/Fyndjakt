@@ -610,7 +610,7 @@ const D = __DATA__;
 // Det som visas just nu: de publika spåren, eller den inloggades egna.
 const V = { spar: [], poster: [], egna: new Set() };
 const PER_SIDA = 50;
-const MAX_PER_SOKORD = 6;
+const MAX_PER_SOKORD = 5;
 const st = { spar: null, cat: "", src: "", reg: "", q: "", min: D.standard, sort: "betyg", visa: PER_SIDA };
 try { st.reg = localStorage.getItem("fyndjakt-omrade") || ""; } catch (e) {}
 const $ = (id) => document.getElementById(id);
@@ -813,11 +813,10 @@ function render() {
   // Det du inte reagerat på än ligger först – det du redan gillat hamnar längre ner.
   const markerad = p => konto.reakt.has(p.nyckel) ? 1 : 0;
   l.sort((a, b) => markerad(a) - markerad(b) || s(a, b));
-  // Variation: högst MAX_PER_SOKORD från samma sökord bland de första – resten kommer efter.
-  if (st.sort === "betyg") {
-    const forst = l.filter(p => (p._rang ?? 0) < MAX_PER_SOKORD), sen = l.filter(p => (p._rang ?? 0) >= MAX_PER_SOKORD);
-    l = forst.concat(sen);
-  }
+  // Variation: högst MAX_PER_SOKORD åt gången från samma sökord. Fler visas när du tagit ställning till de första.
+  // (Med en sökning i sökrutan visas allt.)
+  const doljda = st.q ? 0 : l.filter(p => (p._rang ?? 0) >= MAX_PER_SOKORD).length;
+  if (!st.q) l = l.filter(p => (p._rang ?? 0) < MAX_PER_SOKORD);
   // Lagom att ta ställning till: de 50 bästa först, resten bakom en knapp.
   const visas = l.slice(0, st.visa);
   $("grid").replaceChildren(...visas.map(card));
@@ -833,7 +832,8 @@ function render() {
     : !V.spar.length ? "Skapa en bevakning under ”Mina bevakningar” så börjar appen leta åt dig."
     : forst ? "Inga fynd här än – tryck 🔎 Leta nu under Mina bevakningar, eller vänta till i morgon bitti."
     : "Inga fynd med de här filtren ännu.";
-  $("count").textContent = l.length > visas.length ? `${visas.length} av ${l.length} fynd` : l.length + " fynd";
+  $("count").textContent = (l.length > visas.length ? `${visas.length} av ${l.length} fynd` : l.length + " fynd")
+    + (doljda ? ` · ${doljda} väntar` : "");
 }
 
 $("sort").onchange = e => { st.sort = e.target.value; render(); };
