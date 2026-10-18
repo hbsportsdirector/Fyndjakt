@@ -84,6 +84,11 @@ def _poster(db, cfg: dict, spar_ids: set[str] | None, rader: list[dict] | None =
     for r in (rader if rader is not None else db.traffar(min_betyg)):  # redan sorterade bäst först
         if spar_ids is not None and r.get("spar") not in spar_ids:
             continue
+        if str(r.get("motivering") or "").startswith(("Ej bildgranskad", "Sållad")):
+            continue  # bara bildgranskade fynd visas
+        ns = str((cfg.get("smak_nystart") or {}).get(r.get("spar")) or "")
+        if ns and (r.get("betyg") or 0) < cfg.get("min_betyg", 8) and str(r.get("sedd") or "") < ns:
+            continue  # "nästan"-fynd bedömda med en äldre smak visas inte
         nyckel = (r.get("spar"), r.get("sokord") or r.get("nyckel"))
         if max_per and per_sokord.get(nyckel, 0) >= max_per:
             continue

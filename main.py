@@ -380,6 +380,20 @@ def main() -> int:
             print(f"  Sållningen misslyckades ({e}) – går vidare utan den.")
     kandidater = begransa(kandidater, cfg)
 
+    # Kön: annonser som klarat titelsållningen tidigare men aldrig hann bildgranskas. De behöver inte hittas
+    # i nattens sökningar igen – de bedöms direkt från databasen, bäst först, så länge budgeten räcker.
+    plats_kvar = cfg.get("max_bedomningar_per_korning", 800) - len(kandidater)
+    fran_kon = min(cfg.get("max_fran_kon_per_korning", 300), max(0, plats_kvar))
+    if fran_kon:
+        redan = {a.nyckel for a in kandidater}
+        rader = db.con.execute(
+            "SELECT * FROM sedda WHERE motivering LIKE 'Ej bildgranskad%' AND (slutar_ts IS NULL OR slutar_ts > ?) "
+            "ORDER BY betyg DESC, sedd DESC", (int(time.time()) + 3600,)).fetchall()
+        ko = [fran_rad(dict(r)) for r in rader if r["nyckel"] not in redan and r["spar"] in cfg["spar"]][:fran_kon]
+        kandidater += ko
+        STATISTIK["Från kön"] = len(ko)
+        print(f"Kön: {len(ko)} väntande annonser bedöms (av {len(rader)}).")
+
     # Ny smak i ett spår: aktiva fynd som bedömdes med den gamla smaken betygsätts om en gång.
     # omvardera_fore {spår: tid}: betygsätt om aktiva fynd från före tidpunkten (t.ex. efter skärpta regler),
     # utan att nollställa det appen lärt sig som smak_nystart gör.
