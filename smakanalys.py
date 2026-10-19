@@ -11,7 +11,8 @@ from pathlib import Path
 FIL = Path(__file__).parent / "data" / "smakanalys.json"
 MODELL = "claude-sonnet-5-5"
 MIN_REAKTIONER = 3
-MAX_PER_SIDA = 12
+MAX_PER_SIDA = 40      # titlar per sort (gillade/ogillade) – de senaste
+BILDER_PER_SIDA = 8    # bilder per sort (resten bara text – titlarna säger det mesta)
 
 INSTRUKTION = """Du hjälper en app som letar begagnade fynd åt en kund. Nedan finns föremål kunden har reagerat på:
 👍 = gillade, 👎 = gillade inte, 🛒 = köpte. Till varje föremål finns titeln, din tidigare bedömning och ofta en bild.
@@ -21,7 +22,7 @@ Tänk på färg, form, epok, material, motiv, ytbehandling, storlek, prisnivå o
 Var extra uppmärksam när samma formgivare, konstnär eller tillverkare finns på båda sidor – vad skiljer då
 föremålen åt? Det är ofta det viktigaste att förstå.
 
-Skriv 3–8 korta, konkreta punkter på svenska, formulerade som regler för kommande bedömningar, t.ex.
+Skriv 4–15 korta, konkreta punkter, gärna per typ av föremål eller serie på svenska, formulerade som regler för kommande bedömningar, t.ex.
 "Gillar Erik Höglund i klara blå och gröna färger – inte de bruna/bärnstensfärgade."
 Hitta inte på mönster som inte syns i underlaget; finns för lite att gå på, skriv färre punkter.
 Om kunden själv skrivit en förklaring väger den tyngst.
@@ -52,29 +53,29 @@ def _innehall(reakt: list[dict]) -> list[dict]:
                 rad += f"\n   Din bedömning då: {r['motivering'][:200]}"
             if r.get("kommentar"):
                 rad += f'\n   Kundens egen förklaring: "{r["kommentar"]}"'
-            if r.get("bild"):
-                ut.append({"type": "image", "source": {"type": "url", "url": r["bild"]}})
+            if r.get("bild") and sum(1 for x in ut if x["type"] == "image" and x.get("_typ") == typ) < BILDER_PER_SIDA:
+                ut.append({"type": "image", "source": {"type": "url", "url": r["bild"]}, "_typ": typ})
             ut.append({"type": "text", "text": rad})
     return ut
 
 
 def _fraga(klient, reakt: list[dict], bas: str = "") -> str:
     import anthropic
-    innehall = _innehall(reakt)
+    innehall = [{k: v for k, v in d.items() if k != "_typ"} for d in _innehall(reakt)]
     if bas:
         innehall.append({"type": "text", "text": "Det här vet vi redan om kundens smak – upprepa det inte, "
                          "skriv bara NYA iakttagelser (eller där reaktionerna tydligt säger emot):\n" + bas})
     try:
-        svar = klient.messages.create(model=MODELL, max_tokens=1500, system=INSTRUKTION,
+        svar = klient.messages.create(model=MODELL, max_tokens=2500, system=INSTRUKTION,
                                       messages=[{"role": "user", "content": innehall}])
     except anthropic.BadRequestError:  # t.ex. en bild som inte längre finns – försök med bara text
-        svar = klient.messages.create(model=MODELL, max_tokens=1500, system=INSTRUKTION,
+        svar = klient.messages.create(model=MODELL, max_tokens=2500, system=INSTRUKTION,
                                       messages=[{"role": "user", "content": [d for d in innehall if d["type"] == "text"]}])
     import bedomning
     bedomning.registrera("Smakanalys", svar)
     text = "".join(b.text for b in svar.content if getattr(b, "type", "text") == "text")
     rader = [r.strip() for r in text.splitlines() if r.strip().startswith(("-", "•"))]
-    return "\n".join("- " + r.lstrip("-• ").strip() for r in rader[:10])
+    return "\n".join("- " + r.lstrip("-• ").strip() for r in rader[:15])
 
 
 def analysera(cfg: dict, export: dict | None, klient=None) -> dict:

@@ -31,7 +31,8 @@ smak_nystart:
 max_omvarderingar_per_korning: 1500
 # Betygsätt om aktiva fynd i ett spår efter skärpta regler (behåller det appen lärt sig).
 omvardera_fore:
-  hemmet: "2026-10-15 12:10:00"
+  hemmet: "2026-10-19 17:30:00"
+  samlingen: "2026-10-19 17:30:00"
 
 # Betygsregler för inbjudna användares egna spår (de skapar sina profiler på hemsidan).
 bedomningsregler_anvandare: |
@@ -99,6 +100,13 @@ spar:
       - Bankirlampa med grön skärm passar perfekt.
       - Gamla läderband gillas när de är enhetliga serier eller små klassiker till lågt pris (ca 100–400 kr). Dyra rese- och polarböcker avvisas trots fina band.
       - Mikroskop och andra stora instrument har fått nej; små mässingsobjekt (kompass, förstoringsglas) är bättre.
+      # Från reaktionerna 14–19 okt (≈200 st):
+      - Väggmonterat mässing (lampetter, ljusplåtar, väggljusstakar, vägglampor) får nej – bordsljusstakar ja.
+      - Ljusstakar: höga, upprätta, med baluster- eller vriden skaft, i par eller set. Nattljusstakar (låga med handtag) nej.
+      - Silverfärgat (WMF, försilvrat, krom) nej – bara varm mässingston.
+      - Fåtöljer: bara klassiskt engelskt (Chesterfield, öronlapp i engelsk stil). Moderna designfåtöljer och danska/skandinaviska karmstolar (Norell, Resell, Mølgaard m.fl.) och soffgrupper nej.
+      - Sekretärer gillas när de är rejäla med lådor, jalusi eller rullklaff, ca 1 000–2 000 kr. Små/smala och resesekretärer nej.
+      - Byråer och skänkar i mahogny träffar oftast rätt.
     sokningar:
       Bokhyllor och skåp:
       - bokhylla mahogny
@@ -123,12 +131,10 @@ spar:
       - öronlappsfåtölj
       - engelsk fåtölj
       - klubbfåtölj
-      - fåtölj läder
       - läderfåtölj
       - chesterfield
       Skrivbord och bord:
       - skrivbord mahogny
-      - skrivbord antikt
       - diplomatskrivbord
       - partnerskrivbord
       - skrivbord engelsk stil
@@ -142,9 +148,6 @@ spar:
       Belysning och mässing:
       - bankirlampa
       - bankers lamp
-      - lampett mässing
-      - läslampa mässing
-      - vägglampa mässing
       - ljusstakar mässing
       - skrivställ
       - bokstöd mässing
@@ -184,6 +187,14 @@ spar:
       - Pierre Forssell/Skultuna Prins gillas; Festivitas och Gense-ströare gjorde det inte.
       - Ulrica Hydman-Vallien, Bertil Vallien, Ingeborg Lundin, Gunnel Sahlin, Kjell Engman och Bernadotte & Kylberg: nej.
       - Krackelering, nagg och nyproduktion drar ner tydligt.
+      # Från reaktionerna 14–19 okt (≈290 st):
+      - BURKAR MED LOCK är en röd tråd: Deco Hälsingborgs sill-, sylt-, senaps- och gurkburkar, Jie-burkar (Vår lilla stad, Familjen Pepparsson, kryddburkar) och Picknick-burkar gillas. Vaser, krus, kannor och fat från Deco gillas INTE.
+      - Picknick: burkar ja – karotter, skålar, fat, äggkoppar och kastruller har fått nej.
+      - Rörstrand Valentine: fat, kannor, såskanna och koppar ja – enstaka assietter nej.
+      - Blå Eld, Jie/Anita Nylund och Spode Italian träffar nästan alltid rätt – ge dem gärna högt.
+      - Stig Lindberg: dyra studioföremål i stengods (över ca 2 000 kr) har fått nej; Reptil och liknande formbärande serieföremål ja.
+      - Nils Landberg: Sommerso-vaser och karaffer ja – Illusion-glas, tulpanglas och etagefat nej.
+      - "Rörstrand 1960-tal" i allmänhet (Elisabeth, Sippa, Tim m.m.) har fått nej – bara de namngivna serierna gäller.
     # Egna betygsregler för samlingen.
     bedomningsregler: |
       Kunden SAMLAR utvalda svenska och engelska serier och formgivare (se profilen). Serietillverkade föremål
@@ -211,7 +222,6 @@ spar:
       Glas:
         - Erik Höglund röd
         - Erik Höglund
-        - Boda röd glas
         - Orrefors Colora
         - Kosta Boda färgat glas
         - Kosta Boda Line
@@ -245,10 +255,11 @@ spar:
         - Spode serving dish
       Keramik och design:
         - Stig Lindberg Gustavsberg
-        - Rörstrand 1960
-        - Rörstrand 1970
         - Gustavsberg signerad
+        - Deco Hälsingborg burk
         - Deco Hälsingborg
+        - Picknick burk
+        - Jie burk
         - Georg Wide
         - Rörstrand Gourmet
         - Rörstrand Valentine

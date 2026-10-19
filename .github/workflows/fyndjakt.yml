@@ -40,16 +40,20 @@ jobs:
           ref: main   # senaste läget – en körning som väntat i kö ska se att en annan redan är klar
       - id: koll
         run: |
-          # Hoppa över om en körning blev klar de senaste 12 timmarna (en per natt räcker).
-          TIMMAR=$(python3 -c "
+          # En körning per "natt": ett dygn räknas från 18:00 UTC (20:00 svensk tid) till nästa dag 18:00.
+          # Har en körning redan gjorts i det fönstret hoppar schemat över – manuella körningar går alltid.
+          KLAR=$(python3 -c "
           import json, datetime
+          def natt(t):
+              return (t + datetime.timedelta(hours=6)).date()
           try:
               t = datetime.datetime.fromisoformat(json.load(open('data/senaste_korning.json'))['tid'])
-              print(int((datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None) - t).total_seconds() // 3600))
+              nu = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+              print(1 if natt(t) == natt(nu) else 0)
           except Exception:
-              print(999)")
-          if [ "${{ github.event_name }}" = "schedule" ] && [ "$TIMMAR" -lt 12 ]; then
-            echo "Senaste körningen var för $TIMMAR timmar sedan – hoppar över."
+              print(0)")
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "$KLAR" = "1" ]; then
+            echo "Nattens körning är redan gjord – hoppar över."
             echo "klar=1" >> "$GITHUB_OUTPUT"
           fi
 
