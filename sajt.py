@@ -839,6 +839,22 @@ function render() {
     : "Inga fynd med de här filtren ännu.";
   $("count").textContent = (l.length > visas.length ? `${visas.length} av ${l.length} fynd` : l.length + " fynd")
     + (doljda ? ` · ${doljda} väntar` : "");
+  // Tomt bara för att filtren är snäva? Säg hur många som finns utan dem, med en knapp som nollställer.
+  if (!l.length && konto.inloggad && (st.reg || st.src || st.cat || st.q || st.min > D.standard)) {
+    const utan = V.poster.filter(p => p.spar === st.spar && !dold(p) && p.betyg >= D.standard).length;
+    if (utan) {
+      const vad = [st.reg && `området ${st.reg}`, st.src && "källan", st.cat && "kategorin", st.q && "sökningen"].filter(Boolean).join(", ") || "filtren";
+      $("empty").replaceChildren(`Inga fynd med ${vad} – men ${utan} väntar i hela listan. `);
+      const b = document.createElement("button"); b.type = "button"; b.className = "knapp"; b.textContent = "Visa alla";
+      b.onclick = () => {
+        st.reg = st.src = st.cat = st.q = ""; st.min = D.standard;
+        $("reg").value = ""; $("src").value = ""; $("q").value = ""; $("min").value = st.min; $("minv").textContent = st.min;
+        try { localStorage.setItem("fyndjakt-omrade", ""); } catch (e) {}
+        renderTabs(); renderChips(); render();
+      };
+      $("empty").appendChild(b);
+    }
+  }
 }
 
 $("sort").onchange = e => { st.sort = e.target.value; render(); };
