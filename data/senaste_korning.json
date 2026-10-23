@@ -1,95 +1,75 @@
 {
-  "tid": "2026-10-22T01:31:18",
-  "annonser_totalt": 6248,
-  "nya": 500,
-  "bedomda": 304,
-  "nya_traffar": 59,
+  "tid": "2026-10-23T00:22:34",
+  "annonser_totalt": 6784,
+  "nya": 633,
+  "bedomda": 434,
+  "nya_traffar": 55,
   "kallor": {
     "Smakanalys": {
-      "nya": 2
+      "nya": 0
     },
     "Pausade sökord": 16,
     "Auctionet": {
       "sokningar": 133,
-      "traffar": 1671,
+      "traffar": 1862,
       "fel": 0,
       "felexempel": []
     },
     "Bukowskis": {
       "sokningar": 133,
-      "traffar": 84,
+      "traffar": 91,
       "fel": 0,
       "felexempel": []
     },
     "Myrorna": {
       "sokningar": 133,
-      "traffar": 0,
-      "fel": 133,
-      "felexempel": [
-        "Evert Lundquist: ConnectTimeout: HTTPSConnectionPool(host='www.myrorna.se', port=443): Max retries exceeded with url: /shop/?s=Evert+Lundquist (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.myrorna.se', port=443) at 0x7fe9",
-        "Curt Hillfon: ConnectTimeout: HTTPSConnectionPool(host='www.myrorna.se', port=443): Max retries exceeded with url: /shop/?s=Curt+Hillfon (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.myrorna.se', port=443) at 0x7fe9354",
-        "Willie Weberg: ConnectTimeout: HTTPSConnectionPool(host='www.myrorna.se', port=443): Max retries exceeded with url: /shop/?s=Willie+Weberg (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.myrorna.se', port=443) at 0x7fe935",
-        "Ulf Lundell serigrafi: ConnectTimeout: HTTPSConnectionPool(host='www.myrorna.se', port=443): Max retries exceeded with url: /shop/?s=Ulf+Lundell+serigrafi (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.myrorna.se', port=443) at ",
-        "Ulf Lundell litografi: ConnectTimeout: HTTPSConnectionPool(host='www.myrorna.se', port=443): Max retries exceeded with url: /shop/?s=Ulf+Lundell+litografi (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.myrorna.se', port=443) at "
-      ]
+      "traffar": 543,
+      "fel": 0,
+      "felexempel": []
     },
     "Stadsmissionen": {
       "sokningar": 133,
-      "traffar": 115,
+      "traffar": 117,
       "fel": 0,
       "felexempel": []
     },
     "Tradera": {
       "sokningar": 133,
-      "traffar": 5059,
+      "traffar": 5048,
       "fel": 0,
       "felexempel": []
     },
     "Väntande från tidigare": 0,
-    "Återanvända betyg": 87,
+    "Återanvända betyg": 89,
     "Egen modell": {
-      "bortsorterade": 66,
+      "bortsorterade": 68,
       "spår med modell": 4
     },
     "Från kön": 0,
     "Bedömning": {
-      "batch": 304,
+      "batch": 434,
       "direkt": 0
     },
-    "Tradera-orter ifyllda": 11,
+    "Tradera-orter ifyllda": 14,
     "Prisjämförelse": {
       "fynd": 120,
-      "med_data": 44
+      "med_data": 48
     },
     "Notiser": {
       "skickade": 0
     }
   },
   "kostnad": {
-    "Smakanalys": {
-      "anrop": 2,
-      "in": 88749,
-      "ut": 4739,
-      "usd": 0.2249,
-      "kr": 2.36
-    },
     "Bedömning batch": {
-      "anrop": 70,
-      "in": 424995,
-      "ut": 30838,
-      "usd": 0.2896,
-      "kr": 3.04
-    },
-    "Prisjämförelse": {
-      "anrop": 1,
-      "in": 105,
-      "ut": 12,
-      "usd": 0.0002,
-      "kr": 0.0
+      "anrop": 96,
+      "in": 646784,
+      "ut": 41730,
+      "usd": 0.4277,
+      "kr": 4.49
     },
     "Totalt": {
-      "kr": 5.4
+      "kr": 4.49
     }
   },
-  "stadsmissionen_katalog": 1422
+  "stadsmissionen_katalog": 1471
 }
