@@ -1,71 +1,110 @@
-# Min smak – Samlingen
-*Ägare: Per Lundgren | Ny profil från 14 oktober 2026 – ersätter all tidigare*
+# Min smak – Samlingen (konst, glas, keramik)
+*Ägare: Per Lundgren | Ny profil från 2026-10-23 – ersätter all tidigare*
 
-Bevakning av konst, glas och keramik som kompletterar samlingen. Bedöm ENBART efter den här profilen.
+Jag samlar skandinaviskt mid-century art glass och keramik, cirka 1949–1975. Fokus på **namngivna serier och formgivare** – inget random vintage. Två serier är hjärtat: **Hertha Bengtson "Blå Eld / Röd Eld"** (Rörstrand 1949–71) och **Stig Lindberg "Domino"** (Gustavsberg 1954–69). Allt annat är kompletterande. Bedöm ENBART efter den här profilen. Det som inte nämns här är inte intressant.
 
----
+## Keramik – mid-century serier
 
-## Konst – konstnärer att bevaka
-Bara dessa konstnärer. Övrig konst, grafik, posters och editioner är inte intressant.
-- **Evert Lundquist**
-- **Curt Hillfon**
-- **Willie Weberg**
-- **Ulf Lundell** – bara hans konst och grafik (serigrafier, målningar). INTE skivor, böcker, autografer eller memorabilia.
-- **Owe Gustafson**
+### Hertha Bengtson för Rörstrand – Blå Eld / Röd Eld (1949–71)
+Hjärtsamlingen. Röd är prioritet (sällsynt), blå är daglig servis.
+- **Röd Eld (den röda varianten av Blå Eld)** – HÖGSTA prio. Varje form är värd 8+.
+  - Alla former: tallrikar, djuptallrikar, skålar (alla storlekar), muggar, koppar + fat, kannor, tekannor, kaffekannor, serveringsfat, karotter, sockerkar, gräddkanna, smörburk, assietter, salt/peppar.
+  - Både vintage original (1949–71) OCH nyproduktion (2024+) är OK. Nyproduktion finns bara i tallrikar 19/23/26 cm + serveringsfat 20×29/24×35 cm – ALLT ANNAT röd = vintage = extra värdefullt.
+  - **Saknas särskilt:** tekanna, kaffekanna, soppskålar komplett, karotter, gräddkanna, sockerkar.
+- **Blå Eld (den blå grundvarianten)** – daglig användning, redan massor i samlingen. Jaga ovanliga former: karaffer, lock-skålar, tekannor, salt/peppar, större serveringsfat. Enkla tallrikar/muggar har redan.
 
-## Glas – komplettera samlingen
-- **Erik Höglund, Boda** – främst RÖDA föremål (det som saknas i samlingen). Tung, bubblig glasform.
-- **Orrefors Colora** – matchar de gula cylindervaserna i samlingen.
-- **Kosta Boda färgat glas** – starka färger.
-- **Kosta Boda Line** och **Anna Ehrner** – fler champagne- och martiniglas till setet.
-- **Orrefors Difference** och **Orrefors provarglas** – komplettera provarglasen.
-- **Anders Wingård / Wingård Baskemölla** – munblåsta glas med blå kant. En **karaff saknas** – högsta prioritet i den serien.
-- Behålls från tidigare (gillade): **Vicke Lindstrand** (Kosta), **Nils Landberg** och **Sven Palmqvist Kraka** (Orrefors) – tjockt underfång, sommerso, dämpade mörka toner.
+### Stig Lindberg för Gustavsberg – Domino (1954–69)
+Växande samling (ca 8–10 pjäser av totalt 13 originalformer). Jaga de saknade.
+- 7 vas-former: koniska, cylindriska, sfäriska, kvadratiska – svart glossy med vita linjer eller omvänt.
+- 6 fat/skålar.
+- Signatur: Gustavsberg-stämpel + "Domino" eller "SL".
+- Både svart/vit OCH brun variant OK.
+- OBS: Gunnar Nylund för Rörstrand har också en serie som heter "Domino" – OK men lägre prio.
 
-**INTE intresserad av:** Ulrica Hydman-Vallien (inget alls av henne), Bertil Vallien, Kjell Engman, Gunnel Sahlin, Ingeborg Lundin, Bernadotte & Kylberg.
+### Övrig svensk keramik
+- **Harlequin** (Marianne Westman / svensk 50-60-tal) – sockerkar och mindre skålar med vinröd/svart/vit triangel-mönster. Jag har 1 sockerkar.
+- **Deco Hälsingborg** – BARA burkar med lock. Vaser, krus, kannor, fat NEJ.
+- **Jie / Anita Nylund** – burkar och kryddställ. Dyra "Vår lilla stad"-burkar NEJ.
+- **Rörstrand Picknick** – BARA burkar. Karotter, skålar, fat NEJ.
+- **Rörstrand Valentine** – fat, kannor, koppar JA. Assietter NEJ.
+- **Stig Lindberg icke-Domino** – Reptil JA. Dyra studioföremål NEJ.
 
-## Keramik & porslin
+**INTE intresserad av:** modern porslin, osignerat, 60–70-tals Rörstrand (Elisabeth, Sippa, Mon Amie), hobbykeramik, nyproduktion av enkla former (gäller inte Röd Eld).
 
-### Rörstrand Eld-serierna (Hertha Bengtson, 1951–1971)
-- **Blå Eld** och **Röd Eld** i alla former – fat, skålar, koppar, kannor, tekannor, terriner, servisdelar och blandade poster. Blandade "servisdelar"-poster gömmer ofta den saknade biten.
-- **Röd Eld är ovanligare** – ge den högst.
-- Stavningen varierar: Hertha Bengtson / Hertha Bengtsson.
-- **Nyproduktion** finns sedan Rörstrands 300-årsjubileum – om annonsen eller stämpeln visar nyproduktion: lågt betyg.
-- Andra Bengtson-serier (Koka, Ceylon, Rosmarin, Filippa, Druva) och grå/vit Blå Eld är inte intressanta.
+## Glas – skandinaviskt art glass 1950–75
 
-### Jie Gantofta (Anita Nylund, 1956–1964)
-- **Janssons frestelse** – äger redan nr **111, 112 och 114**. Andra nummer söks. (Stavas ibland Jäntofta.)
-- Även **Gille**, **Vår lilla stad** och **Familjen Pepparsson**.
+### Erik Höglund för Boda (1953–73)
+Har massor i blå, grön, orange, opalin turkos. Jaga ovanliga färger och former.
+- **Röd Höglund Boda** – HÖGSTA prio (mycket ovanlig).
+- **Opalin varianter** i orange, turkos, grön, lila – kompletterar.
+- Former: rund bowl, kanna med handtag, ljusstake med fat, hög smal "torn"-vas, djur-figurer.
+- Signatur: Boda-stämpel + "H" eller "Höglund".
 
-### Spode Blue Italian
-- **Spode Italian / Blue Italian** – många annonser på engelska (tea pot, serving dish, plate).
-- **Copeland Spode** – de äldre delarna (före 1970) är mest intressanta. (Stavas ibland Copland.)
+### Sommerso-glas (klarglas-hölje runt färgad kärna)
+Svensk 1950–60-tal, tung glaskub-teknik.
+- **Nils Landberg Sommerso** – karaffer, höga vaser, ägg-former JA. Illusion-serien och tulpanglas NEJ.
+- **Vicke Lindstrand** – tjockt underfång med bubblor och ränder JA.
+- Flygsfors Sommerso – klassiska former.
 
-### Övrigt i samlingen
-- **Stig Lindberg, Gustavsberg** – formen ska bära: relief, textur eller inpressat mönster (t.ex. Reptil). Målad eller tryckt dekor (Prunus, Comedia, Fallande löv) och fiskfat är inte intressant.
-- **Rörstrand 1960–1980**
-- **Gustavsberg signerad**
-- **Deco Hälsingborg** och **Georg Wide** – fler Skånska-burkar.
-- **Rörstrand Gourmet** och **Rörstrand Valentine**
-- **Gustavsberg Hagtorn** – antika delar 1899–1939.
-- Behålls från tidigare (gillade): **Rörstrand Picknick** (Marianne Westman) – alla delar, och **Pierre Forssell / Skultuna** (t.ex. Prins-ljusstakar).
+### Orrefors
+- Gula cylindrar, blå vaser med pip – klassiska former.
 
----
+### Kosta Boda Line (Anna Ehrner)
+BARA champagne- och martiniglas kan få 8+. Stora satser och vardagsglas = max 5. (För stor volym annars.)
 
-## Skick och äkthet
-Kolla alltid stämpel och skick i annonsbilderna. Krackelering, nagg och nyproduktion påverkar mest – dra ner betyget tydligt.
+**INTE intresserad av:** generiskt "Boda röd" utan verifiering, tjocka slipade bowls från 70–80-tal, Illusion-serien, tulpanglas.
+
+## Konst – mid-century svenskt och internationellt
+
+### Namngivna svenska konstnärer
+- **Evert Lundquist** – målare, mörka toner, bred penselteknik.
+- **Curt Hillfon** – målare/skulptör, mellan abstrakt och figurativt.
+- **Willie Weberg** – målare, modernistisk stil.
+- **Ulf Lundell** – ENDAST konst/grafik (serigrafi, litografi, målning). Skivor, böcker, memorabilia = max 2.
+- **Owe Gustafson** – illustratör och grafiker.
+- **Erik Lundström** – charcoal / mixed media med röd bakgrund.
+
+### Övrig konst
+- **Linden-serigrafi (-92)** – svarta silhuetter med röda inslag.
+- **Japansk block-print** 1900-tal (Yoshitoshi Mori, Clifton Karhu, Umetaro Azechi) – stiliserade figurer.
+- **H55-eran signerad grafik** (1955 Helsingborg-utställningen).
+
+**INTE intresserad av:** opersonlig modern konst, nutida affisch-tryck, 70-tals airbrush, osignerad hobbykonst. Övrig konst, grafik och posters utanför namnlistan = max 3.
 
 ## Prisnivåer
-- Konstoriginal: 3 000–80 000 kr. Grafik: 500–8 000 kr.
-- Designglas: 200–2 000 kr per föremål. Keramik: 100–600 kr per föremål.
-- Lågt pris är ett plus. Långt över nivåerna drar ner.
 
-## Redan i samlingen (ge lågt åt exakt samma sak)
-- Evert Lundquist, "Tre figurer, röd bakgrund", kol och rödkrita 1957
-- Curt Hillfon, abstrakt blå komposition 1990
-- Willie Weberg, liggande akt
-- Ulf Lundell, Bob Dylan-målning 1992
-- Owe Gustafson, "PIPA" serigrafi
-- ~10 röda glas av Erik Höglund/Boda (cylindervas, skålar, compote, karaff, pokalglas, fat)
-- 2 gula Orrefors Colora-cylindervaser
-- Jie Janssons frestelse nr 111, 112, 114
+| Kategori | Mitt-pris | Högst rimligt |
+|---|---|---|
+| Enkel Blå Eld-tallrik vintage | 150–300 kr | 500 kr |
+| Röd Eld vintage-pjäs (vilken form) | 1 000–2 500 kr | 4 000 kr |
+| Domino-vas Stig Lindberg | 1 500–4 000 kr | 8 000 kr (ovanlig) |
+| Erik Höglund Boda-vas | 500–1 500 kr | 3 000 kr (röd) |
+| Sommerso Nils Landberg | 800–2 500 kr | 5 000 kr |
+| Harlequin sockerkar/skål | 150–500 kr | 800 kr |
+| Konst signerad grafik mid-century | 500–2 500 kr | 5 000 kr |
+
+## Skick och äkthet
+- Nagg, krackelering, chip, stora fläckar = ned 2–3.
+- Osignerad vintage utan tydlig attribution = ned 2.
+- Vintage med originalstämpel + bra skick + ovanlig variant = 9–10.
+- Nyproduktion av vanliga Blå Eld-former = ignoreras (gäller inte Röd Eld).
+
+## Redan i samlingen (ge 0–3 åt exakt samma sak)
+
+**Blå Eld (massor):** alla enkla tallrikar (26cm, 23cm, 19cm), serveringsfat (20×29, 24×35), kaffemuggar, djuptallrikar – HAR.
+
+**Röd Eld:** 3–4 pjäser (specifika former inte dokumenterade – antagligen tallrikar och mindre fat). Saknar: tekanna, kaffekanna, soppskålar komplett, sockerkar.
+
+**Domino:** ca 8–10 pjäser. Chevron-droppar par, triangel-vaser trio, boll med linjer, cone-par stor+liten, rutmönster-cylinder, triangel-sun-bricka, triangel-carafe. Saknar: ca 3–5 av de 13 originalformerna.
+
+**Höglund Boda:** orange rund bowl, opalin turkos rund, grön kanna med handtag, grön bowl, blå bowl, blå kruka, blå ljusstake, blå hög "torn"-vas – HAR.
+
+**Sommerso:** 2 turkos hög + 1 lila ägg + 1 blå ägg – HAR.
+
+**Orrefors:** 2 gula cylindrar, 1 blå vas med pip – HAR.
+
+**Trefärg-trio:** grön/röd/blå höga vaser med fot – HAR.
+
+**Övriga glas:** lila stor vas, mörkt grön klotformad, mörkt grön vas liten, röda transparent (goblet, carafe, urn, cylinder bowl, stor glasskål) – HAR.
+
+**Keramik:** Harlequin sockerkar – HAR 1. Svartvit "Domino-stil" annan tillverkare – HAR några.

@@ -26,13 +26,12 @@ modell: claude-haiku-4-5-20251001  # byt till claude-sonnet-5-5 för skarpare om
 # bedömningen i spåret – bara profilen, lardomar_bas och det som händer efteråt. Aktiva fynd (8+)
 # som bedömdes före tidpunkten betygsätts om en gång med den nya smaken.
 smak_nystart:
-  samlingen: "2026-10-13 23:30:00"
-  hemmet: "2026-10-13 23:30:00"
+  samlingen: "2026-10-23 08:00:00"
+  hemmet: "2026-10-23 08:00:00"
 max_omvarderingar_per_korning: 1500
 # Betygsätt om aktiva fynd i ett spår efter skärpta regler (behåller det appen lärt sig).
-omvardera_fore:
-  hemmet: "2026-10-19 17:30:00"
-  samlingen: "2026-10-19 17:30:00"
+# Tömd 2026-10-23: ny smak_nystart nollställer allt så omvärderingarna behövs inte.
+omvardera_fore: {}
 
 # Betygsregler för inbjudna användares egna spår (de skapar sina profiler på hemsidan).
 bedomningsregler_anvandare: |
@@ -69,149 +68,315 @@ kallor:
 
 spar:
   # ── 1. Inredningen ────────────────────────────────────────────
+  # Omskriven 2026-10-23 – Sherlock Holmes-inspirerat engelskt bibliotek i Åkersberga.
+  # Chesterfield + wingback + klubbfåtölj finns redan. Jaga mahogny-möbler, mässing och antikvariska detaljer.
   hemmet:
     namn: The Reading Room
     profilfil: stil.md
     tillagg: |
-      Jag letar begagnade/vintage-möbler och detaljer till det engelska biblioteket – inte golv, färg eller lister.
-      Mest av allt: bokhyllor och biblioteksbokhyllor, vitrinskåp, Chesterfield (fåtölj eller soffa),
-      skrivbord (mahogny, diplomatskrivbord), läsfåtölj/öronlappsfåtölj, Chippendale och engelsk stil,
-      biblioteksstege, samt mässing: bankirlampa med grön skärm, lampetter, läslampor, ljusstakar,
-      skrivställ, bokstöd och kuriosa (kompass, teleskop, sextant). Gamla läder- och klotband.
-      Träslag: mahogny, valnöt, mörkbetsad ek, jakaranda/palisander. Ljus bok, björk, furu = lågt betyg.
-      Mässing med patina, cognacfärgat läder och mörkgrön sammet är rätt.
-      Letar INTE längre efter jordglobar, kartor, sjökort, konst (målningar, gravyrer, planscher) eller
-      mattor – ge sådant högst 3.
-      Fel: krom, blanka lackytor, kalla grå toner, ljus/vitpigmenterad ek, ljus skandinavisk minimalism.
-      PLATS: Kunden bor i Stockholm och vill helst hämta själv. Föremål i Stockholmsområdet: +1 (högst 10).
-      Stora eller ömtåliga föremål (möbler, stora fat, glas i set) långt från Stockholm utan frakt: −2.
+      Bedöm ENBART efter profilen ovan. Det som inte nämns där är inte intressant.
+
+      HÅRDA REGLER (följ exakt):
+      - Mahogny JA. Björk, furu, ljus bok = max 3.
+      - Chippendale, viktoriansk, edvardiansk, empir JA.
+      - Modern dansk/skandinavisk design (Fritz Hansen, Hans Wegner, Arne Jacobsen, Finn Juhl,
+        Børge Mogensen) = max 3 oavsett pris eller skick.
+      - Soffgrupper / modulsoffor = max 3.
+      - Lampetter, väggmonterat ljus (vägglampa, läslampa väggmonterad) = max 3.
+      - Krom, silver, polerat stål = max 3.
+      - Varm mässingston JA, silver/krom NEJ.
+      - IKEA Billy har kunden redan 7 st - INGET fler Billy behövs.
+      - Chippendale ENSAMT sökord ger silver/filmer - alltid med typ ("chippendale byrå").
+
+      PLATS: Kunden bor i Stockholm/Åkersberga. Stockholm ger +1 (högst 10).
+      Stora möbler (byråer, soffor, skrivbord) långt bort utan frakt ger -2.
       Små saker som enkelt skickas: ingen skillnad.
-      MÖBLER ÄR HUVUDSAKEN. Ljusstakar, lampetter och andra småsaker i mässing är bara komplement:
-      vanliga ljusstakar (enkla, nya, massproducerade, utan särskild form) högst 6. 8+ bara för något
-      ovanligt – äldre med tydlig patina och fin form, ett riktigt par i engelsk/klassisk stil, eller en
-      känd formgivare – till bra pris.
-      Chippendale betyder möbler här – bestick, silver, film och musik med namnet är fel (0–2).
-    uteslut_ord: [högglans, krom, vitpigmenterad, affisch, poster, furu, björk, bestick, dvd, cd-singel]
-    # Synkade lärdomar 14 okt 2026: ny smak + det som stämmer från tidigare reaktioner.
+    uteslut_ord:
+      - IKEA
+      - björk
+      - furu
+      - vit lack
+      - plast
+      - krom
+      - polerat stål
+      - minimalist
+      - Fritz Hansen
+      - Wegner
+      - Arne Jacobsen
+      - Finn Juhl
+      - Mogensen
+      - lampett
+      - vägglampa
+      - väggmonterad
+      - LED strip
+      - Smart Lighting
+      - RGB LED
+      - shabby chic
+      - pastell
+      - affisch
+      - poster
+      - högglans
+    har_redan_ord:
+      - IKEA Billy
+      - BILLY bokhylla
+    # Omskrivna lärdomar 23 okt 2026 – ny smak.
     lardomar_bas: |
-      - Mahogny, valnöt, mörkbetsad ek och jakaranda/palisander är rätt. Ljus bok, björk och furu är fel – även om formen är bra.
-      - Engelsk biblioteksstil: Chesterfield, Chippendale, öronlappsfåtölj, diplomatskrivbord och biblioteksstege ger högt.
-      - Mässing med patina och bruksslitage (ljusstakar, lampetter, skrivställ) gillas; blankt nytt mässing mindre.
-      - Bankirlampa med grön skärm passar perfekt.
-      - Gamla läderband gillas när de är enhetliga serier eller små klassiker till lågt pris (ca 100–400 kr). Dyra rese- och polarböcker avvisas trots fina band.
-      - Mikroskop och andra stora instrument har fått nej; små mässingsobjekt (kompass, förstoringsglas) är bättre.
-      # Från reaktionerna 14–19 okt (≈200 st):
-      - Väggmonterat mässing (lampetter, ljusplåtar, väggljusstakar, vägglampor) får nej – bordsljusstakar ja.
-      - Ljusstakar: höga, upprätta, med baluster- eller vriden skaft, i par eller set. Nattljusstakar (låga med handtag) nej.
-      - Silverfärgat (WMF, försilvrat, krom) nej – bara varm mässingston.
-      - Fåtöljer: bara klassiskt engelskt (Chesterfield, öronlapp i engelsk stil). Moderna designfåtöljer och danska/skandinaviska karmstolar (Norell, Resell, Mølgaard m.fl.) och soffgrupper nej.
-      - Sekretärer gillas när de är rejäla med lådor, jalusi eller rullklaff, ca 1 000–2 000 kr. Små/smala och resesekretärer nej.
-      - Byråer och skänkar i mahogny träffar oftast rätt.
+      - Mahogny JA, chippendale JA, viktoriansk JA, edvardiansk JA, empir JA - oftast rätt.
+      - Byrå mahogny: historik 10 👍 / 2 👎 - oftast rätt.
+      - Skrivbord mahogny engelsk stil med läderskiva: 1500-2500 kr sweet spot.
+      - Sekretär rejäl med lådor/jalusi/dropfront: 1000-2000 kr sweet spot.
+      - Mahogny bokskåp med glasdörrar / barristerstil JA.
+      - Läderband böcker enhetliga serier låga priser JA (historik 8 👍 / 4 👎).
+      - Mässingsljusstakar höga PAR eller kandelabrar JA. Nattljusstakar och enstaka omärkta: max 4.
+      - Fåtölj läder modern designfåtölj NEJ (historik 1 👍 / 17 👎). Fritz Hansen, Wegner, Jacobsen inkluderat.
+      - Lampetter, vägglampa, läslampa väggmonterad: NEJ (historik 9 👍 / 14 👎).
+      - Picture-light mässing, bankerslamp, mässingsbordslampa, antik golvlampa: JA.
+      - Antik jordglob, globen, antikvarikare (bookstand) på stativ: JA.
+      - Antik klocka pendel / bordsklocka / resgolvur i mahogny: JA.
+      - Persisk/orientalisk matta mörk: JA. Minst 160×240 cm.
+      - Mörka tunga ridåer velur / bomullsvelour: JA.
+      - Tartan/Pendleton pläd mörka toner: JA.
+      - Chesterfield, wingback, klubbfåtölj finns redan - inga fler soffor behövs. Kompletterande engelska fåtöljer JA.
+      - IKEA Billy har kunden 7 st - inget fler Billy behövs.
+      - Varm mässingston JA, silver/krom NEJ.
+      - Stockholm är plus - kunden hämtar själv.
+    bedomningsregler: |
+      Kunden inreder ett engelskt bibliotek (Sherlock Holmes-era, 1880-1920). Mahogny, läder,
+      varm mässing, antikvarisk känsla. Var sparsam med 9 och 10:
+      - 10: Antik engelsk mahogny-byrå original (1800-tal), partners desk med läderskiva perfekt skick,
+            originalbankerslamp Emeralite/Faries, antik jordglob 1800-tal på trästativ.
+      - 9: Chippendale-byrå, mahogny skrivbord med läderskiva, mahogny bokskåp med glasdörrar
+           barristerstil, par av höga mässings-kandelabrar, antik pendelklocka mahogny.
+      - 8: Mahogny-byrå standard, sekretär med lådor, läderband böcker-serie enhetlig, picture-light
+           mässing, bordslampa mässing antik, persisk matta mörk 160×240.
+      - 6–7: Rätt stil men mindre bra skick, enstaka Chippendale-stol, antik mahogny-småmöbel.
+      - 4–5: Nära-rätt möbel men fel träslag (ek istället för mahogny), nyare kopia av antik design,
+             modern mässingslampa i vintage-stil.
+      - 0–3: Modern designfåtölj (Fritz Hansen etc.), lampett, Billy, skandinavisk minimalism,
+             vit lack, krom, shabby chic.
+    max_pris: 15000
     sokningar:
-      Bokhyllor och skåp:
-      - bokhylla mahogny
-      - bokhylla valnöt
-      - biblioteksbokhylla
-      - bibliotekshylla
-      - biblioteksskåp
-      - bokskåp mahogny
-      - engelsk bokhylla
-      - vitrinskåp mahogny
-      - vitrinskåp valnöt
-      - bokhylla antik
-      - bokhylla engelsk stil
-      - bokskåp antikt
-      - sekretär
-      - skänk mahogny
+      Möbler mahogny chippendale:
+        - mahogny byrå
+        - chippendale byrå
+        - chippendale stol
+        - chippendale bord
+        - mahogny skrivbord
+        - skrivbord läderskiva
+        - partners desk
+        - partner skrivbord
+        - sekretär mahogny
+        - sekretär jalusi
+        - mahogny bokhylla
+        - mahogny bokskåp
+        - barrister bokhylla
+        - viktoriansk byrå
+        - edvardiansk byrå
+        - empirbyrå
+        - diplomatskrivbord
       Sittmöbler:
-      - chesterfield fåtölj
-      - chesterfield soffa
-      - chesterfield läder
-      - läsfåtölj
-      - öronlappsfåtölj
-      - engelsk fåtölj
-      - klubbfåtölj
-      - läderfåtölj
-      - chesterfield
-      Skrivbord och bord:
-      - skrivbord mahogny
-      - diplomatskrivbord
-      - partnerskrivbord
-      - skrivbord engelsk stil
-      - chippendale stol
-      - chippendale byrå
-      - chippendale bord
-      - chippendale skrivbord
-      - byrå mahogny
-      - engelsk stil mahogny
-      - biblioteksstege
-      Belysning och mässing:
-      - bankirlampa
-      - bankers lamp
-      - ljusstakar mässing
-      - skrivställ
-      - bokstöd mässing
-      - kompass mässing
-      - teleskop mässing
-      - förstoringsglas mässing
-      Böcker:
-      - läderband böcker
-      - klotband
+        - chesterfield fåtölj
+        - wingback fåtölj läder
+        - edvardiansk fåtölj läder
+        - oxblod läder fåtölj
+        - captains chair
+        - librarians chair
+        - reading chair läder
+        - öronlappsfåtölj
+      Belysning mässing antik:
+        - picture light mässing
+        - tavelbelysning mässing
+        - bankerslamp
+        - bankers lamp
+        - bordslampa mässing antik
+        - golvlampa mässing antik
+        - mässings kandelaber
+        - höga ljusstakar mässing par
+        - mässings bordslampa
+        - antik mässingslampa
+        - Emeralite
+      Textilier mörka:
+        - persisk matta
+        - orientalisk matta
+        - velur ridåer
+        - mörka ridåer velur
+        - tartan pläd
+        - Pendleton pläd
+      Böcker och tryck:
+        - läderband böcker serie
+        - encyklopedi läder
+        - antik atlas
+        - antika kartor sverige
+        - antika kartor london
+        - antik gravyr jakt
+        - antik gravyr hundar
+        - vintage karta ramad
+        - Landseer gravyr
+      Detaljer antikvariska:
+        - antikvarikare
+        - bookstand antik
+        - antik jordglob
+        - antik globen
+        - pendelklocka mahogny
+        - bordsklocka mässing
+        - bordsklocka mahogny
+        - bokstöd mässing par
+        - skrivställ kristall
+        - askstall mässing vintage
+        - vintage telefon bakelit
+        - vintage pipställ
+        - antik förstoringsglas
 
   # ── 2. Konst, glas och design ────────────────────────────────
+  # Omskriven 2026-10-23 – fokus på mid-century skandinaviska kult-serier.
+  # Hjärtsamlingar: Hertha Bengtson Blå/Röd Eld (Rörstrand) + Stig Lindberg Domino (Gustavsberg).
   samlingen:
     namn: Samlingen
     prioritet: 1          # söks först: föremål som båda spåren hittar hamnar här
     profilfil: samlingsprofil.md
     tillagg: |
-      Bedöm ENBART efter profilen ovan (ny från 14 oktober 2026). Det kunden inte nämner där är inte intressant.
-      Ulrica Hydman-Vallien och Bertil Vallien: högst 2, oavsett föremål.
-      Konst: bara de fem namngivna konstnärerna – övrig konst, grafik och posters högst 3.
-      Ulf Lundell: bara konst/grafik – skivor, böcker och memorabilia högst 2.
-      Kosta Boda Line / Anna Ehrner: BARA champagne- och martiniglas kan få 8+ (till setet). Vinglas, karaffer,
-      snapsglas, whiskyglas, skålar och övrigt ur Line högst 6. Kunden har redan många – var sparsam även med
-      champagne/martini: 8 bara för bra pris eller fler glas i samma annons.
-      Följ prisnivåerna i profilen och räkna ner för sådant som redan finns i samlingen.
-      PLATS: Kunden bor i Stockholm och vill helst hämta själv. Föremål i Stockholmsområdet: +1 (högst 10).
-      Stora eller ömtåliga föremål (möbler, stora fat, glas i set) långt från Stockholm utan frakt: −2.
-      Små saker som enkelt skickas: ingen skillnad.
-    uteslut_ord: [affischtryck, offsettryck, print on canvas, vinylskiva, lp-skiva, cd-skiva]
-    # Synkade lärdomar 14 okt 2026: ny smak + det som stämmer från tidigare reaktioner.
+      Bedöm ENBART efter profilen ovan. Det som inte nämns där är inte intressant.
+
+      HÅRDA REGLER (följ exakt):
+      - Röd Eld (Hertha Bengtson röd variant av Blå Eld) är HÖGSTA prio - varje form 8+.
+      - Blå Eld blå enkla tallrikar/muggar som kunden har: max 4. Ovanliga former (karaffer,
+        lock-skålar, tekannor, kaffekannor): 8+.
+      - Domino (Stig Lindberg Gustavsberg): verifierad stämpel krävs för 8+. Ovanliga former 9.
+      - Erik Höglund Boda ROD = ovanlig = 9. Opalin orange/turkos/grön = 8.
+      - Kosta Boda Line (Anna Ehrner): BARA champagne/martiniglas kan få 8+. Vinglas, karaffer,
+        snapsglas, whiskyglas, skålar och övrigt ur Line = max 6. Kunden har redan många.
+      - Deco Hälsingborg: BARA burkar med lock får 8+. Vaser/krus/kannor/fat: max 5.
+      - Jie / Anita Nylund: burkar och kryddställ 8. Dyra "Vår lilla stad": max 4.
+      - Rörstrand Picknick: BARA burkar 8. Karotter/skålar/fat: max 4.
+      - Rörstrand Valentine: fat/kannor/koppar 8. Assietter: max 4.
+      - Stig Lindberg icke-Domino: Reptil 8. Dyra studioföremål: max 4.
+      - Nils Landberg Sommerso karaffer/vaser 8-9. Illusion/tulpanglas: max 4.
+      - Ulrica Hydman-Vallien och Bertil Vallien: max 2 oavsett föremål.
+
+      PLATS: Kunden bor i Stockholm/Åkersberga. Stockholm ger +1 (högst 10).
+      Stora/ömtåliga föremål långt bort utan frakt ger -2.
+    uteslut_ord:
+      - affischtryck
+      - offsettryck
+      - print on canvas
+      - vinylskiva
+      - lp-skiva
+      - cd-skiva
+      - replika
+      - barnporslin
+      - handmålad hobby
+    har_redan_ord:
+      - mon amie
+      - sippa rörstrand
+      - elisabeth rörstrand
+    # Omskrivna lärdomar 23 okt 2026 – ny smak.
     lardomar_bas: |
-      - Rörstrand Blå Eld och Röd Eld (Hertha Bengtson) i alla former – även kannor, tekannor och servisdelar. Röd Eld är ovanligare och ska ha högst.
-      - Koka, Ceylon, Rosmarin och grå/vit Blå Eld är inte intressant. Nyproduktion (efter jubileet) ger lågt.
-      - Erik Höglund/Boda: röda föremål först, i tung bubblig glasform. Bärnsten och koboltblått är okej men lägre.
-      - Stig Lindberg gillas när formen bär (relief, textur, inpressat mönster som Reptil) – inte målad eller tryckt dekor (Prunus, Comedia, Fallande löv) och inte fiskfat.
-      - Orrefors i dämpade mörka toner med tjockt underfång (Nils Landberg, Sven Palmqvist Kraka) och Vicke Lindstrands färgade Kosta-glas gillas.
-      - Rörstrand Picknick gillas i alla delar; lågt pris (ca 280–650 kr) är ett plus.
-      - Pierre Forssell/Skultuna Prins gillas; Festivitas och Gense-ströare gjorde det inte.
-      - Ulrica Hydman-Vallien, Bertil Vallien, Ingeborg Lundin, Gunnel Sahlin, Kjell Engman och Bernadotte & Kylberg: nej.
+      - Röd Eld / Blå Eld röd variant: ALL form är värd 8+. Saknade former (tekanna, kaffekanna, soppskålar, sockerkar, karott): 9-10.
+      - Blå Eld blå: enkla tallrikar och muggar har kunden redan - max 4. Ovanliga former (karaffer, lock-skålar, tekannor, salt/peppar, större serveringsfat): 8+.
+      - Domino (Stig Lindberg Gustavsberg 1954-69): ovanliga former av 13 original 9, standard-former 8. Gunnar Nylund Domino för Rörstrand OK men lägre.
+      - Erik Höglund Boda: röd = 9 (ovanlig). Opalin orange/turkos/grön/lila = 8.
+      - Sommerso Nils Landberg karaffer och vaser = 8-9. Illusion/tulpanglas = max 4.
+      - Vicke Lindstrand: tjockt underfång med bubblor och ränder = 8.
+      - Kosta Boda Line (Anna Ehrner): BARA champagne- och martiniglas kan få 8+. Stora satser = max 5.
+      - Deco Hälsingborg: BURKAR MED LOCK 8+. Vaser/krus/kannor/fat = max 5.
+      - Jie / Anita Nylund: burkar/kryddställ 8. Dyra "Vår lilla stad" = max 4.
+      - Rörstrand Picknick: BURKAR 8. Karotter/skålar/fat = max 4.
+      - Rörstrand Valentine: fat/kannor/koppar 8. Assietter = max 4.
+      - Stig Lindberg icke-Domino: Reptil 8. Dyra studioföremål = max 4.
+      - Harlequin (Marianne Westman): sockerkar/skålar 8. Enkla tallrikar = max 5.
+      - Spode Italian / Copeland Spode: fat, kannor, tekannor 8. Nästan alltid rätt.
+      - Burkar MED LOCK gillas genomgående oavsett serie.
       - Krackelering, nagg och nyproduktion drar ner tydligt.
-      # Från reaktionerna 14–19 okt (≈290 st):
-      - BURKAR MED LOCK är en röd tråd: Deco Hälsingborgs sill-, sylt-, senaps- och gurkburkar, Jie-burkar (Vår lilla stad, Familjen Pepparsson, kryddburkar) och Picknick-burkar gillas. Vaser, krus, kannor och fat från Deco gillas INTE.
-      - Picknick: burkar ja – karotter, skålar, fat, äggkoppar och kastruller har fått nej.
-      - Rörstrand Valentine: fat, kannor, såskanna och koppar ja – enstaka assietter nej.
-      - Blå Eld, Jie/Anita Nylund och Spode Italian träffar nästan alltid rätt – ge dem gärna högt.
-      - Stig Lindberg: dyra studioföremål i stengods (över ca 2 000 kr) har fått nej; Reptil och liknande formbärande serieföremål ja.
-      - Nils Landberg: Sommerso-vaser och karaffer ja – Illusion-glas, tulpanglas och etagefat nej.
-      - "Rörstrand 1960-tal" i allmänhet (Elisabeth, Sippa, Tim m.m.) har fått nej – bara de namngivna serierna gäller.
-    # Egna betygsregler för samlingen.
+      - Ulrica Hydman-Vallien, Bertil Vallien, Ingeborg Lundin, Gunnel Sahlin, Kjell Engman och Bernadotte & Kylberg: nej.
+      - Varm mässingston JA, silver/krom NEJ.
+      - Stockholm är plus - kunden hämtar själv.
     bedomningsregler: |
-      Kunden SAMLAR utvalda svenska och engelska serier och formgivare (se profilen). Serietillverkade föremål
-      ur de namngivna serierna är PRECIS vad hen söker – dra inte ner för att något är bruksföremål eller vanligt.
-      Var sparsam med 9 och 10 så att det verkligt intressanta syns:
-      - 10: Ovanlig variant eller något som uttryckligen saknas (Röd Eld, röd Höglund, Wingård-karaff,
-            Janssons frestelse-nummer som saknas) – eller ett tydligt fynd långt under marknadspris.
-      - 9: Eftersökt serie/formgivare ur profilen i gott skick till bra pris, med en form som inte är vardaglig
-           (kanna, terrin, vas, större fat).
-      - 8: Rätt serie eller formgivare ur profilen, vanlig form (assiett, tefat, enstaka kopp) i gott skick.
-      - 6–7: Rätt fabrik men fel serie, anonym form, osäker stämpel eller dåligt skick.
-      - 4–5: Osäker tillverkare, nyproduktion, eller utanför profilen men i närheten.
-      - 0–3: Fel kategori, något kunden sagt nej till, reproduktion, eller exakt det kunden redan har.
+      Kunden samlar skandinaviskt mid-century art glass + keramik 1949-1975.
+      Namngivna serier och formgivare = krav för 8+. Var sparsam med 9 och 10:
+      - 10: Röd Eld-pjäs i saknad form OCH långt under marknadspris. Ovanlig Höglund Boda-röd.
+            Saknad Domino-form av Stig Lindberg i perfekt skick.
+      - 9: Röd Eld standard-form i gott skick. Saknad Domino-form. Eftersökt Höglund-variant.
+           Sommerso Nils Landberg karaff. Rörstrand Blå Eld ovanlig form (tekanna, kaffekanna).
+      - 8: Blå Eld ovanlig form. Domino standard-form. Höglund opalin-vas. Harlequin sockerkar.
+           Verifierad serie i gott skick.
+      - 6–7: Rätt fabrik men vanlig form som kunden har. Lätt skick-problem. Osäker attribution.
+      - 4–5: Osäker attribution. Nyproduktion av vanlig form. Utan stämpel.
+      - 0–3: Fel kategori. Osignerad modern. Kunden har exakt den.
       Ett lågt pris är ett plus, inte ett tecken på låg kvalitet.
-    max_pris: 40000
+    max_pris: 15000
     sokningar:
-      Konst:
+      Rörstrand Hertha Bengtson:
+        - Röd Eld
+        - Rorstrand Röd Eld
+        - Blå Eld röd
+        - Blå Eld Rörstrand röd
+        - Red Fire Rorstrand
+        - Hertha Bengtson röd
+        - Hertha Bengtsson röd
+        - Rörstrand Hertha Bengtson
+        - Blå Eld karaff
+        - Blå Eld tekanna
+        - Blå Eld kaffekanna
+        - Blå Eld sockerkar
+      Gustavsberg Stig Lindberg:
+        - Domino Stig Lindberg
+        - Stig Lindberg Domino
+        - Gustavsberg Domino
+        - Domino vas
+        - Domino skål
+        - Domino Lindberg
+        - Lindberg Gustavsberg vas
+        - Reptil Stig Lindberg
+      Glas:
+        - Erik Höglund
+        - Erik Höglund Boda
+        - Höglund röd
+        - Höglund Boda röd
+        - Höglund Boda vas
+        - Höglund kanna
+        - Höglund ljusstake
+        - Boda opalin
+        - Boda Höglund
+        - Nils Landberg Sommerso
+        - Nils Landberg karaff
+        - Nils Landberg vas
+        - Vicke Lindstrand
+        - Vicke Lindstrand underfång
+        - Sommerso Orrefors
+        - Sommerso Flygsfors
+        - Sommerso Kosta
+        - Orrefors Colora
+        - Orrefors Kraka
+        - Orrefors gul cylinder
+        - Kosta Boda Line champagne
+        - Kosta Boda Line martini
+        - Anders Wingård
+        - Wingård Baskemölla
+        - Baskemölla karaff
+      Serier med strikt lock-regel:
+        - Deco Hälsingborg burk
+        - Rörstrand Picknick burk
+        - Jie Anita Nylund burk
+        - Jie Gantofta burk
+        - Janssons frestelse Jie
+        - Jäntofta burk
+        - Vår lilla stad Jie
+        - Familjen Pepparsson
+        - Rörstrand Valentine fat
+        - Rörstrand Valentine kanna
+      Harlequin och övrig keramik:
+        - Harlequin sockerkar
+        - Marianne Westman Harlequin
+        - Gustavsberg Hagtorn
+        - Pierre Forssell Skultuna
+      Spode engelsk:
+        - Spode Italian
+        - Blue Italian
+        - Copeland Spode
+        - Copland Spode
+        - Spode tea pot
+        - Spode serving dish
+      Konst mid-century signerad:
         - Evert Lundquist
         - Curt Hillfon
         - Willie Weberg
@@ -219,50 +384,9 @@ spar:
         - Ulf Lundell litografi
         - Ulf Lundell målning
         - Owe Gustafson
-      Glas:
-        - Erik Höglund röd
-        - Erik Höglund
-        - Orrefors Colora
-        - Kosta Boda färgat glas
-        - Kosta Boda Line
-        - Orrefors Difference
-        - Orrefors provarglas
-        - Anders Wingård
-        - Wingård Baskemölla
-        - Baskemölla karaff
-        - Vicke Lindstrand
-        - Nils Landberg
-        - Orrefors Kraka
-      Eld-serierna:
-        - Blå Eld
-        - Röd Eld
-        - Eld Rörstrand
-        - Hertha Bengtson
-        - Hertha Bengtsson
-      Jie Gantofta:
-        - Anita Nylund
-        - Janssons frestelse Jie
-        - Jie Gantofta
-        - Jäntofta
-        - Vår lilla stad Jie
-        - Familjen Pepparsson
-      Spode:
-        - Spode Italian
-        - Blue Italian
-        - Copeland Spode
-        - Copland Spode
-        - Spode tea pot
-        - Spode serving dish
-      Keramik och design:
-        - Stig Lindberg Gustavsberg
-        - Gustavsberg signerad
-        - Deco Hälsingborg burk
-        - Deco Hälsingborg
-        - Picknick burk
-        - Jie burk
-        - Georg Wide
-        - Rörstrand Gourmet
-        - Rörstrand Valentine
-        - Gustavsberg Hagtorn
-        - Rörstrand Picknick
-        - Pierre Forssell
+        - Erik Lundström konst
+        - Linden serigrafi
+        - H55 grafik signerad
+        - japansk block-print
+        - Yoshitoshi Mori
+        - Clifton Karhu
