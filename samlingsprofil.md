@@ -27,12 +27,16 @@ Serien har 3 mönster × 2 storlekar (15×15 cm och 20×20 cm). Labyrint-mönstr
 - **JAGA:** askfat 20×20 cm med STRIPES-mönster.
 
 **REKLAM-ASKFAT (högsta prioritet – prestige-samling):**
-Vissa Domino-askfat har företagsreklam präglad på botten. ALLA eftersökta – ge 10:
+Vissa Domino-askfat har företagsreklam präglad på ytan. ALLA eftersökta – ge 10:
 - **Volkswagen (VW)** reklam
 - **Scania Vabis** reklam
-- **Electrolux** reklam (ryktas, mycket sällsynt – ingen bekräftad)
-- **H55-mässsouvenirer** med "55" i hörnet (= sold på själva mässan)
-- **H55-butiks-utgåva** med bara "H" (sold efter mässan)
+- **LUMA** reklam (svenskt el-företag, bekräftad på Bukowskis 2015)
+- **Electrolux** reklam (ryktas, ingen bekräftad)
+- **H55-set** (cigarette-holder + askfat): präglad **"H" upprepat i rader** (H H H H) + **"55" i hörnet**.
+  Svart glossy med vita H:n. Original listpris 1stdibs: €2 362 (~27 000 kr).
+  Fynd-tröskel på svenska marknaden: under 5 000 kr = monster-fynd, under 10 000 kr = fynd,
+  10 000–15 000 kr = marknadsmässigt. Ge 10 upp till 25 000 kr.
+- **H55-butiks-utgåva** med BARA "H" utan "55" (sold efter mässan)
 
 **Vaser (7 former):**
 - 7 vas-former: koniska, cylindriska, sfäriska, kvadratiska – svart glossy med vita linjer eller omvänt.

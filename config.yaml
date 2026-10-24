@@ -242,8 +242,9 @@ spar:
       - Blå Eld blå enkla tallrikar/muggar som kunden har: max 4. Ovanliga former (karaffer,
         lock-skålar, tekannor, kaffekannor): 8+.
       - Domino (Stig Lindberg Gustavsberg): verifierad stämpel krävs för 8+. Ovanliga former 9.
-      - Domino REKLAM-ASKFAT (VW, Scania Vabis, Electrolux) och LIGHT BLUE variant = 10 oavsett.
-      - Domino H55-souvenir med "55" i hörnet = 10.
+      - Domino REKLAM-ASKFAT (VW, Scania Vabis, LUMA, Electrolux) och LIGHT BLUE variant = 10 oavsett pris upp till 25000 kr.
+      - Domino H55-set (cigarette-holder + askfat): präglad "H H H H" + "55" i hörnet. 1stdibs listpris €2362 (~27000 kr). Svensk marknad: under 10000 kr = fynd, 10-15000 = marknadsmässigt. Ge 10 upp till 25000 kr.
+      - Domino H55-butik: bara "H" utan "55" (sold efter mässan) = 9.
       - Domino CHECKER-askfat 15x15 och 20x20 svart/vit: kunden har båda - max 3.
       - Erik Höglund Boda ROD = ovanlig = 9. Opalin orange/turkos/grön = 8.
       - Kosta Boda Line (Anna Ehrner): BARA champagne/martiniglas kan få 8+. Vinglas, karaffer,
@@ -277,8 +278,9 @@ spar:
       - Röd Eld / Blå Eld röd variant: ALL form är värd 8+. Saknade former (tekanna, kaffekanna, soppskålar, sockerkar, karott): 9-10.
       - Blå Eld blå: enkla tallrikar och muggar har kunden redan - max 4. Ovanliga former (karaffer, lock-skålar, tekannor, salt/peppar, större serveringsfat): 8+.
       - Domino (Stig Lindberg Gustavsberg 1954-79): ovanliga former 9, standard-former 8. Gunnar Nylund Domino för Rörstrand OK men lägre.
-      - Domino REKLAM-ASKFAT (Volkswagen, Scania Vabis, Electrolux) = 10 oavsett skick. Högsta prestige i serien.
-      - Domino H55-souvenir med "55" i hörnet = 10. "H"-variant (butik efter mässan) = 9.
+      - Domino REKLAM-ASKFAT (Volkswagen, Scania Vabis, LUMA, Electrolux) = 10 oavsett skick upp till 25000 kr. Högsta prestige i serien.
+      - Domino H55-set: cigarette-holder + askfat med präglat "H H H H" + "55" i hörnet. 1stdibs listpris €2362 (~27000 kr sålt). Svensk fynd-tröskel: under 10000 kr = fynd. Ge 10 upp till 25000 kr.
+      - Domino H55-butik: BARA "H" utan "55" (sold efter mässan) = 9.
       - Domino LIGHT BLUE / ljusblå variant = 10 oavsett form (mycket sällsynt).
       - Domino vas HÖGRE än 23 cm = 10 (ryktad liten upplaga).
       - Domino LABYRINT-mönster askfat 15x15 = 9 (ovanlig).
@@ -313,7 +315,7 @@ spar:
       - 4–5: Osäker attribution. Nyproduktion av vanlig form. Utan stämpel.
       - 0–3: Fel kategori. Osignerad modern. Kunden har exakt den.
       Ett lågt pris är ett plus, inte ett tecken på låg kvalitet.
-    max_pris: 15000
+    max_pris: 30000  # Höjt 2026-10-24: Domino H55-set och vissa reklam-askfat går för 15-27 kkr på intl. marknader.
     sokningar:
       Rörstrand Hertha Bengtson:
         - Röd Eld
@@ -349,14 +351,21 @@ spar:
         - Domino VW
         - Domino Scania Vabis
         - Domino Scania
+        - Domino LUMA
         - Domino Electrolux
         - Domino H55
+        - Domino Helsingborg 1955
+        - Domino cigarette holder
         - Domino reklam
         - Domino ad
         - Gustavsberg Volkswagen askfat
         - Gustavsberg Scania askfat
+        - Gustavsberg LUMA
+        - Gustavsberg H55
         - Stig Lindberg Volkswagen
         - Stig Lindberg Scania
+        - Stig Lindberg LUMA
+        - Stig Lindberg H55
       Glas:
         - Erik Höglund
         - Erik Höglund Boda
