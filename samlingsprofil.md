@@ -13,15 +13,40 @@ Hjärtsamlingen. Röd är prioritet (sällsynt), blå är daglig servis.
   - **Saknas särskilt:** tekanna, kaffekanna, soppskålar komplett, karotter, gräddkanna, sockerkar.
 - **Blå Eld (den blå grundvarianten)** – daglig användning, redan massor i samlingen. Jaga ovanliga former: karaffer, lock-skålar, tekannor, salt/peppar, större serveringsfat. Enkla tallrikar/muggar har redan.
 
-### Stig Lindberg för Gustavsberg – Domino (1954–69)
-Växande samling (ca 8–10 pjäser av totalt 13 originalformer). Jaga de saknade.
+### Stig Lindberg för Gustavsberg – Domino (1954–79)
+Växande samling. Produktion fortsatte ända till 1979 (längre än ofta uppgett).
+Signatur: Gustavsberg-stämpel + "Domino" eller "SL". Både svart/vit OCH brun variant OK.
+OBS: Gunnar Nylund för Rörstrand har också en serie som heter "Domino" – OK men lägre prio.
+
+**Askfat-formerna (upp till 6 varianter):**
+Serien har 3 mönster × 2 storlekar (15×15 cm och 20×20 cm). Labyrint-mönstret finns ENDAST i 15×15.
+- **HAR REDAN:** askfat 15×15 cm checker-mönster – ge 0–3 åt EXAKT samma.
+- **HAR REDAN:** askfat 20×20 cm checker-mönster – ge 0–3 åt EXAKT samma.
+- **JAGA:** askfat 15×15 cm med LABYRINT-mönster (sällsynt).
+- **JAGA:** askfat 15×15 cm med STRIPES-mönster.
+- **JAGA:** askfat 20×20 cm med STRIPES-mönster.
+
+**REKLAM-ASKFAT (högsta prioritet – prestige-samling):**
+Vissa Domino-askfat har företagsreklam präglad på botten. ALLA eftersökta – ge 10:
+- **Volkswagen (VW)** reklam
+- **Scania Vabis** reklam
+- **Electrolux** reklam (ryktas, mycket sällsynt – ingen bekräftad)
+- **H55-mässsouvenirer** med "55" i hörnet (= sold på själva mässan)
+- **H55-butiks-utgåva** med bara "H" (sold efter mässan)
+
+**Vaser (7 former):**
 - 7 vas-former: koniska, cylindriska, sfäriska, kvadratiska – svart glossy med vita linjer eller omvänt.
-- 6 fat/skålar/askfat.
-- Signatur: Gustavsberg-stämpel + "Domino" eller "SL".
-- Både svart/vit OCH brun variant OK.
-- OBS: Gunnar Nylund för Rörstrand har också en serie som heter "Domino" – OK men lägre prio.
-- **HAR REDAN (2026-10-24):** stort kvadratiskt fat ~30 cm med micro-checker-rutmönster, svart ram.
-  Ge 0–3 åt EXAKT samma form. Mindre fat/askfat-former och övriga vas-former fortsatt eftersökta.
+- Vas med små trianglar fanns i 2 storlekar (1955 reklam).
+- **JAGA SÄRSKILT: vas HÖGRE än 23 cm** (sällsynt – ryktas finnas i liten upplaga).
+
+**Färger (jakt-prioritet):**
+- Svart/vit = standard, grund-samling.
+- Gold-brown = billigare, mindre populärt idag – OK för komplettering.
+- Grey/white = ovanligt.
+- **Light blue = MYCKET SÄLLSYNT – ge 10 oavsett form.**
+
+**Övrigt från H55:**
+- Cigarette cup + liten skål såldes på H55-mässan – samlar-objekt.
 
 ### Övrig svensk keramik
 - **Harlequin** (Marianne Westman / svensk 50-60-tal) – sockerkar och mindre skålar med vinröd/svart/vit triangel-mönster. Jag har 1 sockerkar.

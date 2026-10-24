@@ -242,6 +242,9 @@ spar:
       - Blå Eld blå enkla tallrikar/muggar som kunden har: max 4. Ovanliga former (karaffer,
         lock-skålar, tekannor, kaffekannor): 8+.
       - Domino (Stig Lindberg Gustavsberg): verifierad stämpel krävs för 8+. Ovanliga former 9.
+      - Domino REKLAM-ASKFAT (VW, Scania Vabis, Electrolux) och LIGHT BLUE variant = 10 oavsett.
+      - Domino H55-souvenir med "55" i hörnet = 10.
+      - Domino CHECKER-askfat 15x15 och 20x20 svart/vit: kunden har båda - max 3.
       - Erik Höglund Boda ROD = ovanlig = 9. Opalin orange/turkos/grön = 8.
       - Kosta Boda Line (Anna Ehrner): BARA champagne/martiniglas kan få 8+. Vinglas, karaffer,
         snapsglas, whiskyglas, skålar och övrigt ur Line = max 6. Kunden har redan många.
@@ -273,7 +276,14 @@ spar:
     lardomar_bas: |
       - Röd Eld / Blå Eld röd variant: ALL form är värd 8+. Saknade former (tekanna, kaffekanna, soppskålar, sockerkar, karott): 9-10.
       - Blå Eld blå: enkla tallrikar och muggar har kunden redan - max 4. Ovanliga former (karaffer, lock-skålar, tekannor, salt/peppar, större serveringsfat): 8+.
-      - Domino (Stig Lindberg Gustavsberg 1954-69): ovanliga former av 13 original 9, standard-former 8. Gunnar Nylund Domino för Rörstrand OK men lägre.
+      - Domino (Stig Lindberg Gustavsberg 1954-79): ovanliga former 9, standard-former 8. Gunnar Nylund Domino för Rörstrand OK men lägre.
+      - Domino REKLAM-ASKFAT (Volkswagen, Scania Vabis, Electrolux) = 10 oavsett skick. Högsta prestige i serien.
+      - Domino H55-souvenir med "55" i hörnet = 10. "H"-variant (butik efter mässan) = 9.
+      - Domino LIGHT BLUE / ljusblå variant = 10 oavsett form (mycket sällsynt).
+      - Domino vas HÖGRE än 23 cm = 10 (ryktad liten upplaga).
+      - Domino LABYRINT-mönster askfat 15x15 = 9 (ovanlig).
+      - Domino STRIPES-mönster askfat 15x15 eller 20x20 = 8-9.
+      - Domino CHECKER-askfat 15x15 och 20x20 i svart/vit = kunden HAR BÅDA (sedan 24 okt 2026). Ge 0-3 åt exakt samma.
       - Erik Höglund Boda: röd = 9 (ovanlig). Opalin orange/turkos/grön/lila = 8.
       - Sommerso Nils Landberg karaffer och vaser = 8-9. Illusion/tulpanglas = max 4.
       - Vicke Lindstrand: tjockt underfång med bubblor och ränder = 8.
@@ -324,9 +334,29 @@ spar:
         - Gustavsberg Domino
         - Domino vas
         - Domino skål
+        - Domino askfat
+        - Domino tray
+        - Domino labyrint
+        - Domino stripes
+        - Domino light blue
+        - Domino ljusblå
+        - Domino gold brown
         - Domino Lindberg
         - Lindberg Gustavsberg vas
         - Reptil Stig Lindberg
+      Domino reklam-askfat (prio):
+        - Domino Volkswagen
+        - Domino VW
+        - Domino Scania Vabis
+        - Domino Scania
+        - Domino Electrolux
+        - Domino H55
+        - Domino reklam
+        - Domino ad
+        - Gustavsberg Volkswagen askfat
+        - Gustavsberg Scania askfat
+        - Stig Lindberg Volkswagen
+        - Stig Lindberg Scania
       Glas:
         - Erik Höglund
         - Erik Höglund Boda
