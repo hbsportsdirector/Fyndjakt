@@ -10,8 +10,10 @@ Hjärtsamlingen. Röd är prioritet (sällsynt), blå är daglig servis.
 - **Röd Eld (den röda varianten av Blå Eld)** – HÖGSTA prio. Varje form är värd 8+.
   - Alla former: tallrikar, djuptallrikar, skålar (alla storlekar), muggar, koppar + fat, kannor, tekannor, kaffekannor, serveringsfat, karotter, sockerkar, gräddkanna, smörburk, assietter, salt/peppar.
   - Både vintage original (1949–71) OCH nyproduktion (2024+) är OK. Nyproduktion finns bara i tallrikar 19/23/26 cm + serveringsfat 20×29/24×35 cm – ALLT ANNAT röd = vintage = extra värdefullt.
-  - **Saknas särskilt:** tekanna, kaffekanna, soppskålar komplett, karotter, gräddkanna, sockerkar.
+  - **HAR REDAN (uppd 2026-10-24):** 3-4 äldre pjäser + skål/kopp (konformad, djuprröd) + peppar/saltströare (äggform med fjäder-relief). Ge 0-3 åt EXAKT samma form.
+  - **Saknas särskilt:** tekanna, kaffekanna, soppskålar komplett, karotter, gräddkanna, sockerkar (den andra från ett par), större serveringsfat, assietter.
 - **Blå Eld (den blå grundvarianten)** – daglig användning, redan massor i samlingen. Jaga ovanliga former: karaffer, lock-skålar, tekannor, salt/peppar, större serveringsfat. Enkla tallrikar/muggar har redan.
+  - **HAR REDAN (uppd 2026-10-24):** tekanna/kaffekanna (bulbous form med hög pip + D-handtag, blå med fjäder-relief). Ge 0-3 åt EXAKT samma form.
 
 ### Stig Lindberg för Gustavsberg – Domino (1954–79)
 Växande samling. Produktion fortsatte ända till 1979 (längre än ofta uppgett).
