@@ -296,7 +296,7 @@ spar:
       - Rörstrand Valentine: fat/kannor/koppar 8. Assietter = max 4.
       - Stig Lindberg icke-Domino: Reptil 8. Dyra studioföremål = max 4.
       - Harlequin (Marianne Westman): sockerkar/skålar 8. Enkla tallrikar = max 5.
-      - Gabriel Keramik (svensk fabrik 1925-): signerad "G" + hand + SWEDEN + krona. Alla former 8+. Konstkakel signerade = 9. Kunden har 1 randig flaskform-vas + 2 konstkakel ~15x15 med droppform-motiv (sedan 24 okt 2026) - ge 0-3 åt exakt samma. Övriga former 8-9.
+      - Gustavshand-stämpel ("G" + hand + SWEDEN + krona) = GUSTAVSBERG, INTE Gabriel Keramik. Stig Lindberg icke-Domino: Randig, Spisa Ribb, Tahiti, Reptil, Studio = 8-9. Målad dekor (Berså, Prunus, Fallande löv, Comedia) = max 4. Kunden har 1 randig flaskform-vas + 2 signerade konstkakel ~15x15 (sedan 24 okt 2026) - ge 0-3 åt exakt samma.
       - Spode Italian / Copeland Spode: fat, kannor, tekannor 8. Nästan alltid rätt.
       - Burkar MED LOCK gillas genomgående oavsett serie.
       - Krackelering, nagg och nyproduktion drar ner tydligt.
@@ -416,18 +416,22 @@ spar:
         - Marianne Westman Harlequin
         - Gustavsberg Hagtorn
         - Pierre Forssell Skultuna
-      Gabriel Keramik:
-        - Gabriel Keramik
-        - Gabriel keramik Sweden
-        - Gabriel Burmeister
-        - Ingegärdh Burmeister
-        - Eke Bjeren
-        - Gabriel vas
-        - Gabriel stengods
-        - Gabriel kakel
-        - Gabriel konstkakel
-        - Gabriel skål
-        - Gabriel fat
+      Stig Lindberg icke-Domino Gustavsberg:
+        - Stig Lindberg Randig
+        - Stig Lindberg Randig Dekor
+        - Stig Lindberg Spisa Ribb
+        - Stig Lindberg Tahiti
+        - Stig Lindberg Terra
+        - Stig Lindberg Pungo
+        - Stig Lindberg Reptil
+        - Stig Lindberg Studio
+        - Stig Lindberg kakel
+        - Stig Lindberg konstkakel
+        - Stig Lindberg tavelkakel
+        - Gustavsberg Randig
+        - Gustavsberg Stig Lindberg kakel
+        - Gustavsberg Studio
+        - Gustavshand
       Spode engelsk:
         - Spode Italian
         - Blue Italian

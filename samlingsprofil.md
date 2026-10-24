@@ -54,18 +54,24 @@ Vissa Domino-askfat har företagsreklam präglad på ytan. ALLA eftersökta – 
 **Övrigt från H55:**
 - Cigarette cup + liten skål såldes på H55-mässan – samlar-objekt.
 
-### Gabriel Keramik (1925–nutid)
-Svensk keramikfabrik grundad 1925. Mest produktion 1930–1970. Styles: Art Deco, Art Nouveau,
-Swedish Grace, mid-century modern. **Ny samling startad 2026-10-24.**
-- **Signatur:** "G" (kalligrafisk) + hand-symbol + "SWEDEN" + liten krona under.
-- **Designers:** Gabriel Burmeister (grundare), Ingegärdh Burmeister, Eke Bjeren.
-- Alla former intressanta: vaser, kakel/konstkakel, skålar, fat, vide-poche.
-- Signerade konstkakel med abstrakta mid-century mönster = samlar-objekt.
+### Stig Lindberg icke-Domino Gustavsberg-pjäser
+Stig Lindberg designade MASSOR av serier för Gustavsberg (1937-1980) utöver Domino.
+Pers samling av dessa startade 2026-10-24 (upptäckt via Uppsala antikmässan).
+- **Signatur ("Gustavshand"):** "G" (kalligrafisk) + hand-symbol + "SWEDEN" + liten krona under.
+  OBS: INTE Gabriel Keramik! Gustavshand är Gustavsbergs klassiska symbol.
+- **Serier av Stig Lindberg som är intressanta** (utöver Domino som har egen sektion):
+  - **Randig / Randig Dekor** – horisontella ränder i olika färger
+  - **Reptil** – reliefmönster (JA, redan i profilen)
+  - **Spisa Ribb** – vertikala ränder
+  - **Tahiti** – handmålad
+  - **Studio-serie** – unika pjäser med SL/handsignatur
+  - **Konstkakel/tavelkakel** – signerade med Gustavshand
+- Övriga Stig Lindberg-serier (Berså, Prunus, Fallande löv, Comedia): max 4 (målad dekor, inte formbärande).
 - **HAR REDAN (2026-10-24):**
-  - Randig flaskform-vas (brun/blå/vit horisontella ränder, ~20-25 cm hög).
-  - 2 st konstkakel ~15×15 cm (ljusblå bas + mörkblå droppform + prick-cirkel-motiv).
-- Prisnivåer: vaser 400–2 500 kr. Konstkakel 300–1 500 kr. Internationellt (1stdibs): 2 300–13 000 kr (medel ~7 500 kr).
-- Dubbletter av exakt samma mönster: max 3. Nya former/designer-signerade: 8–9.
+  - Randig flaskform-vas (brun/blå/vit horisontella ränder, ~20-25 cm hög) – troligen Randig Dekor.
+  - 2 st konstkakel ~15×15 cm (ljusblå bas + mörkblå droppform + prick-cirkel-motiv) – signerade Gustavshand.
+- Prisnivåer: Randig/Spisa Ribb vaser 800–3 500 kr. Konstkakel 600–2 000 kr/st. Studio-pjäser 3 000–15 000+ kr.
+- Dubbletter av exakt samma pjäs: max 3. Nya former från samma Stig Lindberg-serie: 8–9.
 
 ### Övrig svensk keramik
 - **Harlequin** (Marianne Westman / svensk 50-60-tal) – sockerkar och mindre skålar med vinröd/svart/vit triangel-mönster. Jag har 1 sockerkar.
