@@ -52,6 +52,19 @@ Vissa Domino-askfat har företagsreklam präglad på ytan. ALLA eftersökta – 
 **Övrigt från H55:**
 - Cigarette cup + liten skål såldes på H55-mässan – samlar-objekt.
 
+### Gabriel Keramik (1925–nutid)
+Svensk keramikfabrik grundad 1925. Mest produktion 1930–1970. Styles: Art Deco, Art Nouveau,
+Swedish Grace, mid-century modern. **Ny samling startad 2026-10-24.**
+- **Signatur:** "G" (kalligrafisk) + hand-symbol + "SWEDEN" + liten krona under.
+- **Designers:** Gabriel Burmeister (grundare), Ingegärdh Burmeister, Eke Bjeren.
+- Alla former intressanta: vaser, kakel/konstkakel, skålar, fat, vide-poche.
+- Signerade konstkakel med abstrakta mid-century mönster = samlar-objekt.
+- **HAR REDAN (2026-10-24):**
+  - Randig flaskform-vas (brun/blå/vit horisontella ränder, ~20-25 cm hög).
+  - 2 st konstkakel ~15×15 cm (ljusblå bas + mörkblå droppform + prick-cirkel-motiv).
+- Prisnivåer: vaser 400–2 500 kr. Konstkakel 300–1 500 kr. Internationellt (1stdibs): 2 300–13 000 kr (medel ~7 500 kr).
+- Dubbletter av exakt samma mönster: max 3. Nya former/designer-signerade: 8–9.
+
 ### Övrig svensk keramik
 - **Harlequin** (Marianne Westman / svensk 50-60-tal) – sockerkar och mindre skålar med vinröd/svart/vit triangel-mönster. Jag har 1 sockerkar.
 - **Deco Hälsingborg** – BARA burkar med lock. Vaser, krus, kannor, fat NEJ.
