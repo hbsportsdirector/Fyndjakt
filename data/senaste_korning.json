@@ -1,102 +1,82 @@
 {
-  "tid": "2026-10-24T00:27:09",
-  "annonser_totalt": 7146,
-  "nya": 1296,
-  "bedomda": 717,
-  "nya_traffar": 90,
+  "tid": "2026-10-24T16:06:04",
+  "annonser_totalt": 7503,
+  "nya": 885,
+  "bedomda": 788,
+  "nya_traffar": 78,
   "kallor": {
     "Smakanalys": {
-      "nya": 2
+      "nya": 0
     },
-    "Pausade sökord": 12,
+    "Pausade sökord": 13,
     "Auctionet": {
-      "sokningar": 186,
-      "traffar": 1747,
+      "sokningar": 185,
+      "traffar": 1721,
       "fel": 0,
       "felexempel": []
     },
     "Bukowskis": {
-      "sokningar": 186,
-      "traffar": 258,
+      "sokningar": 185,
+      "traffar": 262,
       "fel": 0,
       "felexempel": []
     },
     "Myrorna": {
-      "sokningar": 186,
-      "traffar": 1337,
+      "sokningar": 185,
+      "traffar": 2588,
       "fel": 0,
       "felexempel": []
     },
     "Stadsmissionen": {
-      "sokningar": 186,
-      "traffar": 204,
+      "sokningar": 185,
+      "traffar": 193,
       "fel": 0,
       "felexempel": []
     },
     "Tradera": {
-      "sokningar": 186,
-      "traffar": 5813,
+      "sokningar": 185,
+      "traffar": 5759,
       "fel": 0,
       "felexempel": []
     },
-    "Väntande från tidigare": 475,
-    "Återanvända betyg": 52,
+    "Väntande från tidigare": 129,
+    "Återanvända betyg": 40,
     "Egen modell": {
-      "bortsorterade": 68,
+      "bortsorterade": 77,
       "spår med modell": 4
     },
-    "Sållning": {
-      "sållade": 1049,
-      "bortsållade": 237,
-      "över gränsen per sökord": 395,
-      "kvar": 417
-    },
-    "Från kön": 300,
+    "Från kön": 35,
     "Bedömning": {
-      "batch": 716,
-      "direkt": 1
+      "batch": 788,
+      "direkt": 0
     },
-    "Tradera-orter ifyllda": 9,
+    "Tradera-orter ifyllda": 10,
     "Prisjämförelse": {
       "fynd": 120,
-      "med_data": 34
+      "med_data": 41
     },
     "Notiser": {
       "skickade": 0
     }
   },
   "kostnad": {
-    "Smakanalys": {
-      "anrop": 2,
-      "in": 69813,
-      "ut": 3004,
-      "usd": 0.1697,
-      "kr": 1.78
-    },
-    "Sållning": {
-      "anrop": 25,
-      "in": 78651,
-      "ut": 4951,
-      "usd": 0.0517,
-      "kr": 0.54
+    "Kategoriprofiler": {
+      "anrop": 7,
+      "in": 32152,
+      "ut": 4900,
+      "usd": 0.1133,
+      "kr": 1.19
     },
     "Bedömning batch": {
-      "anrop": 154,
-      "in": 697703,
-      "ut": 74333,
-      "usd": 0.5347,
-      "kr": 5.61
-    },
-    "Bedömning direkt": {
-      "anrop": 1,
-      "in": 2633,
-      "ut": 104,
-      "usd": 0.0032,
-      "kr": 0.03
+      "anrop": 166,
+      "in": 730042,
+      "ut": 71812,
+      "usd": 0.5446,
+      "kr": 5.72
     },
     "Totalt": {
-      "kr": 7.97
+      "kr": 6.91
     }
   },
-  "stadsmissionen_katalog": 1499
+  "stadsmissionen_katalog": 1490
 }
