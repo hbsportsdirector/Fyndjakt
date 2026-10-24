@@ -16,10 +16,12 @@ Hjärtsamlingen. Röd är prioritet (sällsynt), blå är daglig servis.
 ### Stig Lindberg för Gustavsberg – Domino (1954–69)
 Växande samling (ca 8–10 pjäser av totalt 13 originalformer). Jaga de saknade.
 - 7 vas-former: koniska, cylindriska, sfäriska, kvadratiska – svart glossy med vita linjer eller omvänt.
-- 6 fat/skålar.
+- 6 fat/skålar/askfat.
 - Signatur: Gustavsberg-stämpel + "Domino" eller "SL".
 - Både svart/vit OCH brun variant OK.
 - OBS: Gunnar Nylund för Rörstrand har också en serie som heter "Domino" – OK men lägre prio.
+- **HAR REDAN (2026-10-24):** stort kvadratiskt fat ~30 cm med micro-checker-rutmönster, svart ram.
+  Ge 0–3 åt EXAKT samma form. Mindre fat/askfat-former och övriga vas-former fortsatt eftersökta.
 
 ### Övrig svensk keramik
 - **Harlequin** (Marianne Westman / svensk 50-60-tal) – sockerkar och mindre skålar med vinröd/svart/vit triangel-mönster. Jag har 1 sockerkar.
