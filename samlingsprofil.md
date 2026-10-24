@@ -87,7 +87,9 @@ Har massor i blå, grön, orange, opalin turkos. Jaga ovanliga färger och forme
 ### Sommerso-glas (klarglas-hölje runt färgad kärna)
 Svensk 1950–60-tal, tung glaskub-teknik.
 - **Nils Landberg Sommerso** – karaffer, höga vaser, ägg-former JA. Illusion-serien och tulpanglas NEJ.
-- **Vicke Lindstrand** – tjockt underfång med bubblor och ränder JA.
+- **Vicke Lindstrand för Kosta** – tjockt underfång med bubblor och ränder JA. Signatur: "LH" (Lindstrand Hytt) + "Kosta" + nummer. Hela LH-serien eftersökt.
+  **HAR REDAN (2026-10-24):** stor rund skål/fat ~30-35 cm, klarglas med turkos kärna + kontrollerade bubblor (600 kr).
+  Jaga: höga vaser LH, karaffer LH, mindre skålar, ovanliga färger (grön, röd, lila).
 - Flygsfors Sommerso – klassiska former.
 
 ### Orrefors
