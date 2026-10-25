@@ -21,6 +21,8 @@ Jag HAR REDAN chesterfield-soffa, wingback-fåtölj, klubbfåtölj. **Vill ha fl
 
 ### Bokhyllor, hyllor
 - **Antika mahogny bokhyllor med glasdörrar** – barristerstil (sektions-bokhyllor).
+- **Palisander/jakaranda sektions-bokhyllor** (1950-70-tal, svensk/dansk mid-century) – med glasdörrar eller skåp underst. CITES-certifikat är bra tecken (bevisar äkta Dalbergia nigra). Eftersökta designers: Sven Ellekaer, Albert Hansen, Ole Wanscher, Svante Skogh, Niels Otto Møller, Ib Kofod Larsen, Nils Jonsson (Troeds).
+- Prisnivåer palisander/jakaranda-bokhyllor: enkla 2 000-5 000 kr. Signerad designer 5 000-15 000+ kr.
 - **IKEA Billy** HAR JAG REDAN 7 st – INGET fler Billy behövs.
 - Noremax-fronter till Billy – intressant om tydligt annons.
 
