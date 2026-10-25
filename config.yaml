@@ -26,12 +26,13 @@ modell: claude-haiku-4-5-20251001  # byt till claude-sonnet-5-5 för skarpare om
 # bedömningen i spåret – bara profilen, lardomar_bas och det som händer efteråt. Aktiva fynd (8+)
 # som bedömdes före tidpunkten betygsätts om en gång med den nya smaken.
 smak_nystart:
-  samlingen: "2026-10-23 08:00:00"
+  samlingen: "2026-10-25 08:00:00"
   hemmet: "2026-10-23 08:00:00"
 max_omvarderingar_per_korning: 1500
 # Betygsätt om aktiva fynd i ett spår efter skärpta regler (behåller det appen lärt sig).
-# Tömd 2026-10-23: ny smak_nystart nollställer allt så omvärderingarna behövs inte.
-omvardera_fore: {}
+# 2026-10-25: ny nystart på samlingen för att nollställa felaktiga Gabriel-lärdomar.
+omvardera_fore:
+  samlingen: "2026-10-25 08:00:00"
 
 # Betygsregler för inbjudna användares egna spår (de skapar sina profiler på hemsidan).
 bedomningsregler_anvandare: |
@@ -269,6 +270,10 @@ spar:
       - replika
       - barnporslin
       - handmålad hobby
+      - Gabriel Keramik
+      - Gabriel keramik
+      - Burmeister
+      - Eke Bjeren
     har_redan_ord:
       - mon amie
       - sippa rörstrand
@@ -297,6 +302,7 @@ spar:
       - Stig Lindberg icke-Domino: Reptil 8. Dyra studioföremål = max 4.
       - Harlequin (Marianne Westman): sockerkar/skålar 8. Enkla tallrikar = max 5.
       - Gustavshand-stämpel ("G" + hand + SWEDEN + krona) = GUSTAVSBERG, INTE Gabriel Keramik. Stig Lindberg icke-Domino: Randig, Spisa Ribb, Tahiti, Reptil, Studio = 8-9. Målad dekor (Berså, Prunus, Fallande löv, Comedia) = max 4. Kunden har 1 randig flaskform-vas + 2 signerade konstkakel ~15x15 (sedan 24 okt 2026) - ge 0-3 åt exakt samma.
+      - Gabriel Keramik (svensk fabrik 1925-) = max 2. Kunden vill INTE ha Gabriel - det är annan fabrik än Gustavsberg trots viss formlikhet. Gabriel-stämpeln "GABRIEL" eller "Gabriel Keramik" är distinkt från Gustavshand.
       - Spode Italian / Copeland Spode: fat, kannor, tekannor 8. Nästan alltid rätt.
       - Burkar MED LOCK gillas genomgående oavsett serie.
       - Krackelering, nagg och nyproduktion drar ner tydligt.
