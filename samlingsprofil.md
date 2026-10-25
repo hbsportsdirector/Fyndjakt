@@ -54,24 +54,44 @@ Vissa Domino-askfat har företagsreklam präglad på ytan. ALLA eftersökta – 
 **Övrigt från H55:**
 - Cigarette cup + liten skål såldes på H55-mässan – samlar-objekt.
 
-### Stig Lindberg icke-Domino Gustavsberg-pjäser
-Stig Lindberg designade MASSOR av serier för Gustavsberg (1937-1980) utöver Domino.
-Pers samling av dessa startade 2026-10-24 (upptäckt via Uppsala antikmässan).
+### Stig Lindberg icke-Domino Gustavsberg-pjäser — AKTIV SAMLING från 2026-10-24
+Stig Lindberg designade 60+ serier för Gustavsberg (1937-1980). Per samlar nu AKTIVT dessa.
 - **Signatur ("Gustavshand"):** "G" (kalligrafisk) + hand-symbol + "SWEDEN" + liten krona under.
   OBS: INTE Gabriel Keramik! Gustavshand är Gustavsbergs klassiska symbol.
-- **Serier av Stig Lindberg som är intressanta** (utöver Domino som har egen sektion):
-  - **Randig / Randig Dekor** – horisontella ränder i olika färger
-  - **Reptil** – reliefmönster (JA, redan i profilen)
-  - **Spisa Ribb** – vertikala ränder
-  - **Tahiti** – handmålad
-  - **Studio-serie** – unika pjäser med SL/handsignatur
-  - **Konstkakel/tavelkakel** – signerade med Gustavshand
-- Övriga Stig Lindberg-serier (Berså, Prunus, Fallande löv, Comedia): max 4 (målad dekor, inte formbärande).
-- **HAR REDAN (2026-10-24):**
-  - Randig flaskform-vas (brun/blå/vit horisontella ränder, ~20-25 cm hög) – troligen Randig Dekor.
-  - 2 st konstkakel ~15×15 cm (ljusblå bas + mörkblå droppform + prick-cirkel-motiv) – signerade Gustavshand.
-- Prisnivåer: Randig/Spisa Ribb vaser 800–3 500 kr. Konstkakel 600–2 000 kr/st. Studio-pjäser 3 000–15 000+ kr.
-- Dubbletter av exakt samma pjäs: max 3. Nya former från samma Stig Lindberg-serie: 8–9.
+
+**EFTERSÖKTA serier (STENGODS — formbärande, Pers kärnintresse):**
+- **Studio / Drejargods** – unika pjäser signerade "Stig L" + årtal eller "Gustavsbergs Studio". Högsta prio = 9.
+- **Randig / Randig Dekor** – horisontella ränder i olika färger (Pers första pjäs är denna typ)
+- **Terra** – jordfärger, horisontella ränder/relief
+- **Reptil** – reliefmönster, grön/brun
+- **Pungo** – peardrop/pearshape form, grön/brun
+- **Veckla** – veckade former
+- **Salix** – organiska former
+- **Karneval** – kombinerade former
+
+**EFTERSÖKTA serier (FAJANS — endast specifika):**
+- **Spisa Ribb** – vertikala ränder (vit botten)
+- **Tahiti** – handmålad abstrakt
+- **Konstkakel/tavelkakel** – signerade med Gustavshand = 9
+- **Aster, Salix (fajans)** – jaga ovanliga former
+
+**IGNORERAS (målad dekor, Pers nej):**
+- Berså, Prunus, Fallande löv, Comedia, Pastella – max 4 (dekor-ikoner men inte formbärande)
+
+**HAR REDAN (2026-10-24):**
+- Randig flaskform-vas (brun/blå/vit horisontella ränder, ~20-25 cm hög) – troligen Studio Randig
+- 2 st konstkakel ~15×15 cm (ljusblå bas + mörkblå droppform + prick-cirkel-motiv) – Gustavshand-signerade
+
+**Prisnivåer:**
+- Studio/Drejargods unika pjäser: 2 000-15 000+ kr (handsignerade "Stig L")
+- Randig/Terra/Pungo vaser: 800-3 500 kr
+- Konstkakel: 600-2 000 kr/st
+- Spisa Ribb/Tahiti pjäser: 400-2 500 kr beroende på form
+
+**Jakt-tips:**
+- "Gustavsbergs Studio" + handsignatur "Stig L" + årtal = UNIKA pjäser, högsta värde
+- Rand/relief-mönster på stengods = Lindbergs mest karaktäristiska uttryck
+- Dubbletter av exakt samma pjäs: max 3. Nya former från samma serie: 8-9.
 
 ### Övrig svensk keramik
 - **Harlequin** (Marianne Westman / svensk 50-60-tal) – sockerkar och mindre skålar med vinröd/svart/vit triangel-mönster. Jag har 1 sockerkar.

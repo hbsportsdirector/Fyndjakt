@@ -303,6 +303,9 @@ spar:
       - Harlequin (Marianne Westman): sockerkar/skålar 8. Enkla tallrikar = max 5.
       - Gustavshand-stämpel ("G" + hand + SWEDEN + krona) = GUSTAVSBERG, INTE Gabriel Keramik. Stig Lindberg icke-Domino: Randig, Spisa Ribb, Tahiti, Reptil, Studio = 8-9. Målad dekor (Berså, Prunus, Fallande löv, Comedia) = max 4. Kunden har 1 randig flaskform-vas + 2 signerade konstkakel ~15x15 (sedan 24 okt 2026) - ge 0-3 åt exakt samma.
       - Gabriel Keramik (svensk fabrik 1925-) = max 2. Kunden vill INTE ha Gabriel - det är annan fabrik än Gustavsberg trots viss formlikhet. Gabriel-stämpeln "GABRIEL" eller "Gabriel Keramik" är distinkt från Gustavshand.
+      - Stig Lindberg Gustavsberg STUDIO/Drejargods (handsignerade unika pjäser med "Stig L" + årtal) = 9-10. Detta är kundens kärnjakt för icke-Domino. Signatur "Gustavsbergs Studio" + handsignatur.
+      - Stig Lindberg stengods-serier (Randig, Terra, Pungo, Reptil, Veckla, Salix, Karneval): formbärande med reliefmönster/ränder = 8-9. Kunden samlar aktivt sedan 24 okt 2026.
+      - Stig Lindberg fajans-serier Spisa Ribb/Tahiti/konstkakel: 8-9 om signerade Gustavshand. Berså/Prunus/Fallande löv/Comedia (målad dekor): max 4.
       - Spode Italian / Copeland Spode: fat, kannor, tekannor 8. Nästan alltid rätt.
       - Burkar MED LOCK gillas genomgående oavsett serie.
       - Krackelering, nagg och nyproduktion drar ner tydligt.
@@ -431,13 +434,21 @@ spar:
         - Stig Lindberg Pungo
         - Stig Lindberg Reptil
         - Stig Lindberg Studio
+        - Stig Lindberg Drejargods
+        - Stig Lindberg stengods
         - Stig Lindberg kakel
         - Stig Lindberg konstkakel
         - Stig Lindberg tavelkakel
+        - Stig Lindberg vas signerad
         - Gustavsberg Randig
         - Gustavsberg Stig Lindberg kakel
-        - Gustavsberg Studio
+        - Gustavsbergs Studio
+        - Gustavsberg Studio vas
         - Gustavshand
+        - Lindberg Veckla
+        - Lindberg Salix
+        - Lindberg Karneval
+        - Lindberg Aster
       Spode engelsk:
         - Spode Italian
         - Blue Italian
