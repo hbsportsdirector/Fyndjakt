@@ -13,15 +13,20 @@ Jag inreder ett engelskt bibliotek / detektiv-sanctum (Sherlock Holmes-inspirera
 
 ### Soffor, fåtöljer – engelsk klubbstil
 Jag HAR REDAN:
-- Chesterfield-soffa i mörkt läder
 - Wingback-fåtölj
 - Klubbfåtölj
 - **2 st Chippendale library chairs** (cane back + ball-and-claw feet + snidade armstöd, köpta Veda Antik 2026-10-26, 2 500 kr/st)
 
-**Vill fortfarande ha** (men nu lägre prioritet eftersom sittmöblerna börjar bli komplett):
-- Deacons chair, Captain's chair, Librarian's chair, Reading chair
-- Mindre skinnpallar/fotpallar att komplettera med
-- Chesterfield-ottoman
+**AKTIV JAKT (högsta möbel-prio nu):**
+- **Vintage Chesterfield 3-sits soffa** i oxblodsläder, cognac eller mörkbrun. Original handtuftad knapp-rygg.
+  - Prisnivå: 10 000-25 000 kr för gott skick (vintage original)
+  - Märken att leta efter: Bevingade & Co (England premium), Delcor (England)
+  - Alternativ om Chesterfield blir för dyrt: Camelback-soffa (viktoriansk) med mahogny-trä som syns
+
+**Vill även ha (lägre prio):**
+- Deacons chair, Captain's chair, Librarian's chair
+- Mindre skinnpallar/fotpallar
+- Chesterfield-ottoman (matchande soffan när den är köpt)
 
 **Modern dansk/skandinavisk design = ALLTID NEJ.** Även Fritz Hansen 8000, Hans Wegner, Arne Jacobsen, Finn Juhl, Børge Mogensen. Oavsett pris eller skick.
 
@@ -102,9 +107,9 @@ Jag HAR REDAN:
 **NEJ:** mid-century skandinavisk modernism, Bauhaus, minimalism, 70-tals brun-grön, 80–90-tals postmodern, 2000-tals "designfåtölj", shabby chic, lantligt-provencalskt.
 
 ## Redan har – ge 0–3 åt exakt samma typ
-- Chesterfield-soffa i mörkt läder
 - Wingback-fåtölj
 - Klubbfåtölj
+- 2 st Chippendale library chairs (cane back + ball-and-claw feet)
 - Dining-bord scarlet-lackad med glasskiva + 6 ljusa trä-stolar (bakom rumsavdelare)
 - **7 st IKEA Billy** – 3 i mitten som rumsavdelare + 4 på andra väggar. **INGEN mer Billy behövs.**
 - Golvabia Jazz Valnöt Sotad herringbone (golv)
