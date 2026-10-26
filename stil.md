@@ -12,10 +12,16 @@ Jag inreder ett engelskt bibliotek / detektiv-sanctum (Sherlock Holmes-inspirera
 - **Chippendale** – stolar, bord, byråer. ALLTID med typ i sökorden ("chippendale byrå", "chippendale stol") – ensamt sökord ger silverbestick och filmer.
 
 ### Soffor, fåtöljer – engelsk klubbstil
-Jag HAR REDAN chesterfield-soffa, wingback-fåtölj, klubbfåtölj. **Vill ha fler engelska klassiker:**
+Jag HAR REDAN:
+- Chesterfield-soffa i mörkt läder
+- Wingback-fåtölj
+- Klubbfåtölj
+- **2 st Chippendale library chairs** (cane back + ball-and-claw feet + snidade armstöd, köpta Veda Antik 2026-10-26, 2 500 kr/st)
+
+**Vill fortfarande ha** (men nu lägre prioritet eftersom sittmöblerna börjar bli komplett):
 - Deacons chair, Captain's chair, Librarian's chair, Reading chair
-- Chesterfield-fåtölj
-- Edwardiansk klubb-fåtölj i oxblodsläder
+- Mindre skinnpallar/fotpallar att komplettera med
+- Chesterfield-ottoman
 
 **Modern dansk/skandinavisk design = ALLTID NEJ.** Även Fritz Hansen 8000, Hans Wegner, Arne Jacobsen, Finn Juhl, Børge Mogensen. Oavsett pris eller skick.
 
