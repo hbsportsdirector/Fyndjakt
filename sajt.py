@@ -72,7 +72,8 @@ def region_for(kalla: str, plats: str) -> tuple[str, str]:
 
 FALT = ["nyckel", "titel", "url", "betyg", "motivering", "kalla", "kategori",
         "pris", "pris_text", "plats", "slutar", "slutar_ts", "bilder", "sedd", "spar",
-        "jamforsok", "jmf_median", "jmf_lag", "jmf_hog", "jmf_antal", "sokord"]
+        "jamforsok", "jmf_median", "jmf_lag", "jmf_hog", "jmf_antal", "sokord",
+        "kvot", "kop_max", "identifierat", "varning"]
 
 
 def _poster(db, cfg: dict, spar_ids: set[str] | None, rader: list[dict] | None = None) -> list[dict]:
@@ -103,7 +104,7 @@ def _poster(db, cfg: dict, spar_ids: set[str] | None, rader: list[dict] | None =
 def _sparlista(spar_cfg: dict) -> list[dict]:
     return [{"id": sid, "namn": s.get("namn", sid), "kategorier": list(s.get("sokningar", {}).keys()),
              "sokningar": s.get("sokningar", {}), "lardomar": s.get("lardomar") or "",
-             "pausade": s.get("pausade") or []}
+             "pausade": s.get("pausade") or [], "flipp": bool(s.get("flipp"))}
             for sid, s in spar_cfg.items()]
 
 
@@ -274,6 +275,12 @@ MALL = r"""<!doctype html>
   .lage.fynd { background: #2f5a3c; color: #d9f0de; }
   .lage.bra { background: #3a4a2e; color: #e2ecc9; }
   .lage.dyrt { background: #5a2f2f; color: #f3d9d9; }
+  .flipp { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; font-size: 13px; color: var(--muted);
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; margin: 0; }
+  .flipp dt { margin: 0; }
+  .flipp dd { margin: 0; color: var(--text); font-weight: 600; }
+  .flipp .kop dd { color: #8fd19e; }
+  .varning { font-size: 13px; color: #f3b6b6; margin: 0; }
   .lage-img { position: absolute; bottom: 10px; left: 10px; }
   .empty { text-align: center; color: var(--muted); padding: 60px 16px; font-family: "Cormorant Garamond", serif; font-size: 24px; font-style: italic; }
   footer { text-align: center; color: var(--muted); font-size: 13px; padding: 0 16px 40px; }
@@ -741,11 +748,26 @@ function card(p) {
   const add = (tag, cls, txt) => { if (!txt) return; const e = document.createElement(tag); e.className = cls; e.textContent = txt; b.appendChild(e); };
   add("div", "cat", p.kategori);
   add("h2", "title", p.titel);
-  add("p", "why", p.motivering);
+  const fl = flippSpar(p.spar);
+  if (fl) {
+    // Flipp: betyget är räknat på pris – visa siffrorna i stället för en smakmotivering.
+    add("p", "why", p.identifierat ? "Claude: " + p.identifierat : p.motivering);
+    if (p.varning) add("p", "varning", "⚠ " + p.varning);
+    const dl = document.createElement("dl"); dl.className = "flipp";
+    const rad = (dt, dd, cls) => { if (!dd) return; const d = document.createElement("div"); d.style.display = "contents";
+      if (cls) d.className = cls;
+      const t = document.createElement("dt"); t.textContent = dt; const v = document.createElement("dd"); v.textContent = dd;
+      d.append(t, v); dl.appendChild(d); };
+    rad(/^bud/i.test(p.pris_text || "") ? "Bud nu" : /^köp nu/i.test(p.pris_text || "") ? "Köp nu" : "Utrop", p.pris ? kr(p.pris) : p.pris_text);
+    rad("Klubbas typiskt", p.jmf_median ? kr(p.jmf_median) + " (" + p.jmf_antal + " sålda)" : "");
+    rad("Köp max", p.kop_max ? kr(p.kop_max) : "", "kop");
+    rad("Pris mot typiskt", p.kvot != null ? Math.round(p.kvot * 100) + " %" : "");
+    b.appendChild(dl);
+  } else add("p", "why", p.motivering);
   const m = document.createElement("div"); m.className = "meta";
   const mm = (cls, txt) => { if (!txt) return; const e = document.createElement("span"); e.className = cls; e.textContent = txt; m.appendChild(e); };
   mm("price", p.pris_text);
-  const j = jmf(p);
+  const j = fl ? null : jmf(p);
   if (j) {
     const box = document.createElement("div"); box.className = "jmf";
     const t = document.createElement("span");
@@ -783,6 +805,9 @@ function jmf(p) {
   return { kvot };
 }
 
+function flippSpar(id) { return (V.spar.find(s => s.id === id) || {}).flipp; }
+// Flipp-spåret: lägst kvot (aktuellt pris / typiskt slutpris) först.
+function kvot(p) { return p.kvot ?? 9e12; }
 function vikt(p) { return p.betyg - 0.25 * (p._rang ?? p.rang ?? 0); }
 function sthlm(p) { return p.region === "Stockholm" ? 1 : 0; }
 function sorterare() {
@@ -791,11 +816,12 @@ function sorterare() {
     // Samma betyg: Stockholm först – kunden kan hämta själv.
     // Variation: varje ytterligare fynd från samma sökord räknas lite lägre (5:e ljusstaken ≈ ett steg ner),
     // så att ett sökord med många träffar inte fyller hela listan.
-    betyg: (a, b) => vikt(b) - vikt(a) || sthlm(b) - sthlm(a) || seddTs(b) - seddTs(a),
+    betyg: flippSpar(st.spar) ? (a, b) => kvot(a) - kvot(b) || b.betyg - a.betyg
+      : (a, b) => vikt(b) - vikt(a) || sthlm(b) - sthlm(a) || seddTs(b) - seddTs(a),
     ny: (a, b) => seddTs(b) - seddTs(a),
     slut: (a, b) => (a.slutar_ts || 9e12) - (b.slutar_ts || 9e12),
     pris: (a, b) => (a.pris ?? 9e12) - (b.pris ?? 9e12),
-    lage: (a, b) => ((jmf(a) || {}).kvot ?? 9e12) - ((jmf(b) || {}).kvot ?? 9e12),
+    lage: (a, b) => (a.kvot ?? (jmf(a) || {}).kvot ?? 9e12) - (b.kvot ?? (jmf(b) || {}).kvot ?? 9e12),
   }[st.sort];
 }
 let senasteFilter = "";
@@ -805,6 +831,7 @@ function minnsVy() {
 }
 function render() {
   minnsVy();
+  $("sort").options[0].text = flippSpar(st.spar) ? "Lägst pris mot typiskt" : "Bäst matchning";
   const f = [st.spar, st.cat, st.src, st.reg, st.q, st.min, st.sort].join("|");
   if (f !== senasteFilter) { st.visa = PER_SIDA; senasteFilter = f; }
   if (st.spar === GILLADE) return renderGillade();

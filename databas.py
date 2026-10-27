@@ -31,6 +31,11 @@ KOLUMNER = {
     "jmf_antal": "INTEGER",
     "jmf_tid": "INTEGER",
     "titelnorm": "TEXT",
+    # Flipp-spåret (betyg på pris): aktuellt pris / typiskt slutpris, köp max och Claudes identifiering.
+    "kvot": "REAL",
+    "kop_max": "INTEGER",
+    "identifierat": "TEXT",
+    "varning": "TEXT",
 }
 
 
@@ -131,7 +136,7 @@ class Databas:
         """Aktuella fynd som saknar prisjämförelse, eller där den är gammal."""
         nu = int(time.time())
         return [dict(r) for r in self.con.execute(
-            """SELECT nyckel, titel, jamforsok FROM sedda
+            """SELECT nyckel, titel, jamforsok, spar FROM sedda
                WHERE betyg >= ? AND (slutar_ts IS NULL OR slutar_ts > ?)
                  AND (jmf_tid IS NULL OR jmf_tid < ?)
                ORDER BY betyg DESC""",
@@ -145,6 +150,11 @@ class Databas:
                WHERE nyckel=?""",
             (fras, res.get("median"), res.get("lag"), res.get("hog"), res.get("antal", 0), int(time.time()), nyckel),
         )
+        self.con.commit()
+
+    def spara_flipp(self, nyckel: str, kvot: float | None, kop_max: int | None, identifierat: str, varning: str):
+        self.con.execute("UPDATE sedda SET kvot=?, kop_max=?, identifierat=?, varning=? WHERE nyckel=?",
+                         (kvot, kop_max, identifierat, varning, nyckel))
         self.con.commit()
 
     def rensa_gamla(self, dagar: int = 120):

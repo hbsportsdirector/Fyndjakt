@@ -85,6 +85,8 @@ def analysera(cfg: dict, export: dict | None, klient=None) -> dict:
     cache = _las()
     nya = 0
     for sid, spar in cfg["spar"].items():
+        if spar.get("flipp"):
+            continue  # flipp-spår betygsätts på pris – smaklärdomar används inte
         bas = str(spar.get("lardomar_bas") or "").strip()  # synkade lärdomar som gäller oavsett reaktioner
         agare = smak._agare(spar, export)
         reakt = [r for r in export.get("reaktioner", []) if smak._galler(r, sid, agare) and r.get("titel")]

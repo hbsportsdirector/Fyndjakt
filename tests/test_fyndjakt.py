@@ -849,3 +849,145 @@ def test_tradera_ort_och_region():
     assert sajt.region_for("tradera", "Tradera, Solna")[1] == "Stockholm"
     assert sajt.region_for("tradera", "Tradera, Göteborg")[1] == "Västsverige och Värmland"
     assert sajt.region_for("tradera", "Tradera")[1] == "Okänd ort"
+
+
+# ── Flipp-spåret: betyg på pris i stället för smak ──────────────────
+
+def test_flipp_betyg_kvoter():
+    import flipp
+    assert flipp.betyg(35, 100, 5) == (10, 0.35)
+    assert flipp.betyg(36, 100, 5)[0] == 8
+    assert flipp.betyg(50, 100, 5)[0] == 8
+    assert flipp.betyg(51, 100, 5)[0] == 6
+    assert flipp.betyg(70, 100, 5)[0] == 6
+    assert flipp.betyg(71, 100, 5)[0] == 0           # sållas bort
+    assert flipp.betyg(300, 100, 12)[0] == 0
+
+
+def test_flipp_saknad_median_och_for_fa_jamforelser():
+    import flipp
+    assert flipp.betyg(10, None, 12) == (0, None)
+    assert flipp.betyg(10, 1000, 2) == (0, None)     # färre än 3 jämförelser
+    assert flipp.betyg(10, 1000, None) == (0, None)
+    assert flipp.betyg(None, 1000, 12) == (0, None)
+    assert flipp.motivering(10, "Utrop 10 SEK", {"median": 1000, "antal": 2}).lower().startswith("för få jämförelser")
+    assert flipp.motivering(10, "Utrop 10 SEK", None).lower().startswith("för få jämförelser")
+
+
+def test_flipp_varning_sanker_betyget():
+    import flipp
+    assert flipp.betyg(30, 100, 5, "nyproduktion") == (7, 0.3)
+    assert flipp.betyg(45, 100, 5, "kopia")[0] == 5
+    assert flipp.betyg(60, 100, 5, "nagg i kanten")[0] == 3
+    assert flipp.betyg(90, 100, 5, "skada")[0] == 0    # aldrig under 0
+    assert flipp.betyg(30, 100, 5, "  ")[0] == 10      # tom varning räknas inte
+
+
+def test_flipp_motivering_och_kop_max():
+    import flipp
+    assert flipp.kop_max(650) == 215 and flipp.kop_max(None) is None
+    assert flipp.motivering(150, "Utrop 150 SEK", {"median": 650, "antal": 12}) == \
+        "Utrop 150 kr, klubbas typiskt för 650 kr (12 jämförelser) – köp max 215 kr."
+    m = flipp.motivering(1200, "Bud 1200 SEK", {"median": 4000, "antal": 7}, "nyproduktion")
+    assert m.startswith("Bud 1 200 kr, klubbas typiskt för 4 000 kr") and m.endswith("Varning: nyproduktion.")
+    a = auctionet.tolka(dict(AUCTIONET_POST, estimate=150, title="Berså <tekanna>"))
+    assert flipp.notistext(a, 650) == ("🔎 Flipp: Berså &lt;tekanna&gt; – utrop 150 kr, klubbas typiskt 650 kr. "
+                                       + a.url)
+
+
+def test_flipp_tolkning_av_svar():
+    import flipp
+    text = ('[{"nr": 1, "jamforsok": "Berså tekanna", "identifierat": "Gustavsberg, Stig Lindberg, Berså", "varning": ""},'
+            ' {"nr": 2, "jamforsok": "", "identifierat": "?"}, {"nr": 3, "jamforsok": "Lisa Larson lejon", "varn')
+    assert flipp.tolka(text, 3) == {1: {"jamforsok": "Berså tekanna", "identifierat": "Gustavsberg, Stig Lindberg, Berså",
+                                        "varning": ""}}
+
+
+def test_flipp_spar_ar_eget_och_sparar_falten(tmp_path):
+    import flipp
+    cfg = main.las_config()
+    f = cfg["spar"]["flipp"]
+    assert f["flipp"] and f["max_pris"] == 2000 and "Berså tekanna" in f["sokningar"]["Gustavsberg"]
+    a = auctionet.tolka(dict(AUCTIONET_POST, title="Kopp, nyproduktion, Berså"))
+    assert main.forfiltrera(a, cfg, f) == "innehåller 'nyproduktion'"
+    # Egen nyckel: samma annons kan finnas både i Samlingen och i flipp-spåret.
+    b = main.replace(auctionet.tolka(AUCTIONET_POST), spar="flipp", prefix="flipp|")
+    assert b.nyckel == "flipp|auctionet:5420356"
+    db = Databas(tmp_path / "t.db")
+    b.pris, b.pris_text = 150, "Utrop 150 SEK"
+    info = {"jamforsok": "Berså tekanna", "identifierat": "Gustavsberg, Berså", "varning": ""}
+    assert flipp.spara(db, b, info, {"median": 650, "lag": 500, "hog": 800, "antal": 12}) == 10
+    r = dict(db.con.execute("SELECT * FROM sedda").fetchone())
+    assert r["kop_max"] == 215 and round(r["kvot"], 3) == 0.231 and r["identifierat"] == "Gustavsberg, Berså"
+    assert r["jmf_median"] == 650 and r["motivering"].startswith("Utrop 150 kr")
+    assert main.fran_rad(r).nyckel == b.nyckel
+    # Budet steg: betyget räknas om utan nytt Claude-anrop.
+    b.pris, b.pris_text = 300, "Bud 300 SEK"
+    assert flipp.uppdatera_priser([b], db, cfg) == 1
+    r = dict(db.con.execute("SELECT * FROM sedda").fetchone())
+    assert r["betyg"] == 8 and r["motivering"].startswith("Bud 300 kr")
+
+
+def test_flipp_profil_gar_inte_via_smakinstruktionen(tmp_path, monkeypatch):
+    """En hel körning: flipp-annonser får expertinstruktionen och prisbetyg, aldrig inredarens smakbedömning."""
+    import json
+    from types import SimpleNamespace as NS
+    import flipp, kategoriprofil, prisjamforelse, sajt
+    cfg = {"modell": "m", "min_betyg": 8, "sajt_min_betyg": 7, "egen_modell": False, "sallning": False,
+           "spar": {"samlingen": {"namn": "Samlingen", "tillagg": "Gillar Berså.", "sokningar": {"Keramik": ["Berså"]}},
+                    "flipp": {"namn": "Flipp", "flipp": True, "sokningar": {"Gustavsberg": ["Berså tekanna"]}}}}
+    for s in cfg["spar"].values():
+        s["profil"] = s["profil_bas"] = main.bygg_profil(s)
+    smak_a = main.replace(auctionet.tolka(dict(AUCTIONET_POST, id=1, title="Berså fat")), spar="samlingen")
+    flipp_a = main.replace(auctionet.tolka(dict(AUCTIONET_POST, id=2, title="Berså tekanna", estimate=150)),
+                           spar="flipp", prefix="flipp|", sokord="Berså tekanna")
+
+    class Batcher:
+        def __init__(s): s.req = []
+        def create(s, requests): s.req += requests; s.senaste = requests; return NS(id="b")
+        def retrieve(s, bid): return NS(id=bid, processing_status="ended")
+        def results(s, bid):
+            for r in s.senaste:
+                if "inredare" in r["params"]["system"]:
+                    t = '[{"nr": 1, "betyg": 8, "motivering": "Smak", "jamforsok": "Berså fat"}]'
+                else:
+                    t = '[{"nr": 1, "jamforsok": "Berså tekanna", "identifierat": "Gustavsberg, Berså", "varning": ""}]'
+                yield NS(custom_id=r["custom_id"], result=NS(type="succeeded", message=NS(content=[NS(type="text", text=t)])))
+    batcher = Batcher()
+    klient = NS(messages=NS(batches=batcher))
+    monkeypatch.setattr(sys, "argv", ["main.py"])
+    monkeypatch.setattr(main, "las_config", lambda: cfg)
+    monkeypatch.setattr(main, "hamta_alla", lambda c, p=None: [smak_a, flipp_a])
+    monkeypatch.setattr(main, "Databas", lambda: Databas(tmp_path / "t.db"))
+    monkeypatch.setattr(main, "spara_rapport", lambda *x: None)
+    monkeypatch.setattr(main, "tradera_orter", lambda db: 0)
+    monkeypatch.setattr(bedomning, "_klient", lambda: klient)
+    monkeypatch.setattr(kategoriprofil, "bygg", lambda c, k=None: {})
+    monkeypatch.setattr(prisjamforelse, "jamfor", lambda fras: {"median": 650, "lag": 500, "hog": 800, "antal": 12})
+    monkeypatch.setattr(sajt, "bygg", lambda db, c: None)
+    monkeypatch.setattr(notis, "aktiverad", lambda: False)
+    monkeypatch.delenv("FYNDJAKT_BOT_TOKEN", raising=False)
+    assert main.main() == 0
+
+    smakanrop = [r for r in batcher.req if "inredare" in r["params"]["system"]]
+    flippanrop = [r for r in batcher.req if "expert på nordisk keramik" in r["params"]["system"]]
+    assert len(smakanrop) == 1 and len(flippanrop) == 1
+    assert "Berså tekanna" not in json.dumps(smakanrop[0]["params"]["messages"], ensure_ascii=False)
+    assert "inredare" not in flippanrop[0]["params"]["system"]
+    db = Databas(tmp_path / "t.db")
+    rad = dict(db.con.execute("SELECT * FROM sedda WHERE nyckel = ?", (flipp_a.nyckel,)).fetchone())
+    assert rad["betyg"] == 10 and rad["kop_max"] == 215 and rad["motivering"].startswith("Utrop 150 kr")
+    assert db.con.execute("SELECT betyg FROM sedda WHERE nyckel = ?", (smak_a.nyckel,)).fetchone()[0] == 8
+
+
+def test_flipp_falt_pa_sidan(tmp_path):
+    import flipp, sajt
+    db = Databas(tmp_path / "t.db")
+    a = main.replace(auctionet.tolka(dict(AUCTIONET_POST, estimate=150)), spar="flipp", prefix="flipp|")
+    flipp.spara(db, a, {"jamforsok": "Berså tekanna", "identifierat": "Gustavsberg, Berså", "varning": ""},
+                {"median": 650, "lag": 500, "hog": 800, "antal": 12})
+    cfg = {"_admins": {"per"}, "spar": {"flipp": {"namn": "Flipp", "flipp": True, "sokningar": {"Gustavsberg": []}}}}
+    ut = sajt.anvandarfynd(db, cfg)["per"]
+    assert ut["spar"][0]["flipp"] is True
+    p = ut["poster"][0]
+    assert p["kop_max"] == 215 and p["identifierat"] == "Gustavsberg, Berså" and p["jmf_antal"] == 12 and p["kvot"] < 0.35

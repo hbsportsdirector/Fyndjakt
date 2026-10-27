@@ -63,6 +63,16 @@ typpriset, för fasta priser och auktioner som slutar inom två dygn), **Lågt b
 buden brukar stiga), **Under typiskt pris** eller **Över typiskt pris**.
 Sortera på "Bäst pris mot liknande" för att se de största fynden först.
 
+## Flipp-spåret – betyg på pris
+
+Spår med `flipp: true` (i `config.yaml`, eller kolumnen `flipp` i `fyndjakt_profiler`) betygsätts inte på smak.
+Claude identifierar bara föremålet (fabrik/formgivare/serie), ger sökfrasen för prisjämförelsen och varnar för
+nyproduktion, kopior och skador. Koden sätter sedan betyget på `kvot = aktuellt pris / typiskt slutpris` (median av
+sålda på Auctionet, aktuellt pris = högsta budet, annars utropet): ≤ 0,35 → 10, ≤ 0,50 → 8, ≤ 0,70 → 6, annars 0.
+Färre än 3 jämförelser ger 0, en varning drar av 3. Köp max = typiskt slutpris × 0,33.
+Kortet visar utrop/bud, typiskt slutpris, köp max och Claudes identifiering, sorterat på kvot. Fynd med 10 skickas
+som egen Telegram-notis. Bud som stiger räknas om varje natt. Koden finns i `flipp.py`.
+
 ## Min smak – appen lär sig
 
 Logga in på sidan med din e-post (en inloggningslänk skickas, inget lösenord). Då får varje kort tre knappar:

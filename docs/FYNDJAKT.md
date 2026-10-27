@@ -18,6 +18,9 @@ intressant annons 0–10 mot en smakprofil, och visar de bästa på en privat we
 - **Bevakningar ("spår"):** varje bevakning har en egen profil, egna sökord och en egen flik.
   - `samlingen` – **Samlingen** (konst, glas, keramik). Profil: `samlingsprofil.md`.
   - `hemmet` – **The Reading Room** (möbler och detaljer till ett engelskt bibliotek). Profil: `stil.md`.
+  - `flipp` – **Flipp – keramik** (sedan 27 okt 2026). Betyget sätts på **pris**, inte smak – avsnitt 3–4 gäller inte.
+    Claude identifierar och varnar, Auctionet ger typiskt slutpris, `flipp.py` räknar betyget på kvoten. Spåret har egna
+    annonsnycklar (`flipp|auctionet:…`) och egen budget (`max_bedomningar`), så det tar inget från de andra spåren.
   - Inbjudna användare kan skapa egna bevakningar på sidan (max 3, max 30 sökord). De lagras i Supabase.
 - **Sidan:** GitHub Pages + inloggning (Google/e-post) via Supabase. Inget är publikt – fynden laddas först efter inloggning.
 - **Körning:** GitHub Actions (`.github/workflows/fyndjakt.yml`), en gång per natt.

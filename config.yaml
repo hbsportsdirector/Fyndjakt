@@ -528,3 +528,74 @@ spar:
         - japansk block-print
         - Yoshitoshi Mori
         - Clifton Karhu
+
+  # ── 3. Flipp – keramik ───────────────────────────────────────
+  # Tillagt 2026-10-27. Betyget sätts på PRIS, inte smak (flipp.py): Claude identifierar föremålet och
+  # varnar för nyproduktion/kopior/skador, Auctionet ger typiskt slutpris, och koden räknar
+  # kvot = aktuellt pris / median: ≤ 0,35 → 10, ≤ 0,50 → 8, ≤ 0,70 → 6, annars 0. Varning −3.
+  # Egna exemplar av annonserna – spåret tar inget från Samlingen eller The Reading Room.
+  flipp:
+    namn: Flipp – keramik
+    flipp: true
+    max_pris: 2000
+    max_bedomningar: 400      # identifieringar per natt (egen budget, påverkar inte de andra spåren)
+    uteslut_ord:
+      - nyproduktion
+      - ny i kartong
+      - nytillverkad
+      - K-Studion
+      - reproduktion
+    sokningar:
+      Gustavsberg:
+        - "Berså tekanna"
+        - "Berså tekopp"
+        - "Spisa Ribb tekopp"
+        - "Lisa Larson Gustavsberg"
+        - "Lisa Larson ABC"
+        - "Lisa Larson Stora Zoo"
+        - "Lisa Larson lejon"
+        - "Berndt Friberg"
+        - "Friberg vas"
+        - "Kåge Argenta"
+        - "Stig Lindberg fajans"
+        - "Stig Lindberg studio"
+        - "Paul Hoff WWF"
+      Rörstrand:
+        - "Marianne Westman kopp"
+        - "Rörstrand King kopp"
+        - "Rörstrand Red Top"
+        - "Westman Druva"
+        - "Westman Picknick"
+        - "Carl-Harry Stålhane"
+        - "Gunnar Nylund vas"
+        - "Gunnar Nylund fågel"
+        - "Sylvia Leuchovius"
+        - "Nobelservis Björquist"
+        - "Ostindia terrin"
+      Upsala-Ekeby och studio:
+        - "Anna-Lisa Thomson Paprika"
+        - "Mari Simmulson relief"
+        - "Anders Liljefors"
+        - "Hertha Hillfon"
+        - "Rolf Palm Mölle"
+      Finland:
+        - "Muminmugg"
+        - "Mumin mugg Arabia"
+        - "Arabia Kilta"
+        - "Arabia Valencia"
+        - "Paratiisi Kaipiainen"
+        - "Rut Bryk"
+        - "Toini Muona"
+      Danmark:
+        - "Royal Copenhagen Baca"
+        - "Royal Copenhagen Tenera"
+        - "Aluminia Marselis"
+        - "Saxbo"
+        - "Palshus"
+        - "Kähler Hammershøi"
+        - "Axel Salto"
+      Övrigt:
+        - "Figgjo Lotte"
+        - "Ruscha 313"
+        - "Bitossi Rimini"
+        - "Rosenthal Studio-linie"

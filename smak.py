@@ -127,6 +127,7 @@ def lagg_till_profiler(cfg: dict, export: dict | None) -> int:
             "profil": profiltext(p),
             "profil_bas": profiltext(p),
             "uteslut_ord": [],
+            "flipp": bool(p.get("flipp")),  # betyg på pris i stället för smak (flipp.py)
         }
         if p.get("max_pris"):
             spar["max_pris"] = int(p["max_pris"])

@@ -51,6 +51,9 @@ def bygg_profil(spar: dict) -> str:
     if spar.get("har_redan"):
         delar.append("Kunden HAR REDAN följande – ge 0–3 åt samma typ av föremål:\n- "
                      + "\n- ".join(spar["har_redan"]))
+    if not delar and spar.get("flipp"):
+        # Flipp-spår betygsätts på pris (flipp.py) – profilen används inte vid bedömningen.
+        return f"Flipp-spåret «{spar.get('namn')}»: köp under typiskt slutpris och sälj vidare."
     if not delar:
         raise SystemExit(f"Spåret {spar.get('namn')} saknar profil.")
     return "\n\n".join(delar)
@@ -84,6 +87,8 @@ def hamta_alla(cfg: dict, pausade: set | None = None) -> list[Annons]:
     for sid, spar in ordning:
         agare = agare_av(spar)
         prefix = f"{agare[:8]}|" if agare else ""
+        if spar.get("flipp"):
+            prefix += f"{sid}|"  # eget exemplar – flipp-spåret tar aldrig annonser från smakspåren (eller tvärtom)
         sidor = min(spar.get("sidor", std_sidor), std_sidor)
         print(f"\n— {spar['namn']} —")
         for namn, sok, tar_sidor in aktiva:
@@ -186,7 +191,9 @@ def prisjamfor(db: Databas, cfg: dict) -> None:
     """Hämtar vad liknande föremål sålts för på Auctionet, för fynden som visas på sidan."""
     import bedomning
     import prisjamforelse
-    rader = db.behover_jamforelse(cfg.get("sajt_min_betyg", 8))[: cfg.get("max_prisjamforelser_per_korning", 120)]
+    # Flipp-fynd prisjämförs redan när de betygsätts (betyget bygger på jämförelsen).
+    rader = [r for r in db.behover_jamforelse(cfg.get("sajt_min_betyg", 8))
+             if not cfg["spar"].get(r.get("spar") or "", {}).get("flipp")][: cfg.get("max_prisjamforelser_per_korning", 120)]
     if not rader:
         return
     print(f"\nPrisjämförelse för {len(rader)} fynd …")
@@ -227,7 +234,7 @@ def fran_rad(r: dict) -> Annons:
     """En sparad rad i databasen som annons igen (för att kunna bedömas om)."""
     import json
     nyckel = r["nyckel"]
-    prefix = nyckel[:nyckel.index("|") + 1] if "|" in nyckel else ""
+    prefix = nyckel[:nyckel.rindex("|") + 1] if "|" in nyckel else ""
     kalla, _, id_ = nyckel[len(prefix):].partition(":")
     try:
         bilder = json.loads(r.get("bilder") or "[]")
@@ -293,11 +300,13 @@ def main() -> int:
     import notis
     import sajt
 
-    kandidater = []
+    kandidater, flipp_kand = [], []
     for a in nya:
         skal = forfiltrera(a, cfg, cfg["spar"][a.spar])
         if skal:
             db.spara(a, -1, skal)
+        elif cfg["spar"][a.spar].get("flipp"):
+            flipp_kand.append(a)  # betygsätts på pris (flipp.py), inte mot en smakprofil
         else:
             kandidater.append(a)
 
@@ -463,6 +472,20 @@ def main() -> int:
             if bra:
                 traffar.append((betyg, a, motivering))
 
+    # Flipp-spåret: Claude identifierar, Auctionet ger typiskt slutpris, koden sätter betyget.
+    import flipp
+    flipp_tio = []
+    try:
+        STATISTIK["Flipp"] = {"priser uppdaterade": flipp.uppdatera_priser(annonser, db, cfg)}
+        if flipp_kand and not STATISTIK.get("Varning"):
+            flipp_tio = flipp.bedom(flipp_kand, db, cfg, bedomning._klient())
+            STATISTIK["Flipp"].update({"kandidater": len(flipp_kand), "betyg 10": len(flipp_tio)})
+    except bedomning.SlutPaKrediter:
+        STATISTIK["Varning"] = "Slut på krediter hos Anthropic – fyll på under Plans & Billing."
+    except Exception as e:  # flipp-spåret får aldrig stoppa de andra spåren
+        print(f"Flipp-spåret misslyckades: {e}")
+        STATISTIK["Flipp"] = {"fel": str(e)[:200]}
+
     try:
         STATISTIK["Tradera-orter ifyllda"] = tradera_orter(db)
     except Exception as e:
@@ -492,6 +515,14 @@ def main() -> int:
                 time.sleep(1)
             except Exception as e:
                 print(f"  Kunde inte skicka notis: {e}")
+        for _, a, median in flipp_tio:
+            if agare_av(cfg["spar"][a.spar]):
+                continue
+            try:
+                notis.skicka_text(flipp.notistext(a, median))
+                time.sleep(1)
+            except Exception as e:
+                print(f"  Kunde inte skicka flipp-notis: {e}")
     else:
         print("Telegram är inte inställt – hoppar över notiser.")
 

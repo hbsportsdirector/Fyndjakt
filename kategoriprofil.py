@@ -51,7 +51,7 @@ def bygg(cfg: dict, klient=None) -> dict[tuple, str]:
     ut, nya = {}, 0
     for sid, spar in cfg["spar"].items():
         bas = spar.get("profil_bas")
-        if not bas:
+        if not bas or spar.get("flipp"):  # flipp-spår betygsätts på pris, inte mot en profil
             continue
         for kategori, sokord in spar.get("sokningar", {}).items():
             nyckel = _nyckel(bas, kategori, list(sokord))
