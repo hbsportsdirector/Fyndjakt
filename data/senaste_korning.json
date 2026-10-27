@@ -1,82 +1,96 @@
 {
-  "tid": "2026-10-26T13:15:42",
-  "annonser_totalt": 7729,
-  "nya": 199,
-  "bedomda": 129,
-  "nya_traffar": 22,
+  "tid": "2026-10-27T01:45:07",
+  "annonser_totalt": 7771,
+  "nya": 497,
+  "bedomda": 318,
+  "nya_traffar": 51,
   "kallor": {
     "Smakanalys": {
-      "nya": 0
+      "nya": 2
     },
     "Pausade sökord": 19,
     "Auctionet": {
-      "sokningar": 263,
-      "traffar": 1993,
+      "sokningar": 283,
+      "traffar": 2064,
       "fel": 0,
       "felexempel": []
     },
     "Bukowskis": {
-      "sokningar": 263,
-      "traffar": 291,
+      "sokningar": 283,
+      "traffar": 292,
       "fel": 0,
       "felexempel": []
     },
     "Myrorna": {
-      "sokningar": 263,
-      "traffar": 1683,
+      "sokningar": 283,
+      "traffar": 1773,
       "fel": 0,
       "felexempel": []
     },
     "Stadsmissionen": {
-      "sokningar": 263,
-      "traffar": 232,
+      "sokningar": 283,
+      "traffar": 228,
       "fel": 0,
       "felexempel": []
     },
     "Tradera": {
-      "sokningar": 263,
-      "traffar": 6812,
+      "sokningar": 283,
+      "traffar": 6867,
       "fel": 0,
       "felexempel": []
     },
     "Väntande från tidigare": 0,
-    "Återanvända betyg": 20,
+    "Återanvända betyg": 60,
     "Egen modell": {
-      "bortsorterade": 45,
+      "bortsorterade": 73,
       "spår med modell": 4
     },
     "Från kön": 0,
     "Bedömning": {
-      "batch": 129,
-      "direkt": 0
+      "batch": 313,
+      "direkt": 5
     },
-    "Tradera-orter ifyllda": 6,
+    "Tradera-orter ifyllda": 12,
     "Prisjämförelse": {
       "fynd": 120,
-      "med_data": 48
+      "med_data": 57
     },
     "Notiser": {
       "skickade": 0
     }
   },
   "kostnad": {
+    "Smakanalys": {
+      "anrop": 2,
+      "in": 92731,
+      "ut": 4540,
+      "usd": 0.2309,
+      "kr": 2.42
+    },
     "Kategoriprofiler": {
-      "anrop": 8,
-      "in": 39298,
-      "ut": 5600,
-      "usd": 0.1346,
-      "kr": 1.41
+      "anrop": 1,
+      "in": 4909,
+      "ut": 700,
+      "usd": 0.0168,
+      "kr": 0.18
     },
     "Bedömning batch": {
-      "anrop": 35,
-      "in": 136567,
-      "ut": 12565,
-      "usd": 0.0997,
-      "kr": 1.05
+      "anrop": 72,
+      "in": 451410,
+      "ut": 31848,
+      "usd": 0.3053,
+      "kr": 3.21
+    },
+    "Bedömning direkt": {
+      "anrop": 5,
+      "in": 39344,
+      "ut": 487,
+      "usd": 0.0418,
+      "kr": 0.44
     },
     "Totalt": {
-      "kr": 2.46
+      "kr": 6.25
     }
   },
-  "stadsmissionen_katalog": 1460
+  "stadsmissionen_katalog": 1457
 }
