@@ -21,4 +21,6 @@ jobs:
       - run: pip install -r requirements.txt
       - env:
           FYNDJAKT_BOT_TOKEN: ${{ secrets.FYNDJAKT_BOT_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python tools/testnotis.py
