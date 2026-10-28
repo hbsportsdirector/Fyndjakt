@@ -991,3 +991,47 @@ def test_flipp_falt_pa_sidan(tmp_path):
     assert ut["spar"][0]["flipp"] is True
     p = ut["poster"][0]
     assert p["kop_max"] == 215 and p["identifierat"] == "Gustavsberg, Berså" and p["jmf_antal"] == 12 and p["kvot"] < 0.35
+
+
+def test_flipp_minst_fem_jamforelser():
+    import flipp
+    assert flipp.betyg(10, 1000, 4) == (0, None)
+    assert flipp.betyg(10, 1000, 5)[0] == 10
+    assert flipp.motivering(10, "Bud 10 kr", {"median": 1000, "antal": 4}).startswith("För få jämförelser")
+
+
+def test_flipp_auktion_langt_kvar_betygsatts_inte_an():
+    import flipp
+    nu = int(time.time())
+    jmf = {"median": 1000, "antal": 20}
+    b, kvot, text = flipp.bedom_post(1, "Bud 1 kr", nu + 5 * 86400, jmf, nu=nu)
+    assert b == 0 and kvot == 0.001 and text.startswith("Slutar om 5 dagar")
+    assert flipp.bedom_post(1, "Bud 1 kr", nu + 86400, jmf, nu=nu)[0] == 10        # inom två dygn
+    assert flipp.bedom_post(100, "Köp nu 100 kr", nu + 9 * 86400, jmf, nu=nu)[0] == 10  # fast pris väntar inte
+    assert flipp.bedom_post(100, "Utrop 100 kr", None, jmf, nu=nu)[0] == 10
+    assert flipp.pris_etikett("Ledande bud 1 kr") == "Bud"
+    # Urvalet hoppar över dem (de kommer med en senare natt) – inga Claude-anrop i onödan.
+    cfg = {"spar": {"flipp": {"flipp": True}}}
+    tidig = main.replace(auctionet.tolka(dict(AUCTIONET_POST, id=1, ends_at=nu + 5 * 86400)), spar="flipp")
+    snart = main.replace(auctionet.tolka(dict(AUCTIONET_POST, id=2, ends_at=nu + 3600)), spar="flipp")
+    assert flipp.valj([tidig, snart], cfg, nu=nu) == [snart]
+
+
+def test_flipp_utanfor_sortimentet_ger_noll(tmp_path):
+    import flipp
+    text = '[{"nr": 1, "jamforsok": "Almedahls tyg", "identifierat": "Almedahls", "varning": "", "utanfor": true}]'
+    info = flipp.tolka(text, 1)[1]
+    assert info["varning"] == flipp.UTANFOR
+    assert flipp.bedom_post(90, "Bud 90 kr", None, {"median": 750, "antal": 13}, info["varning"])[::2] == \
+        (0, "Utanför keramik, glas och design.")
+    assert flipp.betyg(90, 750, 13, info["varning"])[0] == 0
+
+
+def test_flipp_omidentifiering(tmp_path):
+    db = Databas(tmp_path / "t.db")
+    a = main.replace(auctionet.tolka(AUCTIONET_POST), spar="flipp", prefix="flipp|")
+    db.spara(a, 10, "gammal")
+    db.con.execute("UPDATE sedda SET sedd = '2026-09-01 23:00:00'"); db.con.commit()
+    assert db.bedomda_fore("flipp", "2026-10-01 08:00:00") == {a.nyckel}
+    db.spara(a, 7, "ny")  # sparas om med ny tid – identifieras inte igen
+    assert db.bedomda_fore("flipp", "2026-10-01 08:00:00") == set()

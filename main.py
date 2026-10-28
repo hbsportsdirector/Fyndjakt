@@ -281,6 +281,15 @@ def main() -> int:
     nystart = {k: str(v) for k, v in (cfg.get("smak_nystart") or {}).items() if k in cfg["spar"]}
     vantar = db.vantande(nystart)
     nya = [a for a in annonser if a.nyckel in vantar or not db.finns(a.nyckel)]
+    # Flipp-spår med omidentifiera_fore: fynd identifierade före tidpunkten (t.ex. med en äldre instruktion)
+    # identifieras om en gång.
+    om_id = set()
+    for sid, sp in cfg["spar"].items():
+        if sp.get("flipp") and sp.get("omidentifiera_fore"):
+            om_id |= db.bedomda_fore(sid, str(sp["omidentifiera_fore"]))
+    if om_id:
+        redan = {a.nyckel for a in nya}
+        nya += [a for a in annonser if a.nyckel in om_id and a.nyckel not in redan]
     STATISTIK["Väntande från tidigare"] = sum(1 for a in nya if a.nyckel in vantar)
     sokord_stat = sokordsvard.statistik(db)
     print(f"\n{len(annonser)} annonser totalt, {len(nya)} nya (varav {STATISTIK['Väntande från tidigare']} väntande).")

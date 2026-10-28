@@ -539,6 +539,8 @@ spar:
     flipp: true
     max_pris: 2000
     max_bedomningar: 400      # identifieringar per natt (egen budget, påverkar inte de andra spåren)
+    # 2026-10-28: ny instruktion (utanför sortimentet, oidentifierad serie) – identifiera om gårdagens fynd en gång.
+    omidentifiera_fore: "2026-10-28 08:00:00"
     uteslut_ord:
       - nyproduktion
       - ny i kartong

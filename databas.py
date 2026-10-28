@@ -152,6 +152,12 @@ class Databas:
         )
         self.con.commit()
 
+    def bedomda_fore(self, spar: str, tid: str) -> set[str]:
+        """Aktiva annonser i spåret som bedömdes före tidpunkten (UTC, "ÅÅÅÅ-MM-DD HH:MM:SS")."""
+        return {r[0] for r in self.con.execute(
+            "SELECT nyckel FROM sedda WHERE spar = ? AND betyg >= 0 AND sedd < ? AND (slutar_ts IS NULL OR slutar_ts > ?)",
+            (spar, tid, int(time.time())))}
+
     def spara_flipp(self, nyckel: str, kvot: float | None, kop_max: int | None, identifierat: str, varning: str):
         self.con.execute("UPDATE sedda SET kvot=?, kop_max=?, identifierat=?, varning=? WHERE nyckel=?",
                          (kvot, kop_max, identifierat, varning, nyckel))

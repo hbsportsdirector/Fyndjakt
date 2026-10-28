@@ -7,7 +7,9 @@ aktuellt pris / typiskt slutpris (median):
 
     kvot ≤ 0,35 → 10    ≤ 0,50 → 8    ≤ 0,70 → 6    annars 0
 
-Färre än 3 jämförelser (eller ingen median) ger 0. En varning från Claude sänker betyget med 3.
+Färre än 5 jämförelser (eller ingen median) ger 0. En varning från Claude sänker betyget med 3, och föremål
+utanför keramik, glas och design får 0. Auktioner med mer än två dygn kvar betygsätts inte än (0) – ett bud på
+1 kr fem dagar före slutet säger inget om slutpriset. De räknas om varje natt tills de är inom två dygn.
 """
 import json
 import re
@@ -16,7 +18,9 @@ import time
 import bedomning
 import prisjamforelse
 
-MIN_JAMFORELSER = 3
+MIN_JAMFORELSER = 5
+TIDIG = 2 * 86400        # auktioner med mer kvar än så betygsätts inte än
+UTANFOR = "Utanför keramik, glas och design"
 KOP_MAX_ANDEL = 0.33     # köp max = typiskt slutpris × 0,33
 VARNINGSAVDRAG = 3
 STEG = [(0.35, 10), (0.50, 8), (0.70, 6)]
@@ -32,10 +36,14 @@ Blanda inte ihop annonserna – bilden hör till annonsen som står närmast fö
   + serie + föremålstyp, t.ex. "Berså tekanna", "Lisa Larson lejon", "Kåge Argenta vas", "Arabia Paratiisi tallrik".
   Ta inte med ord som sällan står i auktionstitlar (färger, mått, "fin", "vintage").
 - varna kort om det är nyproduktion (t.ex. nytillverkade Berså/Spisa Ribb/Lisa Larson efter 1990, K-Studion),
-  en kopia/reproduktion, eller om skada syns eller nämns (nagg, spricka, lagning, slitet dekor). Annars tom sträng.
+  en kopia/reproduktion, eller om skada syns eller nämns (nagg, spricka, lagning, slitet dekor).
+  Kan du bara se fabriken men inte serie, modell eller formgivare, skriv "oidentifierad serie" – då blir
+  jämförelsen för allmän. Annars tom sträng.
+- sätt "utanfor" till true om föremålet INTE är keramik, glas eller formgivet konsthantverk (t.ex. textil, tyg,
+  kläder, möbler, smycken, böcker, bilder, licensprodukter som påsar och muggunderlägg i papp), annars false.
 
 Svara ENBART med en JSON-lista, en post per annons, utan annan text:
-[{"nr": 1, "jamforsok": "<sökfras>", "identifierat": "<fabrik/formgivare/serie>", "varning": "<nyproduktion, kopia, skada eller tom sträng>"}, …]"""
+[{"nr": 1, "jamforsok": "<sökfras>", "identifierat": "<fabrik/formgivare/serie>", "varning": "<nyproduktion, kopia, skada, oidentifierad serie eller tom sträng>", "utanfor": false}, …]"""
 
 
 # ── Betyget ────────────────────────────────────────────────────────
@@ -46,6 +54,8 @@ def betyg(pris: int | None, median: int | None, antal: int | None, varning: str 
         return 0, None
     kvot = pris / median
     b = next((b for grans, b in STEG if kvot <= grans), 0)
+    if (varning or "").strip().lower().startswith(UTANFOR.lower()):
+        return 0, kvot
     if b and (varning or "").strip():
         b = max(0, b - VARNINGSAVDRAG)
     return b, kvot
@@ -59,7 +69,16 @@ def kop_max(median: int | None) -> int | None:
 def pris_etikett(pris_text: str) -> str:
     """"Bud", "Utrop" eller "Köp nu" – det aktuella priset är högsta budet om det finns, annars utropet."""
     t = (pris_text or "").strip().lower()
-    return "Bud" if t.startswith("bud") else "Köp nu" if t.startswith("köp nu") else "Utrop"
+    return "Bud" if t.startswith(("bud", "ledande bud", "högsta bud")) else "Köp nu" if t.startswith("köp nu") else "Utrop"
+
+
+def auktion(pris_text: str, slutar_ts: int | None) -> bool:
+    """Pågående auktion (priset kan stiga) – inte köp nu eller fast pris."""
+    return bool(slutar_ts) and pris_etikett(pris_text) != "Köp nu"
+
+
+def for_tidig(pris_text: str, slutar_ts: int | None, nu: float | None = None) -> bool:
+    return auktion(pris_text, slutar_ts) and slutar_ts - (nu or time.time()) > TIDIG
 
 
 def _kr(n: int) -> str:
@@ -78,6 +97,20 @@ def motivering(pris: int | None, pris_text: str, jmf: dict | None, varning: str 
     if (varning or "").strip():
         text += f" Varning: {varning.strip()}."
     return text
+
+
+def bedom_post(pris: int | None, pris_text: str, slutar_ts: int | None, jmf: dict | None, varning: str = "",
+               nu: float | None = None) -> tuple[int, float | None, str]:
+    """(betyg, kvot, motivering) för en annons – samma regler när den bedöms första gången och när den räknas om."""
+    jmf = jmf or {}
+    b, kvot = betyg(pris, jmf.get("median"), jmf.get("antal"), varning)
+    text = motivering(pris, pris_text, jmf, varning)
+    if (varning or "").strip().lower().startswith(UTANFOR.lower()):
+        return 0, kvot, f"{UTANFOR}."
+    if b and for_tidig(pris_text, slutar_ts, nu):
+        dagar = round((slutar_ts - (nu or time.time())) / 86400)
+        return 0, kvot, f"Slutar om {dagar} dagar – betygsätts när under två dygn återstår. {text}"
+    return b, kvot, text
 
 
 def notistext(a, median: int) -> str:
@@ -122,8 +155,11 @@ def tolka(text: str, antal: int) -> dict[int, dict]:
             continue
         fras = str(d.get("jamforsok") or "").strip()
         if 1 <= nr <= antal and fras:
+            varning = str(d.get("varning") or "").strip()[:120]
+            if d.get("utanfor") is True or str(d.get("utanfor")).lower() == "true":
+                varning = UTANFOR  # sparas som varning så att omräkningarna också ger 0
             ut[nr] = {"jamforsok": fras[:60], "identifierat": str(d.get("identifierat") or "").strip()[:120],
-                      "varning": str(d.get("varning") or "").strip()[:120]}
+                      "varning": varning}
     return ut
 
 
@@ -161,13 +197,15 @@ def identifiera(annonser: list, modell: str, klient, storlek: int = bedomning.GR
 
 # ── Urval, bedömning och prisuppdatering ───────────────────────────
 
-def valj(kandidater: list, cfg: dict) -> list:
+def valj(kandidater: list, cfg: dict, nu: float | None = None) -> list:
     """Högst `granska_max_per_sokord` per sökord och `max_bedomningar` per flipp-spår och natt – det som slutar
-    först går först (där ligger priset närmast slutpriset). Resten är osparat och kommer med nästa natt."""
+    först går först (där ligger priset närmast slutpriset). Auktioner med mer än två dygn kvar väntar.
+    Det som inte väljs är osparat och kommer med nästa natt."""
     max_per = cfg.get("granska_max_per_sokord", 25)
     per_sokord: dict[tuple, int] = {}
     per_spar: dict[str, int] = {}
     ut = []
+    kandidater = [a for a in kandidater if not for_tidig(a.pris_text, a.slutar_ts, nu)]
     for a in sorted(kandidater, key=lambda a: a.slutar_ts or 9e12):
         tak = cfg["spar"][a.spar].get("max_bedomningar", 300)
         k = (a.spar, a.sokord)
@@ -198,9 +236,9 @@ def jamfor_alla(fraser: list[str], tradar: int = 4) -> dict[str, dict | None]:
 
 def spara(db, a, info: dict, jmf: dict | None) -> int:
     """Sparar annonsen med maskinbetyg, prisjämförelse och flippfälten. Returnerar betyget."""
-    b, kvot = betyg(a.pris, (jmf or {}).get("median"), (jmf or {}).get("antal"), info.get("varning", ""))
+    b, kvot, text = bedom_post(a.pris, a.pris_text, a.slutar_ts, jmf, info.get("varning", ""))
     a.jamforsok = info["jamforsok"]
-    db.spara(a, b, motivering(a.pris, a.pris_text, jmf, info.get("varning", "")), b >= 10)
+    db.spara(a, b, text, b >= 10)
     db.spara_jamforelse(a.nyckel, info["jamforsok"], jmf)
     db.spara_flipp(a.nyckel, kvot, kop_max((jmf or {}).get("median")), info.get("identifierat", ""),
                    info.get("varning", ""))
@@ -230,7 +268,8 @@ def bedom(kandidater: list, db, cfg: dict, klient) -> list[tuple]:
 
 
 def uppdatera_priser(annonser: list, db, cfg: dict) -> int:
-    """Bud stiger: aktiva flipp-annonser som redan bedömts räknas om med nattens pris (utan nytt Claude-anrop)."""
+    """Bud stiger och auktioner närmar sig slutet: aktiva flipp-annonser som redan bedömts räknas om med nattens
+    pris och tid kvar (utan nytt Claude-anrop)."""
     flipp = {a.nyckel: a for a in annonser if cfg["spar"].get(a.spar, {}).get("flipp") and a.pris}
     if not flipp:
         return 0
@@ -240,13 +279,12 @@ def uppdatera_priser(annonser: list, db, cfg: dict) -> int:
             f"SELECT nyckel, pris, betyg, jmf_median, jmf_antal, varning FROM sedda "
             f"WHERE nyckel IN ({platser}) AND jmf_tid IS NOT NULL AND betyg >= 0", list(flipp)).fetchall():
         a = flipp[r["nyckel"]]
-        if a.pris == r["pris"]:
-            continue
         jmf = {"median": r["jmf_median"], "antal": r["jmf_antal"]}
-        b, kvot = betyg(a.pris, r["jmf_median"], r["jmf_antal"], r["varning"] or "")
+        b, kvot, text = bedom_post(a.pris, a.pris_text, a.slutar_ts, jmf, r["varning"] or "")
+        if a.pris == r["pris"] and b == r["betyg"]:
+            continue
         db.con.execute("UPDATE sedda SET pris=?, pris_text=?, betyg=?, motivering=?, kvot=? WHERE nyckel=?",
-                       (a.pris, a.pris_text, b, motivering(a.pris, a.pris_text, jmf, r["varning"] or ""), kvot,
-                        a.nyckel))
+                       (a.pris, a.pris_text, b, text, kvot, a.nyckel))
         n += 1
     db.con.commit()
     if n:
