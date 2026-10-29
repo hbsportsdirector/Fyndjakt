@@ -45,14 +45,7 @@ def tolka(post: dict, kategori: str = "") -> Annons | None:
     else:
         pris, pris_text = nasta or None, f"Utrop {nasta} kr" if nasta else ""
 
-    # Bilderna kommer i flera storlekar – ta den stora ("normal"), annars galleribilden.
-    bilder = []
-    for b in _hamta(post, "imageLinks", "detailedImageLinks", default=[]) or []:
-        if isinstance(b, str):
-            bilder.append(b)
-        elif isinstance(b, dict) and b.get("url") and b.get("format", "normal") in ("normal", "gallery"):
-            bilder.append(b["url"])
-    bilder.sort(key=lambda u: 0 if "/images/" in u else 1)
+    bilder = bilder_ur(post)
     tumnagel = _hamta(post, "thumbnailLink")
     if not bilder and tumnagel:
         bilder = [tumnagel]
@@ -140,6 +133,18 @@ def detaljer(item_id: str) -> dict:
     return r.json()
 
 
+def bilder_ur(post: dict) -> list[str]:
+    """Bilderna kommer i flera storlekar – ta den stora ("normal"), annars galleribilden."""
+    bilder = []
+    for b in _hamta(post, "imageLinks", "detailedImageLinks", default=[]) or []:
+        if isinstance(b, str):
+            bilder.append(b)
+        elif isinstance(b, dict) and b.get("url") and b.get("format", "normal") in ("normal", "gallery"):
+            bilder.append(b["url"])
+    bilder.sort(key=lambda u: 0 if "/images/" in u else 1)
+    return bilder
+
+
 def ort_ur(d: dict) -> str:
     saljare = _hamta(d, "seller", default={}) or {}
     return (_hamta(saljare, "city", default="") or "").strip().title() if isinstance(saljare, dict) else ""
@@ -158,6 +163,9 @@ def berika(a: Annons) -> None:
     lang = " ".join(lang.split())
     if lang and len(lang) > len(a.beskrivning or ""):
         a.beskrivning = lang[:1500]
+    fler = bilder_ur(d)  # annonssidan har alla bilder, sökningen ofta bara huvudbilden
+    if fler:
+        a.bilder = list(dict.fromkeys(a.bilder + fler))
     if _hamta(d, "acceptsPickup"):
         a.beskrivning = (a.beskrivning + "\nKan hämtas hos säljaren.").strip()
     time.sleep(0.2)

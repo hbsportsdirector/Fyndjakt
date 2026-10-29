@@ -69,7 +69,7 @@ BILD_MAX = 400        # pixlar på längsta sidan (~150 tokens i stället för 4
 _BILDER: dict[str, str | None] = {}
 
 
-def _forminska(url: str) -> str | None:
+def _forminska(url: str, storlek: int = BILD_MAX) -> str | None:
     """Hämtar bilden och skalar ner den till en liten JPEG (base64). None om det inte går."""
     import base64
     import io
@@ -80,7 +80,7 @@ def _forminska(url: str) -> str | None:
         r.raise_for_status()
         bild = Image.open(io.BytesIO(r.content))
         bild = bild.convert("RGB")
-        bild.thumbnail((BILD_MAX, BILD_MAX))
+        bild.thumbnail((storlek, storlek))
         ut = io.BytesIO()
         bild.save(ut, "JPEG", quality=80)
         return base64.b64encode(ut.getvalue()).decode()

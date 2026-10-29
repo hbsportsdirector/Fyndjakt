@@ -876,7 +876,7 @@ def test_flipp_saknad_median_och_for_fa_jamforelser():
 
 def test_flipp_varning_sanker_betyget():
     import flipp
-    assert flipp.betyg(30, 100, 5, "nyproduktion") == (7, 0.3)
+    assert flipp.betyg(30, 100, 5, "kopia") == (7, 0.3)
     assert flipp.betyg(45, 100, 5, "kopia")[0] == 5
     assert flipp.betyg(60, 100, 5, "nagg i kanten")[0] == 3
     assert flipp.betyg(90, 100, 5, "skada")[0] == 0    # aldrig under 0
@@ -899,8 +899,8 @@ def test_flipp_tolkning_av_svar():
     import flipp
     text = ('[{"nr": 1, "jamforsok": "Berså tekanna", "identifierat": "Gustavsberg, Stig Lindberg, Berså", "varning": ""},'
             ' {"nr": 2, "jamforsok": "", "identifierat": "?"}, {"nr": 3, "jamforsok": "Lisa Larson lejon", "varn')
-    assert flipp.tolka(text, 3) == {1: {"jamforsok": "Berså tekanna", "identifierat": "Gustavsberg, Stig Lindberg, Berså",
-                                        "varning": ""}}
+    assert flipp.tolka(text, 3) == {1: {"jamforsok": "Berså tekanna", "typ": "", "akthet_sakerhet": None,
+                                        "identifierat": "Gustavsberg, Stig Lindberg, Berså", "varning": ""}}
 
 
 def test_flipp_spar_ar_eget_och_sparar_falten(tmp_path):
@@ -909,7 +909,7 @@ def test_flipp_spar_ar_eget_och_sparar_falten(tmp_path):
     f = cfg["spar"]["flipp"]
     assert f["flipp"] and f["max_pris"] == 2000 and "Berså tekanna" in f["sokningar"]["Gustavsberg"]
     a = auctionet.tolka(dict(AUCTIONET_POST, title="Kopp, nyproduktion, Berså"))
-    assert main.forfiltrera(a, cfg, f) == "innehåller 'nyproduktion'"
+    assert main.forfiltrera(a, cfg, f) == "titeln innehåller 'nyproduktion'"
     # Egen nyckel: samma annons kan finnas både i Samlingen och i flipp-spåret.
     b = main.replace(auctionet.tolka(AUCTIONET_POST), spar="flipp", prefix="flipp|")
     assert b.nyckel == "flipp|auctionet:5420356"
@@ -963,7 +963,7 @@ def test_flipp_profil_gar_inte_via_smakinstruktionen(tmp_path, monkeypatch):
     monkeypatch.setattr(main, "tradera_orter", lambda db: 0)
     monkeypatch.setattr(bedomning, "_klient", lambda: klient)
     monkeypatch.setattr(kategoriprofil, "bygg", lambda c, k=None: {})
-    monkeypatch.setattr(prisjamforelse, "jamfor", lambda fras: {"median": 650, "lag": 500, "hog": 800, "antal": 12})
+    monkeypatch.setattr(prisjamforelse, "jamfor", lambda fras, uteslut=(): {"median": 650, "lag": 500, "hog": 800, "antal": 12})
     monkeypatch.setattr(sajt, "bygg", lambda db, c: None)
     monkeypatch.setattr(notis, "aktiverad", lambda: False)
     monkeypatch.delenv("FYNDJAKT_BOT_TOKEN", raising=False)
@@ -1035,3 +1035,70 @@ def test_flipp_omidentifiering(tmp_path):
     assert db.bedomda_fore("flipp", "2026-10-01 08:00:00") == {a.nyckel}
     db.spara(a, 7, "ny")  # sparas om med ny tid – identifieras inte igen
     assert db.bedomda_fore("flipp", "2026-10-01 08:00:00") == set()
+
+
+
+def test_flipp_nyproduktion_pa_bilderna_ger_noll(tmp_path):
+    """Picknick underlägg som bilderna visar är nyproduktion: betyg 0, inte −3."""
+    import flipp
+    text = ('[{"nr": 1, "jamforsok": "Marianne Westman Picknick", "typ": "underlägg", "identifierat": "Rörstrand, '
+            'Picknick", "varning": "nyproduktion", "akthet_sakerhet": 0.9, "utanfor": false}]')
+    info = flipp.tolka(text, 1)[1]
+    assert info["jamforsok"] == "Marianne Westman Picknick underlägg"  # typen läggs till om den saknas
+    assert info["akthet_sakerhet"] == 0.9
+    jmf = {"median": 700, "antal": 32, "sakerhet": ""}
+    b, kvot, motiv = flipp.bedom_post(55, "Bud 55 kr", None, jmf, info["varning"])
+    assert b == 0 and motiv.startswith("Nyproduktion")
+    assert flipp.betyg(55, 700, 32, "Nyproduktion (krönt R-logo)")[0] == 0
+    assert flipp.betyg(55, 700, 32, "skada: nagg")[0] == 7          # kopia/skada: −3 som förut
+    db = Databas(tmp_path / "t.db")
+    a = main.replace(auctionet.tolka(dict(AUCTIONET_POST, estimate=55, title="Picknick underlägg")),
+                     spar="flipp", prefix="flipp|")
+    assert flipp.spara(db, a, info, jmf) == 0
+    r = dict(db.con.execute("SELECT betyg, varning, akthet_sakerhet FROM sedda").fetchone())
+    assert r == {"betyg": 0, "varning": "nyproduktion", "akthet_sakerhet": 0.9}
+    # Bilderna: upp till 3 olika, samma bild i två storlekar räknas en gång, större än smakbedömningens.
+    a.bilder = ["https://x/images/1/a.jpg", "https://x/medium/1/a.jpg", "https://x/b.jpg", "https://x/c.jpg",
+                "https://x/d.jpg"]
+    assert flipp.bilder_for(a) == ["https://x/images/1/a.jpg", "https://x/b.jpg", "https://x/c.jpg"]
+    f = flipp.forfragan([a], "claude-sonnet-5-5")
+    assert f["model"] == "claude-sonnet-5-5" and "ORIGINAL (produktionsperiod)" in f["system"]
+    assert sum(1 for d in f["messages"][0]["content"] if d["type"] == "image") == 3
+
+
+def test_flipp_jamforelse_utan_typ(monkeypatch):
+    """För få sålda underlägg: typlös jämförelse, median × 0,4 och säkerhet låg – aldrig mot karotter/serviser."""
+    import flipp, prisjamforelse
+    anrop = []
+
+    def jamfor(fras, uteslut=()):
+        anrop.append((fras, uteslut))
+        return None if "underlägg" in fras else {"median": 700, "lag": 450, "hog": 1100, "antal": 32}
+    monkeypatch.setattr(prisjamforelse, "jamfor", jamfor)
+    res = flipp.jamfor_typat("Picknick underlägg", "underlägg")
+    assert res == {"median": 280, "lag": 180, "hog": 440, "antal": 32, "sakerhet": "låg"}
+    assert anrop[0][0] == "Picknick underlägg" and anrop[1][0] == "Picknick"
+    assert "karott" in anrop[1][1] and "servis" in anrop[1][1] and "kanna" in anrop[1][1]
+    assert flipp.motivering(55, "Bud 55 kr", res).startswith(
+        "Bud 55 kr, klubbas typiskt för 280 kr (32 jämförelser) (jämförelse utan typ) – köp max 92 kr.")
+    # Med tillräckligt många sålda av typen används den typade jämförelsen som den är.
+    monkeypatch.setattr(prisjamforelse, "jamfor", lambda fras, uteslut=(): {"median": 150, "lag": 100, "hog": 200,
+                                                                            "antal": 8})
+    assert flipp.jamfor_typat("Picknick underlägg", "underlägg")["sakerhet"] == ""
+    # Prisjämförelsen sorterar bort serviser och karotter för små föremål.
+    poster = [{"state": "sold", "currency": "SEK", "highest_bid": p, "ends_at": 0, "title": t} for p, t in
+              [(100, "Picknick underlägg 6 st"), (2000, "Picknick servis 40 delar med underlägg"),
+               (900, "Picknick karott och underlägg")]]
+    assert prisjamforelse.tolka(poster, "Picknick underlägg", 0, flipp.STORA_TYPER) == [100]
+
+
+def test_flipp_uteslut_ord_i_titeln():
+    cfg = main.las_config()
+    f = cfg["spar"]["flipp"]
+    for titel in ["Picknick underlägg med kork", "Muminmugg By Arabia", "Berså kopp Made in Thailand",
+                  "Nytt i kartong Mumin", "Lisa Larson K-Studion katt", "Arabia Paratiisi 2010-tal"]:
+        a = auctionet.tolka(dict(AUCTIONET_POST, title=titel, description=""))
+        assert main.forfiltrera(a, cfg, f), titel
+    # Bara titeln och hela ord: "som nytt" i beskrivningen och "nyttig" i titeln fäller inte.
+    a = auctionet.tolka(dict(AUCTIONET_POST, title="Kåge Argenta vas, nyttig storlek", description="Som nytt skick."))
+    assert main.forfiltrera(a, cfg, f) is None

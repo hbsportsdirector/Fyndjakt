@@ -69,7 +69,10 @@ Spår med `flipp: true` (i `config.yaml`, eller kolumnen `flipp` i `fyndjakt_pro
 Claude identifierar bara föremålet (fabrik/formgivare/serie), ger sökfrasen för prisjämförelsen och varnar för
 nyproduktion, kopior och skador. Koden sätter sedan betyget på `kvot = aktuellt pris / typiskt slutpris` (median av
 sålda på Auctionet, aktuellt pris = högsta budet, annars utropet): ≤ 0,35 → 10, ≤ 0,50 → 8, ≤ 0,70 → 6, annars 0.
-Färre än 5 jämförelser ger 0, en varning drar av 3 och föremål utanför keramik, glas och design får 0.
+Färre än 5 jämförelser ger 0. Nyproduktion/replika och föremål utanför keramik, glas och design får 0; kopia eller
+skada drar av 3. Äktheten avgörs av Sonnet på upp till 3 bilder (stämplar, baksida, etiketter). Jämförelsen görs på
+samma föremålstyp ("Picknick underlägg"), och små föremål jämförs aldrig mot karotter, kannor och serviser; finns
+färre än 3 sålda av typen används en typlös jämförelse × 0,4 ("jämförelse utan typ").
 Auktioner med mer än två dygn kvar betygsätts inte förrän de är inom två dygn (ett bud på 1 kr säger inget om slutpriset). Köp max = typiskt slutpris × 0,33.
 Kortet visar utrop/bud, typiskt slutpris, köp max och Claudes identifiering, sorterat på kvot. Fynd med 10 skickas
 som egen Telegram-notis. Bud som stiger räknas om varje natt. Koden finns i `flipp.py`.

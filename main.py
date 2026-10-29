@@ -7,6 +7,7 @@ Kör:  python main.py            (vanlig körning)
       python main.py --torr     (hämtar annonser och skriver ut, utan AI och utan notiser)
 """
 import argparse
+import re
 from dataclasses import replace
 import sys
 import time
@@ -123,10 +124,19 @@ def forfiltrera(a: Annons, cfg: dict, spar: dict | None = None) -> str | None:
     """Returnerar en anledning om annonsen ska sorteras bort utan AI."""
     spar = spar or {}
     text = f"{a.titel} {a.beskrivning}".lower()
+    titel = a.titel.lower()
+    if spar.get("uteslut_bara_titel"):
+        # Spårets ord gäller bara titeln och ord från början ("nytt" ska inte fälla "som nytt skick" i
+        # beskrivningen, men "Nytt i kartong" i titeln). Korta ord (under 5 tecken) måste vara hela ord –
+        # "nytt" fäller inte "nyttig"; längre ord får böjas ("oanvänd" fäller "oanvända").
+        for ord_ in spar.get("uteslut_ord", []):
+            slut = r"(?![\wåäö])" if len(ord_) < 5 else ""
+            if re.search(rf"(?<![\wåäö]){re.escape(ord_.lower())}{slut}", titel):
+                return f"titeln innehåller '{ord_}'"
+        spar = {**spar, "uteslut_ord": []}
     for ord_ in cfg.get("uteslut_ord", []) + spar.get("uteslut_ord", []):
         if ord_.lower() in text:
             return f"innehåller '{ord_}'"
-    titel = a.titel.lower()
     for ord_ in spar.get("har_redan_ord", []):
         if ord_.lower() in titel:
             return f"har redan ('{ord_}')"
@@ -487,7 +497,7 @@ def main() -> int:
     try:
         STATISTIK["Flipp"] = {"priser uppdaterade": flipp.uppdatera_priser(annonser, db, cfg)}
         if flipp_kand and not STATISTIK.get("Varning"):
-            flipp_tio = flipp.bedom(flipp_kand, db, cfg, bedomning._klient())
+            flipp_tio = flipp.bedom(flipp_kand, db, cfg, bedomning._klient(), berika, STATISTIK["Flipp"])
             STATISTIK["Flipp"].update({"kandidater": len(flipp_kand), "betyg 10": len(flipp_tio)})
     except bedomning.SlutPaKrediter:
         STATISTIK["Varning"] = "Slut på krediter hos Anthropic – fyll på under Plans & Billing."

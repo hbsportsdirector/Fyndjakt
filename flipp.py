@@ -7,8 +7,9 @@ aktuellt pris / typiskt slutpris (median):
 
     kvot ≤ 0,35 → 10    ≤ 0,50 → 8    ≤ 0,70 → 6    annars 0
 
-Färre än 5 jämförelser (eller ingen median) ger 0. En varning från Claude sänker betyget med 3, och föremål
-utanför keramik, glas och design får 0. Auktioner med mer än två dygn kvar betygsätts inte än (0) – ett bud på
+Färre än 5 jämförelser (eller ingen median) ger 0. Nyproduktion/replika och föremål utanför keramik, glas och
+design får 0; övriga varningar (kopia, skada) sänker betyget med 3. Jämförelsen görs på samma föremålstyp
+("Picknick underlägg", inte "Picknick"); finns för få sålda av typen används en typlös jämförelse × 0,4. Auktioner med mer än två dygn kvar betygsätts inte än (0) – ett bud på
 1 kr fem dagar före slutet säger inget om slutpriset. De räknas om varje natt tills de är inom två dygn.
 """
 import json
@@ -21,7 +22,15 @@ import prisjamforelse
 MIN_JAMFORELSER = 5
 TIDIG = 2 * 86400        # auktioner med mer kvar än så betygsätts inte än
 UTANFOR = "Utanför keramik, glas och design"
+NYPRODUKTION = "nyproduktion"
 KOP_MAX_ANDEL = 0.33     # köp max = typiskt slutpris × 0,33
+TYPLOS_ANDEL = 0.4       # typlös jämförelse (för få sålda av samma typ): median × 0,4
+MIN_TYPADE = 3           # färre sålda av samma typ → typlös jämförelse
+BILDER = 3               # bilder per annons – stämplar och baksidor avgör äktheten
+BILD_STORLEK = 640       # pixlar på längsta sidan (större än smakbedömningens, för att kunna läsa stämplar)
+# Små föremål jämförs aldrig mot stora – en servis eller karott med underlägg i titeln säger inget om underlägget.
+SMA_TYPER = ("underlägg", "äggkopp", "mugg", "assiett", "tefat")
+STORA_TYPER = ("karott", "kanna", "kannor", "servis")
 VARNINGSAVDRAG = 3
 STEG = [(0.35, 10), (0.50, 8), (0.70, 6)]
 
@@ -32,21 +41,33 @@ föremål har klubbats för.
 Du får flera annonser, numrerade "Annons 1", "Annons 2" … – varje annons med sin text och sin bild direkt efter.
 Blanda inte ihop annonserna – bilden hör till annonsen som står närmast före den. För VARJE annons:
 - identifiera föremålet: fabrik, formgivare och serie/modell (t.ex. "Gustavsberg, Lisa Larson, Stora Zoo").
+- ange föremålstypen i ett ord, i singular (t.ex. "underlägg", "äggkopp", "mugg", "assiett", "tefat", "tekanna",
+  "karott", "vas", "figurin").
 - ge en sökfras (2–5 ord, svenska) som hittar JÄMFÖRBARA SÅLDA föremål på Auctionet: formgivare eller fabrik
-  + serie + föremålstyp, t.ex. "Berså tekanna", "Lisa Larson lejon", "Kåge Argenta vas", "Arabia Paratiisi tallrik".
+  + serie + föremålstypen, t.ex. "Picknick underlägg", "Berså tekanna", "Lisa Larson lejon", "Kåge Argenta vas".
+  Föremålstypen MÅSTE ingå – "Picknick" ensamt jämför ett underlägg med karotter och serviser.
   Ta inte med ord som sällan står i auktionstitlar (färger, mått, "fin", "vintage").
-- varna kort om det är nyproduktion (t.ex. nytillverkade Berså/Spisa Ribb/Lisa Larson efter 1990, K-Studion),
-  en kopia/reproduktion, eller om skada syns eller nämns (nagg, spricka, lagning, slitet dekor).
+
+Avgör om föremålet är ORIGINAL (produktionsperiod) eller NYPRODUKTION/REPLIKA. Kännetecken på nyproduktion: Rörstrand krönt R-logo (2000+) i stället för tre kronor; "Made in Sri Lanka/Thailand/Indonesia/Portugal"; Picknick i vit, blank, tunn benporslin med skarpt tryck och runda muggar/underlägg med kork; Berså med ankarstämpel utan bladlogotyp eller "Gustafsberg"-stavning tryckt; Paratiisi med runda tallrikar; Lisa Larson "K-Studion" eller japansk märkning utan krackelering; Mon Amie 0,33 l-mugg; Muminmugg med "By Arabia" eller Made in Thailand; glas/porslin med streckkodsetikett eller nypris. Titlar med "ny", "nytt", "oanvänd", "i kartong", "nyproduktion", "nyutgåva", "modern", "2000-tal", "2010-tal" talar för nyproduktion. Svara med "varning" = "nyproduktion" när något av detta syns, och "akthet_sakerhet" 0–1.
+
+Titta på ALLA bilderna (stämpel, baksida, etiketter) innan du avgör äktheten.
+- "varning": "nyproduktion" enligt ovan; annars kort om det är en kopia/reproduktion, eller om skada syns eller
+  nämns (nagg, spricka, lagning, slitet dekor).
   Kan du bara se fabriken men inte serie, modell eller formgivare, skriv "oidentifierad serie" – då blir
   jämförelsen för allmän. Annars tom sträng.
 - sätt "utanfor" till true om föremålet INTE är keramik, glas eller formgivet konsthantverk (t.ex. textil, tyg,
   kläder, möbler, smycken, böcker, bilder, licensprodukter som påsar och muggunderlägg i papp), annars false.
 
 Svara ENBART med en JSON-lista, en post per annons, utan annan text:
-[{"nr": 1, "jamforsok": "<sökfras>", "identifierat": "<fabrik/formgivare/serie>", "varning": "<nyproduktion, kopia, skada, oidentifierad serie eller tom sträng>", "utanfor": false}, …]"""
+[{"nr": 1, "jamforsok": "<sökfras med föremålstyp>", "typ": "<föremålstyp>", "identifierat": "<fabrik/formgivare/serie>", "varning": "<nyproduktion, kopia, skada, oidentifierad serie eller tom sträng>", "akthet_sakerhet": <0–1>, "utanfor": false}, …]"""
 
 
 # ── Betyget ────────────────────────────────────────────────────────
+
+def nyproduktion(varning: str) -> bool:
+    v = (varning or "").lower()
+    return NYPRODUKTION in v or "replika" in v
+
 
 def betyg(pris: int | None, median: int | None, antal: int | None, varning: str = "") -> tuple[int, float | None]:
     """(betyg 0–10, kvot). Kvoten är None när den inte går att räkna ut."""
@@ -54,8 +75,8 @@ def betyg(pris: int | None, median: int | None, antal: int | None, varning: str 
         return 0, None
     kvot = pris / median
     b = next((b for grans, b in STEG if kvot <= grans), 0)
-    if (varning or "").strip().lower().startswith(UTANFOR.lower()):
-        return 0, kvot
+    if (varning or "").strip().lower().startswith(UTANFOR.lower()) or nyproduktion(varning):
+        return 0, kvot  # sållas bort – nyproduktion och fel sortiment är aldrig fynd
     if b and (varning or "").strip():
         b = max(0, b - VARNINGSAVDRAG)
     return b, kvot
@@ -92,8 +113,9 @@ def motivering(pris: int | None, pris_text: str, jmf: dict | None, varning: str 
         return f"För få jämförelser ({jmf.get('antal') or 0} sålda)."
     if not pris:
         return "Pris saknas – går inte att jämföra."
+    utan_typ = " (jämförelse utan typ)" if jmf.get("sakerhet") == "låg" else ""
     text = (f"{pris_etikett(pris_text)} {_kr(pris)}, klubbas typiskt för {_kr(jmf['median'])} "
-            f"({jmf['antal']} jämförelser) – köp max {_kr(kop_max(jmf['median']))}.")
+            f"({jmf['antal']} jämförelser){utan_typ} – köp max {_kr(kop_max(jmf['median']))}.")
     if (varning or "").strip():
         text += f" Varning: {varning.strip()}."
     return text
@@ -107,6 +129,8 @@ def bedom_post(pris: int | None, pris_text: str, slutar_ts: int | None, jmf: dic
     text = motivering(pris, pris_text, jmf, varning)
     if (varning or "").strip().lower().startswith(UTANFOR.lower()):
         return 0, kvot, f"{UTANFOR}."
+    if nyproduktion(varning):
+        return 0, kvot, f"Nyproduktion – inget fynd. {text}"
     if b and for_tidig(pris_text, slutar_ts, nu):
         dagar = round((slutar_ts - (nu or time.time())) / 86400)
         return 0, kvot, f"Slutar om {dagar} dagar – betygsätts när under två dygn återstår. {text}"
@@ -122,14 +146,63 @@ def notistext(a, median: int) -> str:
 
 # ── Identifiering med Claude ───────────────────────────────────────
 
+_BILDER: dict[str, str | None] = {}
+
+
+def bilder_for(a) -> list[str]:
+    """Upp till BILDER olika bilder – samma bild i flera storlekar (Tradera: images/… och medium/…) räknas en gång."""
+    ut, sedda = [], set()
+    for u in a.bilder:
+        namn = u.rsplit("/", 1)[-1].split("?")[0]
+        if u and namn not in sedda:
+            sedda.add(namn)
+            ut.append(u)
+    return ut[:BILDER]
+
+
+def forbered_bilder(urls: list[str], tradar: int = 16) -> None:
+    from concurrent.futures import ThreadPoolExecutor
+    nya = [u for u in dict.fromkeys(urls) if u and u not in _BILDER]
+    with ThreadPoolExecutor(max_workers=tradar) as pool:
+        for u, b64 in zip(nya, pool.map(lambda u: bedomning._forminska(u, BILD_STORLEK), nya)):
+            _BILDER[u] = b64
+
+
+def bildblock(url: str) -> dict:
+    if url not in _BILDER:
+        _BILDER[url] = bedomning._forminska(url, BILD_STORLEK)
+    if _BILDER[url]:
+        return {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": _BILDER[url]}}
+    return {"type": "image", "source": {"type": "url", "url": url}}
+
+
 def forfragan(annonser: list, modell: str) -> dict:
     innehall = []
     for nr, a in enumerate(annonser, 1):
+        bilder = bilder_for(a)
         innehall.append({"type": "text", "text": (
-            f"Annons {nr}:\nTitel: {a.titel}\nPris: {a.pris_text}\nBeskrivning: {a.beskrivning[:700]}")})
-        innehall += [bedomning.bildblock(u) for u in a.bilder[:bedomning.BILDER]]
-    return {"model": modell, "max_tokens": 90 * len(annonser) + 50, "system": INSTRUKTION,
+            f"Annons {nr} ({len(bilder)} bilder):\nTitel: {a.titel}\nPris: {a.pris_text}\n"
+            f"Beskrivning: {a.beskrivning[:900]}")})
+        innehall += [bildblock(u) for u in bilder]
+    return {"model": modell, "max_tokens": 140 * len(annonser) + 50, "system": INSTRUKTION,
             "messages": [{"role": "user", "content": innehall}]}
+
+
+def med_typ(fras: str, typ: str) -> str:
+    """Sökfrasen med föremålstypen – lägg till typen om Claude glömt den."""
+    fras, typ = fras.strip(), (typ or "").strip().lower()
+    if typ and typ[:max(3, len(typ) - 2)] not in fras.lower():
+        fras = f"{fras} {typ}"
+    return fras[:60]
+
+
+def utan_typ(fras: str, typ: str) -> str:
+    """Sökfrasen utan föremålstypen (för den typlösa reservjämförelsen)."""
+    typ = (typ or "").strip().lower()
+    if not typ:
+        return ""
+    stam = typ[:max(3, len(typ) - 2)]
+    return " ".join(o for o in fras.split() if stam not in o.lower())
 
 
 def tolka(text: str, antal: int) -> dict[int, dict]:
@@ -158,8 +231,14 @@ def tolka(text: str, antal: int) -> dict[int, dict]:
             varning = str(d.get("varning") or "").strip()[:120]
             if d.get("utanfor") is True or str(d.get("utanfor")).lower() == "true":
                 varning = UTANFOR  # sparas som varning så att omräkningarna också ger 0
-            ut[nr] = {"jamforsok": fras[:60], "identifierat": str(d.get("identifierat") or "").strip()[:120],
-                      "varning": varning}
+            typ = str(d.get("typ") or "").strip().lower()[:30]
+            try:
+                sakerhet = max(0.0, min(1.0, float(d.get("akthet_sakerhet"))))
+            except (TypeError, ValueError):
+                sakerhet = None
+            ut[nr] = {"jamforsok": med_typ(fras, typ), "typ": typ,
+                      "identifierat": str(d.get("identifierat") or "").strip()[:120],
+                      "varning": varning, "akthet_sakerhet": sakerhet}
     return ut
 
 
@@ -168,7 +247,7 @@ def identifiera(annonser: list, modell: str, klient, storlek: int = bedomning.GR
     """{annonsnyckel: identifiering}. Allt i en batch (halva priset); det som saknas försöks igen nästa körning."""
     if not annonser:
         return {}
-    bedomning.forbered_bilder([u for a in annonser for u in a.bilder[:bedomning.BILDER]])
+    forbered_bilder([u for a in annonser for u in bilder_for(a)])
     grupper = {f"f{i // storlek}": annonser[i:i + storlek] for i in range(0, len(annonser), storlek)}
     batch = klient.messages.batches.create(
         requests=[{"custom_id": cid, "params": forfragan(bit, modell)} for cid, bit in grupper.items()])
@@ -219,19 +298,36 @@ def valj(kandidater: list, cfg: dict, nu: float | None = None) -> list:
     return ut
 
 
-def jamfor_alla(fraser: list[str], tradar: int = 4) -> dict[str, dict | None]:
-    """{fras (gemener): jämförelse}. Fraser där hämtningen misslyckades saknas – de försöks igen nästa natt."""
-    from concurrent.futures import ThreadPoolExecutor
-    unika = list(dict.fromkeys(f.lower() for f in fraser if f))
+def jamfor_typat(fras: str, typ: str) -> dict | None:
+    """Jämförelse på samma föremålstyp. Små föremål (underlägg, äggkoppar …) jämförs aldrig mot karotter, kannor
+    och serviser. Färre än MIN_TYPADE sålda av typen: typlös sökning, median × 0,4 och sakerhet "låg"."""
+    liten = any(t[:max(3, len(t) - 2)] in (typ or "") for t in SMA_TYPER)
+    uteslut = STORA_TYPER if liten else ()
+    res = prisjamforelse.jamfor(fras, uteslut)
+    if res and res["antal"] >= MIN_TYPADE:
+        return {**res, "sakerhet": ""}
+    typlos = utan_typ(fras, typ)
+    if not typlos or typlos.lower() == fras.lower():
+        return res and {**res, "sakerhet": ""}
+    bred = prisjamforelse.jamfor(typlos, uteslut)
+    if not bred:
+        return res and {**res, "sakerhet": ""}
+    return {**bred, **{k: round(bred[k] * TYPLOS_ANDEL) for k in ("median", "lag", "hog")}, "sakerhet": "låg"}
 
-    def en(fras):
+
+def jamfor_alla(fraser: list[tuple[str, str]], tradar: int = 4) -> dict[tuple, dict | None]:
+    """{(fras gemener, typ): jämförelse}. Fraser där hämtningen misslyckades saknas – de försöks igen nästa natt."""
+    from concurrent.futures import ThreadPoolExecutor
+    unika = list(dict.fromkeys((f.lower(), t) for f, t in fraser if f))
+
+    def en(nyckel):
         try:
-            return fras, prisjamforelse.jamfor(fras), True
+            return nyckel, jamfor_typat(*nyckel), True
         except Exception as e:
-            print(f"  Prisjämförelse misslyckades för '{fras}': {e}")
-            return fras, None, False
+            print(f"  Prisjämförelse misslyckades för '{nyckel[0]}': {e}")
+            return nyckel, None, False
     with ThreadPoolExecutor(tradar) as pool:
-        return {f: res for f, res, ok in pool.map(en, unika) if ok}
+        return {k: res for k, res, ok in pool.map(en, unika) if ok}
 
 
 def spara(db, a, info: dict, jmf: dict | None) -> int:
@@ -241,29 +337,47 @@ def spara(db, a, info: dict, jmf: dict | None) -> int:
     db.spara(a, b, text, b >= 10)
     db.spara_jamforelse(a.nyckel, info["jamforsok"], jmf)
     db.spara_flipp(a.nyckel, kvot, kop_max((jmf or {}).get("median")), info.get("identifierat", ""),
-                   info.get("varning", ""))
+                   info.get("varning", ""), (jmf or {}).get("sakerhet", ""), info.get("akthet_sakerhet"))
     return b
 
 
-def bedom(kandidater: list, db, cfg: dict, klient) -> list[tuple]:
-    """Identifierar, prisjämför och betygsätter flipp-kandidaterna. Returnerar [(betyg, annons, median)] för 10:or."""
+def bedom(kandidater: list, db, cfg: dict, klient, berika=None, statistik: dict | None = None) -> list[tuple]:
+    """Identifierar, prisjämför och betygsätter flipp-kandidaterna. Returnerar [(betyg, annons, median)] för 10:or.
+    berika(annons) hämtar annonssidan (fler bilder och längre beskrivning) för de valda."""
     if not kandidater:
         return []
     kandidater = valj(kandidater, cfg)
-    ident = identifiera(kandidater, cfg["modell"], klient, cfg.get("gruppstorlek", bedomning.GRUPPSTORLEK))
-    jmf = jamfor_alla([i["jamforsok"] for i in ident.values()])
-    tio, sparade = [], 0
+    if berika:
+        from concurrent.futures import ThreadPoolExecutor
+        with ThreadPoolExecutor(6) as pool:
+            list(pool.map(berika, kandidater))
+    ident = {}
+    per_spar: dict[str, list] = {}
+    for a in kandidater:
+        per_spar.setdefault(a.spar, []).append(a)
+    for sid, lista in per_spar.items():  # spårets egen modell (flipp: Sonnet), annars den vanliga
+        ident.update(identifiera(lista, cfg["spar"][sid].get("modell") or cfg["modell"], klient,
+                                 cfg.get("gruppstorlek", bedomning.GRUPPSTORLEK)))
+    jmf = jamfor_alla([(i["jamforsok"], i.get("typ", "")) for i in ident.values()])
+    tio, sparade, nypr, utan_typ_ = [], 0, 0, 0
     for a in kandidater:
         info = ident.get(a.nyckel)
-        if not info or info["jamforsok"].lower() not in jmf:
+        nyckel = info and (info["jamforsok"].lower(), info.get("typ", ""))
+        if not info or nyckel not in jmf:
             continue  # sparas inte – försöker igen nästa natt
-        res = jmf[info["jamforsok"].lower()]
+        res = jmf[nyckel]
         b = spara(db, a, info, res)
         sparade += 1
-        print(f"  {b:2}/10 [flipp] {a.titel[:55]} | {a.pris_text} | median {(res or {}).get('median')}")
+        nypr += nyproduktion(info.get("varning", ""))
+        utan_typ_ += bool(res and res.get("sakerhet") == "låg")
+        print(f"  {b:2}/10 [flipp] {a.titel[:55]} | {a.pris_text} | {info['jamforsok']} | median "
+              f"{(res or {}).get('median')}{' (utan typ)' if res and res.get('sakerhet') else ''}"
+              f"{' | NYPRODUKTION' if nyproduktion(info.get('varning', '')) else ''}")
         if b >= 10:
             tio.append((b, a, res["median"]))
-    print(f"Flipp: {sparade} bedömda, {len(tio)} med betyg 10.")
+    print(f"Flipp: {sparade} bedömda, {nypr} nyproduktion, {len(tio)} med betyg 10.")
+    if statistik is not None:
+        statistik.update({"bedömda": sparade, "nyproduktion": nypr, "jämförelse utan typ": utan_typ_})
     return tio
 
 
@@ -276,10 +390,10 @@ def uppdatera_priser(annonser: list, db, cfg: dict) -> int:
     n = 0
     platser = ",".join("?" * len(flipp))
     for r in db.con.execute(
-            f"SELECT nyckel, pris, betyg, jmf_median, jmf_antal, varning FROM sedda "
+            f"SELECT nyckel, pris, betyg, jmf_median, jmf_antal, jmf_sakerhet, varning FROM sedda "
             f"WHERE nyckel IN ({platser}) AND jmf_tid IS NOT NULL AND betyg >= 0", list(flipp)).fetchall():
         a = flipp[r["nyckel"]]
-        jmf = {"median": r["jmf_median"], "antal": r["jmf_antal"]}
+        jmf = {"median": r["jmf_median"], "antal": r["jmf_antal"], "sakerhet": r["jmf_sakerhet"] or ""}
         b, kvot, text = bedom_post(a.pris, a.pris_text, a.slutar_ts, jmf, r["varning"] or "")
         if a.pris == r["pris"] and b == r["betyg"]:
             continue

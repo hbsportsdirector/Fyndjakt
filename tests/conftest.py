@@ -5,5 +5,5 @@ import pytest
 def inga_bildhamtningar(monkeypatch):
     """Testerna ska aldrig hämta bilder från nätet."""
     import bedomning
-    monkeypatch.setattr(bedomning, "_forminska", lambda url: None)
+    monkeypatch.setattr(bedomning, "_forminska", lambda url, *a: None)
     bedomning._BILDER.clear()

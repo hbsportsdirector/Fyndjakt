@@ -539,13 +539,27 @@ spar:
     flipp: true
     max_pris: 2000
     max_bedomningar: 400      # identifieringar per natt (egen budget, påverkar inte de andra spåren)
-    # 2026-10-28: ny instruktion (utanför sortimentet, oidentifierad serie) – identifiera om gårdagens fynd en gång.
-    omidentifiera_fore: "2026-10-28 08:00:00"
+    modell: claude-sonnet-5-5 # äkthetskontrollen läser stämplar på 3 bilder – Haiku räcker inte
+    # 2026-10-29: hårdare äkthetskontroll med 3 bilder och jämförelse per föremålstyp – identifiera om alla
+    # aktiva flipp-fynd en gång.
+    omidentifiera_fore: "2026-10-29 17:30:00"
+    uteslut_bara_titel: true  # orden nedan gäller titeln (hela ord), inte beskrivningen ("som nytt skick")
     uteslut_ord:
       - nyproduktion
+      - nyutgåva
       - ny i kartong
       - nytillverkad
+      - oanvänd
+      - nytt
+      - kork
+      - 2010-tal
+      - 2020-tal
+      - Sri Lanka
+      - Thailand
+      - Indonesia
+      - Portugal
       - K-Studion
+      - By Arabia
       - reproduktion
     sokningar:
       Gustavsberg:
