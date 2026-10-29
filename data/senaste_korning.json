@@ -1,9 +1,9 @@
 {
-  "tid": "2026-10-29T01:35:59",
-  "annonser_totalt": 10232,
-  "nya": 2731,
-  "bedomda": 284,
-  "nya_traffar": 54,
+  "tid": "2026-10-29T18:24:49",
+  "annonser_totalt": 10370,
+  "nya": 2739,
+  "bedomda": 207,
+  "nya_traffar": 70,
   "kallor": {
     "Smakanalys": {
       "nya": 0
@@ -11,7 +11,7 @@
     "Pausade sökord": 19,
     "Auctionet": {
       "sokningar": 329,
-      "traffar": 2420,
+      "traffar": 2502,
       "fel": 0,
       "felexempel": []
     },
@@ -35,30 +35,33 @@
     },
     "Tradera": {
       "sokningar": 329,
-      "traffar": 9066,
+      "traffar": 9076,
       "fel": 0,
       "felexempel": []
     },
     "Väntande från tidigare": 0,
-    "Återanvända betyg": 69,
+    "Återanvända betyg": 91,
     "Egen modell": {
-      "bortsorterade": 66,
-      "spår med modell": 4
+      "bortsorterade": 53,
+      "spår med modell": 5
     },
     "Från kön": 0,
     "Bedömning": {
-      "batch": 284,
+      "batch": 207,
       "direkt": 0
     },
     "Flipp": {
-      "priser uppdaterade": 68,
-      "kandidater": 2251,
-      "betyg 10": 28
+      "priser uppdaterade": 75,
+      "bedömda": 394,
+      "nyproduktion": 62,
+      "jämförelse utan typ": 90,
+      "kandidater": 2341,
+      "betyg 10": 16
     },
-    "Tradera-orter ifyllda": 53,
+    "Tradera-orter ifyllda": 47,
     "Prisjämförelse": {
       "fynd": 120,
-      "med_data": 27
+      "med_data": 22
     },
     "Notiser": {
       "skickade": 0
@@ -66,22 +69,22 @@
   },
   "kostnad": {
     "Bedömning batch": {
-      "anrop": 69,
-      "in": 375230,
-      "ut": 28695,
-      "usd": 0.2594,
-      "kr": 2.72
+      "anrop": 51,
+      "in": 298400,
+      "ut": 21398,
+      "usd": 0.2027,
+      "kr": 2.13
     },
     "Flipp-identifiering": {
       "anrop": 80,
-      "in": 152426,
-      "ut": 30729,
-      "usd": 0.153,
-      "kr": 1.61
+      "in": 679046,
+      "ut": 48405,
+      "usd": 0.9211,
+      "kr": 9.67
     },
     "Totalt": {
-      "kr": 4.33
+      "kr": 11.8
     }
   },
-  "stadsmissionen_katalog": 1474
+  "stadsmissionen_katalog": 1498
 }
