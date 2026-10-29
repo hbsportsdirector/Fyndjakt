@@ -36,6 +36,7 @@ KOLUMNER = {
     "kop_max": "INTEGER",
     "identifierat": "TEXT",
     "varning": "TEXT",
+    "vinst": "INTEGER",
 }
 
 
@@ -158,9 +159,10 @@ class Databas:
             "SELECT nyckel FROM sedda WHERE spar = ? AND betyg >= 0 AND sedd < ? AND (slutar_ts IS NULL OR slutar_ts > ?)",
             (spar, tid, int(time.time())))}
 
-    def spara_flipp(self, nyckel: str, kvot: float | None, kop_max: int | None, identifierat: str, varning: str):
-        self.con.execute("UPDATE sedda SET kvot=?, kop_max=?, identifierat=?, varning=? WHERE nyckel=?",
-                         (kvot, kop_max, identifierat, varning, nyckel))
+    def spara_flipp(self, nyckel: str, kvot: float | None, kop_max: int | None, identifierat: str, varning: str,
+                    vinst: int | None = None):
+        self.con.execute("UPDATE sedda SET kvot=?, kop_max=?, identifierat=?, varning=?, vinst=? WHERE nyckel=?",
+                         (kvot, kop_max, identifierat, varning, vinst, nyckel))
         self.con.commit()
 
     def rensa_gamla(self, dagar: int = 120):

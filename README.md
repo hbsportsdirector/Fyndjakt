@@ -67,11 +67,20 @@ Sortera på "Bäst pris mot liknande" för att se de största fynden först.
 
 Spår med `flipp: true` (i `config.yaml`, eller kolumnen `flipp` i `fyndjakt_profiler`) betygsätts inte på smak.
 Claude identifierar bara föremålet (fabrik/formgivare/serie), ger sökfrasen för prisjämförelsen och varnar för
-nyproduktion, kopior och skador. Koden sätter sedan betyget på `kvot = aktuellt pris / typiskt slutpris` (median av
-sålda på Auctionet, aktuellt pris = högsta budet, annars utropet): ≤ 0,35 → 10, ≤ 0,50 → 8, ≤ 0,70 → 6, annars 0.
+nyproduktion, kopior och skador. Koden räknar sedan på upplägget **köp var som helst, sälj via ett auktionshus på
+Auctionet** (typiskt slutpris = median av klubbade priser på Auctionet, aktuellt pris = högsta budet, annars utropet):
+
+- inköp = pris + köparprovision (Auctionet och Bukowskis 25 %) + frakt (Tradera 80 kr; Myrorna och Stadsmissionen hämtas)
+- netto = typiskt slutpris − säljarprovision 20 % − 100 kr i avgifter per föremål
+- `kvot = inköp / netto`: ≤ 0,35 → 10, ≤ 0,50 → 8, ≤ 0,70 → 6, annars 0
+- vinst = netto − inköp; under 300 kr ger 0 (inte värt besväret)
+
+Provisioner och avgifter är uppskattningar – de varierar mellan auktionshusen och ställs in överst i `flipp.py`.
 Färre än 5 jämförelser ger 0, en varning drar av 3 och föremål utanför keramik, glas och design får 0.
-Auktioner med mer än två dygn kvar betygsätts inte förrän de är inom två dygn (ett bud på 1 kr säger inget om slutpriset). Köp max = typiskt slutpris × 0,33.
-Kortet visar utrop/bud, typiskt slutpris, köp max och Claudes identifiering, sorterat på kvot. Fynd med 10 skickas
+Auktioner med mer än två dygn kvar betygsätts inte förrän de är inom två dygn (ett bud på 1 kr säger inget om slutpriset).
+Köp max = högsta pris där inköpet är högst halva nettot och vinsten minst 300 kr – föremål som klubbas för
+under ca 500 kr lönar sig aldrig.
+Kortet visar utrop/bud, typiskt slutpris, vinst, köp max och Claudes identifiering, sorterat på kvot. Fynd med 10 skickas
 som egen Telegram-notis. Bud som stiger räknas om varje natt. Koden finns i `flipp.py`.
 
 ## Min smak – appen lär sig

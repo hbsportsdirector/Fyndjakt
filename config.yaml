@@ -531,8 +531,9 @@ spar:
 
   # ── 3. Flipp – keramik ───────────────────────────────────────
   # Tillagt 2026-10-27. Betyget sätts på PRIS, inte smak (flipp.py): Claude identifierar föremålet och
-  # varnar för nyproduktion/kopior/skador, Auctionet ger typiskt slutpris, och koden räknar
-  # kvot = aktuellt pris / median: ≤ 0,35 → 10, ≤ 0,50 → 8, ≤ 0,70 → 6, annars 0. Varning −3.
+  # varnar för nyproduktion/kopior/skador, Auctionet ger typiskt slutpris, och koden räknar på att sälja via
+  # Auctionet: kvot = inköp (med köparprovision/frakt) / netto (median − säljarprovision och avgifter):
+  # ≤ 0,35 → 10, ≤ 0,50 → 8, ≤ 0,70 → 6, annars 0. Vinst under 300 kr → 0. Varning −3. Se flipp.py.
   # Egna exemplar av annonserna – spåret tar inget från Samlingen eller The Reading Room.
   flipp:
     namn: Flipp – keramik

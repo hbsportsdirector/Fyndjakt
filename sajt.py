@@ -73,7 +73,7 @@ def region_for(kalla: str, plats: str) -> tuple[str, str]:
 FALT = ["nyckel", "titel", "url", "betyg", "motivering", "kalla", "kategori",
         "pris", "pris_text", "plats", "slutar", "slutar_ts", "bilder", "sedd", "spar",
         "jamforsok", "jmf_median", "jmf_lag", "jmf_hog", "jmf_antal", "sokord",
-        "kvot", "kop_max", "identifierat", "varning"]
+        "kvot", "kop_max", "identifierat", "varning", "vinst"]
 
 
 def _poster(db, cfg: dict, spar_ids: set[str] | None, rader: list[dict] | None = None) -> list[dict]:
@@ -760,8 +760,9 @@ function card(p) {
       d.append(t, v); dl.appendChild(d); };
     rad(/^bud/i.test(p.pris_text || "") ? "Bud nu" : /^köp nu/i.test(p.pris_text || "") ? "Köp nu" : "Utrop", p.pris ? kr(p.pris) : p.pris_text);
     rad("Klubbas typiskt", p.jmf_median ? kr(p.jmf_median) + " (" + p.jmf_antal + " sålda)" : "");
+    rad("Vinst på Auctionet", p.vinst != null ? "ca " + kr(p.vinst) : "", p.vinst > 0 ? "kop" : "");
     rad("Köp max", p.kop_max ? kr(p.kop_max) : "", "kop");
-    rad("Pris mot typiskt", p.kvot != null ? Math.round(p.kvot * 100) + " %" : "");
+    rad("Inköp mot netto", p.kvot != null ? Math.round(p.kvot * 100) + " %" : "");
     b.appendChild(dl);
   } else add("p", "why", p.motivering);
   const m = document.createElement("div"); m.className = "meta";
@@ -806,7 +807,7 @@ function jmf(p) {
 }
 
 function flippSpar(id) { return (V.spar.find(s => s.id === id) || {}).flipp; }
-// Flipp-spåret: lägst kvot (aktuellt pris / typiskt slutpris) först.
+// Flipp-spåret: lägst kvot (inköp / netto vid försäljning på Auctionet) först.
 function kvot(p) { return p.kvot ?? 9e12; }
 function vikt(p) { return p.betyg - 0.25 * (p._rang ?? p.rang ?? 0); }
 function sthlm(p) { return p.region === "Stockholm" ? 1 : 0; }
@@ -831,7 +832,7 @@ function minnsVy() {
 }
 function render() {
   minnsVy();
-  $("sort").options[0].text = flippSpar(st.spar) ? "Lägst pris mot typiskt" : "Bäst matchning";
+  $("sort").options[0].text = flippSpar(st.spar) ? "Lägst inköp mot netto" : "Bäst matchning";
   const f = [st.spar, st.cat, st.src, st.reg, st.q, st.min, st.sort].join("|");
   if (f !== senasteFilter) { st.visa = PER_SIDA; senasteFilter = f; }
   if (st.spar === GILLADE) return renderGillade();
