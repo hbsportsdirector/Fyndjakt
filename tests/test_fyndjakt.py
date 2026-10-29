@@ -1035,3 +1035,31 @@ def test_flipp_omidentifiering(tmp_path):
     assert db.bedomda_fore("flipp", "2026-10-01 08:00:00") == {a.nyckel}
     db.spara(a, 7, "ny")  # sparas om med ny tid – identifieras inte igen
     assert db.bedomda_fore("flipp", "2026-10-01 08:00:00") == set()
+
+
+def test_miniatyr_skalas_och_kodas():
+    import base64
+    import io
+    from PIL import Image
+    import bilder
+    ut = io.BytesIO()
+    Image.effect_noise((900, 600), 60).convert("RGB").save(ut, "PNG")  # brus – svårast att komprimera
+    data_url, bredd, hojd = bilder.mini(ut.getvalue())
+    assert data_url.startswith("data:image/jpeg;base64,")
+    assert (bredd, hojd) == (200, 133)
+    assert len(data_url) < 15_000
+    assert Image.open(io.BytesIO(base64.b64decode(data_url.split(",", 1)[1]))).size == (200, 133)
+
+
+def test_miniatyr_ateranvander_bedomningens_bild(monkeypatch):
+    import base64
+    import io
+    from PIL import Image
+    import bilder
+    ut = io.BytesIO()
+    Image.new("RGB", (400, 300), "brown").save(ut, "JPEG")
+    bedomning._BILDER["https://x/a.jpg"] = base64.b64encode(ut.getvalue()).decode()
+    bedomning._BILDER["https://x/trasig.jpg"] = None
+    monkeypatch.setattr(bilder, "_hamta", lambda url: (_ for _ in ()).throw(AssertionError("hämtade igen")))
+    assert bilder.bytes_for("https://x/a.jpg") == ut.getvalue()
+    assert bilder.bytes_for("https://x/trasig.jpg") is None
