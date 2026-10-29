@@ -1,29 +1,29 @@
 {
-  "tid": "2026-10-27T23:10:30",
-  "annonser_totalt": 10538,
-  "nya": 3279,
-  "bedomda": 427,
-  "nya_traffar": 61,
+  "tid": "2026-10-29T01:35:59",
+  "annonser_totalt": 10232,
+  "nya": 2731,
+  "bedomda": 284,
+  "nya_traffar": 54,
   "kallor": {
     "Smakanalys": {
-      "nya": 1
+      "nya": 0
     },
     "Pausade sökord": 19,
     "Auctionet": {
       "sokningar": 329,
-      "traffar": 2404,
+      "traffar": 2420,
       "fel": 0,
       "felexempel": []
     },
     "Bukowskis": {
       "sokningar": 329,
-      "traffar": 307,
+      "traffar": 0,
       "fel": 0,
       "felexempel": []
     },
     "Myrorna": {
       "sokningar": 329,
-      "traffar": 2344,
+      "traffar": 2375,
       "fel": 0,
       "felexempel": []
     },
@@ -35,67 +35,53 @@
     },
     "Tradera": {
       "sokningar": 329,
-      "traffar": 9068,
+      "traffar": 9066,
       "fel": 0,
       "felexempel": []
     },
     "Väntande från tidigare": 0,
-    "Återanvända betyg": 78,
+    "Återanvända betyg": 69,
     "Egen modell": {
-      "bortsorterade": 69,
+      "bortsorterade": 66,
       "spår med modell": 4
     },
     "Från kön": 0,
     "Bedömning": {
-      "batch": 427,
+      "batch": 284,
       "direkt": 0
     },
     "Flipp": {
-      "priser uppdaterade": 0,
-      "kandidater": 2300,
-      "betyg 10": 50
+      "priser uppdaterade": 68,
+      "kandidater": 2251,
+      "betyg 10": 28
     },
-    "Tradera-orter ifyllda": 80,
+    "Tradera-orter ifyllda": 53,
     "Prisjämförelse": {
       "fynd": 120,
-      "med_data": 51
+      "med_data": 27
     },
     "Notiser": {
       "skickade": 0
     }
   },
   "kostnad": {
-    "Smakanalys": {
-      "anrop": 1,
-      "in": 61811,
-      "ut": 2328,
-      "usd": 0.1469,
-      "kr": 1.54
-    },
     "Bedömning batch": {
-      "anrop": 95,
-      "in": 553082,
-      "ut": 42218,
-      "usd": 0.3821,
-      "kr": 4.01
+      "anrop": 69,
+      "in": 375230,
+      "ut": 28695,
+      "usd": 0.2594,
+      "kr": 2.72
     },
     "Flipp-identifiering": {
       "anrop": 80,
-      "in": 141655,
-      "ut": 28818,
-      "usd": 0.1429,
-      "kr": 1.5
-    },
-    "Prisjämförelse": {
-      "anrop": 2,
-      "in": 219,
-      "ut": 29,
-      "usd": 0.0004,
-      "kr": 0.0
+      "in": 152426,
+      "ut": 30729,
+      "usd": 0.153,
+      "kr": 1.61
     },
     "Totalt": {
-      "kr": 7.06
+      "kr": 4.33
     }
   },
-  "stadsmissionen_katalog": 1456
+  "stadsmissionen_katalog": 1474
 }
