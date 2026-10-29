@@ -1,18 +1,4 @@
--- Miniatyrbilder per fynd (max 200 px, JPEG som data-URL), så att andra appar (t.ex. Loppiskollen)
--- kan visa en bild per fynd utan att hämta från Tradera/Auctionet.
-create table if not exists public.fyndjakt_bilder (
-  nyckel text primary key,          -- samma som poster[].nyckel, t.ex. "tradera:757886219"
-  mini text not null,               -- data-URL: "data:image/jpeg;base64,..."
-  bredd int, hojd int,
-  skapad timestamptz default now()
-);
-
--- Läs för inloggade. Inga skrivpolicyer: bara service-rollen och nattjobbets funktioner nedan skriver.
-alter table public.fyndjakt_bilder enable row level security;
-revoke all on public.fyndjakt_bilder from anon, authenticated;
-grant select on public.fyndjakt_bilder to authenticated;
-create policy "inloggade läser miniatyrer" on public.fyndjakt_bilder
-  for select to authenticated using (true);
+-- Nattjobbets funktioner för fyndjakt_bilder (skyddade med bot-nyckeln, som fyndjakt_publicera).
 
 -- Fynd i någon användares data.poster som saknar miniatyr: [{"nyckel": ..., "bild": bilder[0]}].
 create or replace function public.fyndjakt_bilder_saknas(token text)
