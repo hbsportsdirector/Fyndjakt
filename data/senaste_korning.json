@@ -1,9 +1,9 @@
 {
-  "tid": "2026-10-29T18:24:49",
-  "annonser_totalt": 10370,
-  "nya": 2739,
-  "bedomda": 207,
-  "nya_traffar": 70,
+  "tid": "2026-10-29T19:17:33",
+  "annonser_totalt": 10315,
+  "nya": 2052,
+  "bedomda": 50,
+  "nya_traffar": 4,
   "kallor": {
     "Smakanalys": {
       "nya": 0
@@ -11,7 +11,7 @@
     "Pausade sökord": 19,
     "Auctionet": {
       "sokningar": 329,
-      "traffar": 2502,
+      "traffar": 2488,
       "fel": 0,
       "felexempel": []
     },
@@ -35,56 +35,63 @@
     },
     "Tradera": {
       "sokningar": 329,
-      "traffar": 9076,
+      "traffar": 9052,
       "fel": 0,
       "felexempel": []
     },
     "Väntande från tidigare": 0,
-    "Återanvända betyg": 91,
+    "Återanvända betyg": 17,
     "Egen modell": {
-      "bortsorterade": 53,
+      "bortsorterade": 42,
       "spår med modell": 5
     },
     "Från kön": 0,
     "Bedömning": {
-      "batch": 207,
+      "batch": 50,
       "direkt": 0
     },
     "Flipp": {
-      "priser uppdaterade": 75,
-      "bedömda": 394,
-      "nyproduktion": 62,
-      "jämförelse utan typ": 90,
-      "kandidater": 2341,
-      "betyg 10": 16
+      "priser uppdaterade": 372,
+      "bedömda": 230,
+      "nyproduktion": 30,
+      "jämförelse utan typ": 70,
+      "kandidater": 1938,
+      "betyg 10": 0
     },
-    "Tradera-orter ifyllda": 47,
+    "Tradera-orter ifyllda": 2,
     "Prisjämförelse": {
       "fynd": 120,
-      "med_data": 22
+      "med_data": 31
     },
     "Notiser": {
       "skickade": 0
+    },
+    "Miniatyrer": {
+      "saknades": 19,
+      "nya": 17,
+      "hamtade": 5,
+      "misslyckade": 2,
+      "borttagna": 189
     }
   },
   "kostnad": {
     "Bedömning batch": {
-      "anrop": 51,
-      "in": 298400,
-      "ut": 21398,
-      "usd": 0.2027,
-      "kr": 2.13
+      "anrop": 17,
+      "in": 100737,
+      "ut": 5164,
+      "usd": 0.0633,
+      "kr": 0.66
     },
     "Flipp-identifiering": {
-      "anrop": 80,
-      "in": 679046,
-      "ut": 48405,
-      "usd": 0.9211,
-      "kr": 9.67
+      "anrop": 49,
+      "in": 436779,
+      "ut": 29798,
+      "usd": 0.5858,
+      "kr": 6.15
     },
     "Totalt": {
-      "kr": 11.8
+      "kr": 6.81
     }
   },
-  "stadsmissionen_katalog": 1498
+  "stadsmissionen_katalog": 1497
 }
