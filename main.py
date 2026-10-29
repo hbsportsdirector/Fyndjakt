@@ -523,6 +523,15 @@ def main() -> int:
     except Exception as e:
         print(f"Kunde inte lägga upp användarnas fynd: {e}")
         STATISTIK["Egna fynd"] = {"fel": str(e)[:200]}
+    else:
+        # Miniatyrer för de upplagda fynden (bilderna från bedömningen återanvänds), och städning.
+        try:
+            import bilder
+            STATISTIK["Miniatyrer"] = bilder.synka(cfg, paus=0.3)
+            STATISTIK["Miniatyrer"]["borttagna"] = bilder.stada(cfg)
+        except Exception as e:
+            print(f"Kunde inte spara miniatyrer: {e}")
+            STATISTIK["Miniatyrer"] = {"fel": str(e)[:200]}
 
     traffar.sort(key=lambda t: t[0], reverse=True)
     if notis.aktiverad():

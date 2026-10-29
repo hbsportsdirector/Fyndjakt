@@ -2,11 +2,14 @@
 
 För spår med `flipp: true` används Claude bara för att identifiera föremålet (fabrik/formgivare/serie),
 föreslå en sökfras för prisjämförelse och varna för nyproduktion, kopior och skador. Sedan hämtas vad
-jämförbara föremål klubbats för på Auctionet, och koden sätter betyget på kvoten
-aktuellt pris / typiskt slutpris (median):
+jämförbara föremål klubbats för på Auctionet, och koden räknar på upplägget "köp var som helst, sälj via ett
+auktionshus på Auctionet":
 
-    kvot ≤ 0,35 → 10    ≤ 0,50 → 8    ≤ 0,70 → 6    annars 0
+    inköp = pris × (1 + köparprovision för källan) + frakt för källan
+    netto = typiskt slutpris (median) × (1 − säljarprovision) − avgift per föremål
+    kvot  = inköp / netto:  ≤ 0,35 → 10    ≤ 0,50 → 8    ≤ 0,70 → 6    annars 0
 
+Blir vinsten (netto − inköp) under MIN_VINST ger det 0 – då är det inte värt besväret.
 Färre än 5 jämförelser (eller ingen median) ger 0. Nyproduktion/replika och föremål utanför keramik, glas och
 design får 0; övriga varningar (kopia, skada) sänker betyget med 3. Jämförelsen görs på samma föremålstyp
 ("Picknick underlägg", inte "Picknick"); finns för få sålda av typen används en typlös jämförelse × 0,4. Auktioner med mer än två dygn kvar betygsätts inte än (0) – ett bud på
@@ -23,7 +26,6 @@ MIN_JAMFORELSER = 5
 TIDIG = 2 * 86400        # auktioner med mer kvar än så betygsätts inte än
 UTANFOR = "Utanför keramik, glas och design"
 NYPRODUKTION = "nyproduktion"
-KOP_MAX_ANDEL = 0.33     # köp max = typiskt slutpris × 0,33
 TYPLOS_ANDEL = 0.4       # typlös jämförelse (för få sålda av samma typ): median × 0,4
 MIN_TYPADE = 3           # färre sålda av samma typ → typlös jämförelse
 BILDER = 3               # bilder per annons – stämplar och baksidor avgör äktheten
@@ -32,7 +34,15 @@ BILD_STORLEK = 640       # pixlar på längsta sidan (större än smakbedömning
 SMA_TYPER = ("underlägg", "äggkopp", "mugg", "assiett", "tefat")
 STORA_TYPER = ("karott", "kanna", "kannor", "servis")
 VARNINGSAVDRAG = 3
-STEG = [(0.35, 10), (0.50, 8), (0.70, 6)]
+STEG = [(0.35, 10), (0.50, 8), (0.70, 6)]   # kvot = inköp / netto
+
+# Kalkylen: sälj via ett auktionshus på Auctionet. Uppskattningar – provisioner och avgifter varierar mellan husen.
+SALJ_PROVISION = 0.20    # säljarprovision på klubbat pris
+SALJ_AVGIFT = 100        # avgifter per föremål (foto, hantering)
+KOP_PROVISION = {"auctionet": 0.25, "bukowskis": 0.25}   # köparprovision på budet
+KOP_FRAKT = {"tradera": 80}                             # frakt när köpet skickas (övriga hämtas)
+MIN_VINST = 300          # kr kvar efter alla kostnader – annars inte värt besväret
+KOP_MAX_KVOT = 0.50      # köp max = högsta pris där inköpet är högst halva nettot (betyg 8) och vinsten räcker
 
 INSTRUKTION = """Du är expert på nordisk keramik, glas och design och hjälper en uppköpare som köper på auktion
 och säljer vidare. Du bedömer INTE om föremålen är snygga – priset räknas ut separat mot vad liknande
@@ -69,22 +79,43 @@ def nyproduktion(varning: str) -> bool:
     return NYPRODUKTION in v or "replika" in v
 
 
-def betyg(pris: int | None, median: int | None, antal: int | None, varning: str = "") -> tuple[int, float | None]:
-    """(betyg 0–10, kvot). Kvoten är None när den inte går att räkna ut."""
-    if not median or (antal or 0) < MIN_JAMFORELSER or not pris:
+def inkop(pris: int, kalla: str = "") -> float:
+    """Vad köpet kostar: priset plus köparprovision och frakt för källan."""
+    return pris * (1 + KOP_PROVISION.get(kalla, 0)) + KOP_FRAKT.get(kalla, 0)
+
+
+def netto(median: int) -> float:
+    """Vad man får ut när föremålet klubbas för medianen, efter säljarprovision och avgifter."""
+    return median * (1 - SALJ_PROVISION) - SALJ_AVGIFT
+
+
+def vinst(pris: int | None, median: int | None, kalla: str = "") -> int | None:
+    return int(round(netto(median) - inkop(pris, kalla))) if pris and median else None
+
+
+def betyg(pris: int | None, median: int | None, antal: int | None, varning: str = "",
+          kalla: str = "") -> tuple[int, float | None]:
+    """(betyg 0–10, kvot = inköp / netto). Kvoten är None när den inte går att räkna ut."""
+    if not median or (antal or 0) < MIN_JAMFORELSER or not pris or netto(median) <= 0:
         return 0, None
-    kvot = pris / median
+    kvot = inkop(pris, kalla) / netto(median)
     b = next((b for grans, b in STEG if kvot <= grans), 0)
     if (varning or "").strip().lower().startswith(UTANFOR.lower()) or nyproduktion(varning):
         return 0, kvot  # sållas bort – nyproduktion och fel sortiment är aldrig fynd
+    if vinst(pris, median, kalla) < MIN_VINST:
+        return 0, kvot  # inte värt besväret
     if b and (varning or "").strip():
         b = max(0, b - VARNINGSAVDRAG)
     return b, kvot
 
 
-def kop_max(median: int | None) -> int | None:
-    # Avrundning uppåt vid ,5 (Pythons round avrundar 214,5 till 214): 650 kr → 215 kr.
-    return int(median * KOP_MAX_ANDEL + 0.5) if median else None
+def kop_max(median: int | None, kalla: str = "") -> int | None:
+    """Högsta pris (bud/utrop) som ger kvot ≤ KOP_MAX_KVOT och minst MIN_VINST. None = lönar sig aldrig."""
+    if not median:
+        return None
+    tak = min(netto(median) * KOP_MAX_KVOT, netto(median) - MIN_VINST) - KOP_FRAKT.get(kalla, 0)
+    pris = int(tak / (1 + KOP_PROVISION.get(kalla, 0)))
+    return pris if pris > 0 else None
 
 
 def pris_etikett(pris_text: str) -> str:
@@ -106,8 +137,9 @@ def _kr(n: int) -> str:
     return f"{n:,}".replace(",", " ") + " kr"
 
 
-def motivering(pris: int | None, pris_text: str, jmf: dict | None, varning: str = "") -> str:
-    """Maskinbyggd: "Utrop 150 kr, klubbas typiskt för 650 kr (12 jämförelser) – köp max 215 kr." """
+def motivering(pris: int | None, pris_text: str, jmf: dict | None, varning: str = "", kalla: str = "") -> str:
+    """Maskinbyggd: "Utrop 150 kr, klubbas typiskt för 1 000 kr (12 jämförelser) – vinst ca 510 kr på Auctionet,
+    köp max 280 kr." """
     jmf = jmf or {}
     if not jmf.get("median") or (jmf.get("antal") or 0) < MIN_JAMFORELSER:
         return f"För få jämförelser ({jmf.get('antal') or 0} sålda)."
@@ -115,18 +147,23 @@ def motivering(pris: int | None, pris_text: str, jmf: dict | None, varning: str 
         return "Pris saknas – går inte att jämföra."
     utan_typ = " (jämförelse utan typ)" if jmf.get("sakerhet") == "låg" else ""
     text = (f"{pris_etikett(pris_text)} {_kr(pris)}, klubbas typiskt för {_kr(jmf['median'])} "
-            f"({jmf['antal']} jämförelser){utan_typ} – köp max {_kr(kop_max(jmf['median']))}.")
+            f"({jmf['antal']} jämförelser){utan_typ}")
+    km = kop_max(jmf["median"], kalla)
+    if km:
+        text += f" – vinst ca {_kr(vinst(pris, jmf['median'], kalla))} på Auctionet, köp max {_kr(km)}."
+    else:
+        text += " – för lågt värde för att löna sig att sälja på Auctionet."
     if (varning or "").strip():
         text += f" Varning: {varning.strip()}."
     return text
 
 
 def bedom_post(pris: int | None, pris_text: str, slutar_ts: int | None, jmf: dict | None, varning: str = "",
-               nu: float | None = None) -> tuple[int, float | None, str]:
+               nu: float | None = None, kalla: str = "") -> tuple[int, float | None, str]:
     """(betyg, kvot, motivering) för en annons – samma regler när den bedöms första gången och när den räknas om."""
     jmf = jmf or {}
-    b, kvot = betyg(pris, jmf.get("median"), jmf.get("antal"), varning)
-    text = motivering(pris, pris_text, jmf, varning)
+    b, kvot = betyg(pris, jmf.get("median"), jmf.get("antal"), varning, kalla)
+    text = motivering(pris, pris_text, jmf, varning, kalla)
     if (varning or "").strip().lower().startswith(UTANFOR.lower()):
         return 0, kvot, f"{UTANFOR}."
     if nyproduktion(varning):
@@ -141,7 +178,7 @@ def notistext(a, median: int) -> str:
     """Egen Telegram-notis för flipp-fynd med betyg 10."""
     import html
     return (f"🔎 Flipp: {html.escape(a.titel[:200])} – {pris_etikett(a.pris_text).lower()} {_kr(a.pris)}, "
-            f"klubbas typiskt {_kr(median)}. {html.escape(a.url)}")
+            f"klubbas typiskt {_kr(median)}, vinst ca {_kr(vinst(a.pris, median, a.kalla))}. {html.escape(a.url)}")
 
 
 # ── Identifiering med Claude ───────────────────────────────────────
@@ -332,12 +369,14 @@ def jamfor_alla(fraser: list[tuple[str, str]], tradar: int = 4) -> dict[tuple, d
 
 def spara(db, a, info: dict, jmf: dict | None) -> int:
     """Sparar annonsen med maskinbetyg, prisjämförelse och flippfälten. Returnerar betyget."""
-    b, kvot, text = bedom_post(a.pris, a.pris_text, a.slutar_ts, jmf, info.get("varning", ""))
+    b, kvot, text = bedom_post(a.pris, a.pris_text, a.slutar_ts, jmf, info.get("varning", ""), kalla=a.kalla)
     a.jamforsok = info["jamforsok"]
     db.spara(a, b, text, b >= 10)
     db.spara_jamforelse(a.nyckel, info["jamforsok"], jmf)
-    db.spara_flipp(a.nyckel, kvot, kop_max((jmf or {}).get("median")), info.get("identifierat", ""),
-                   info.get("varning", ""), (jmf or {}).get("sakerhet", ""), info.get("akthet_sakerhet"))
+    median = (jmf or {}).get("median")
+    db.spara_flipp(a.nyckel, kvot, kop_max(median, a.kalla), info.get("identifierat", ""),
+                   info.get("varning", ""), (jmf or {}).get("sakerhet", ""), info.get("akthet_sakerhet"),
+                   vinst(a.pris, median, a.kalla))
     return b
 
 
@@ -383,22 +422,23 @@ def bedom(kandidater: list, db, cfg: dict, klient, berika=None, statistik: dict 
 
 def uppdatera_priser(annonser: list, db, cfg: dict) -> int:
     """Bud stiger och auktioner närmar sig slutet: aktiva flipp-annonser som redan bedömts räknas om med nattens
-    pris och tid kvar (utan nytt Claude-anrop)."""
+    pris och tid kvar (utan nytt Claude-anrop). Ändras kalkylen räknas allt om nästa natt."""
     flipp = {a.nyckel: a for a in annonser if cfg["spar"].get(a.spar, {}).get("flipp") and a.pris}
     if not flipp:
         return 0
     n = 0
     platser = ",".join("?" * len(flipp))
     for r in db.con.execute(
-            f"SELECT nyckel, pris, betyg, jmf_median, jmf_antal, jmf_sakerhet, varning FROM sedda "
-            f"WHERE nyckel IN ({platser}) AND jmf_tid IS NOT NULL AND betyg >= 0", list(flipp)).fetchall():
+            f"SELECT nyckel, pris, betyg, motivering, kop_max, vinst, jmf_median, jmf_antal, jmf_sakerhet, varning "
+            f"FROM sedda WHERE nyckel IN ({platser}) AND jmf_tid IS NOT NULL AND betyg >= 0", list(flipp)).fetchall():
         a = flipp[r["nyckel"]]
         jmf = {"median": r["jmf_median"], "antal": r["jmf_antal"], "sakerhet": r["jmf_sakerhet"] or ""}
-        b, kvot, text = bedom_post(a.pris, a.pris_text, a.slutar_ts, jmf, r["varning"] or "")
-        if a.pris == r["pris"] and b == r["betyg"]:
+        b, kvot, text = bedom_post(a.pris, a.pris_text, a.slutar_ts, jmf, r["varning"] or "", kalla=a.kalla)
+        km, v = kop_max(r["jmf_median"], a.kalla), vinst(a.pris, r["jmf_median"], a.kalla)
+        if (a.pris, b, text, km, v) == (r["pris"], r["betyg"], r["motivering"], r["kop_max"], r["vinst"]):
             continue
-        db.con.execute("UPDATE sedda SET pris=?, pris_text=?, betyg=?, motivering=?, kvot=? WHERE nyckel=?",
-                       (a.pris, a.pris_text, b, text, kvot, a.nyckel))
+        db.con.execute("UPDATE sedda SET pris=?, pris_text=?, betyg=?, motivering=?, kvot=?, kop_max=?, vinst=? "
+                       "WHERE nyckel=?", (a.pris, a.pris_text, b, text, kvot, km, v, a.nyckel))
         n += 1
     db.con.commit()
     if n:

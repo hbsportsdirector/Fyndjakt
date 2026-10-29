@@ -855,13 +855,34 @@ def test_tradera_ort_och_region():
 
 def test_flipp_betyg_kvoter():
     import flipp
-    assert flipp.betyg(35, 100, 5) == (10, 0.35)
-    assert flipp.betyg(36, 100, 5)[0] == 8
-    assert flipp.betyg(50, 100, 5)[0] == 8
-    assert flipp.betyg(51, 100, 5)[0] == 6
-    assert flipp.betyg(70, 100, 5)[0] == 6
-    assert flipp.betyg(71, 100, 5)[0] == 0           # sållas bort
-    assert flipp.betyg(300, 100, 12)[0] == 0
+    # Median 2 000 kr → netto 2 000 × 0,8 − 100 = 1 500 kr. Utan källa: ingen köparprovision eller frakt.
+    assert flipp.netto(2000) == 1500
+    assert flipp.betyg(525, 2000, 5) == (10, 0.35)
+    assert flipp.betyg(526, 2000, 5)[0] == 8
+    assert flipp.betyg(750, 2000, 5)[0] == 8
+    assert flipp.betyg(751, 2000, 5)[0] == 6
+    assert flipp.betyg(1050, 2000, 5)[0] == 6
+    assert flipp.betyg(1051, 2000, 5)[0] == 0         # sållas bort
+    assert flipp.betyg(3000, 2000, 12)[0] == 0
+
+
+def test_flipp_kalkyl_salj_pa_auctionet():
+    import flipp
+    # Köp på Auctionet: 25 % köparprovision. 400 kr bud → 500 kr inköp, kvot 500 / 1 500.
+    assert flipp.inkop(400, "auctionet") == 500 and flipp.inkop(400, "tradera") == 480 and flipp.inkop(400, "myrorna") == 400
+    assert flipp.betyg(400, 2000, 5, kalla="auctionet")[0] == 10
+    assert flipp.betyg(600, 2000, 5, kalla="auctionet")[0] == 8     # 750 / 1 500 = 0,5
+    assert flipp.vinst(400, 2000, "auctionet") == 1000
+    # Vinsten måste räcka: median 600 → netto 380.
+    assert flipp.betyg(50, 600, 5) == (10, 50 / 380)                  # vinst 330 kr
+    assert flipp.betyg(100, 600, 5)[0] == 0                           # vinst 280 kr – inte värt besväret
+    assert flipp.betyg(10, 100, 5) == (0, None)                       # säljkostnaderna äter hela slutpriset
+    # Köp max: inköp högst halva nettot och minst 300 kr vinst.
+    assert flipp.kop_max(2000) == 750 and flipp.kop_max(2000, "auctionet") == 600
+    assert flipp.kop_max(1000, "tradera") == 270                      # netto 700 → 350 − 80 kr frakt
+    assert flipp.kop_max(500) is None and flipp.kop_max(None) is None
+    assert flipp.motivering(50, "Utrop 50 SEK", {"median": 400, "antal": 12}).endswith(
+        "för lågt värde för att löna sig att sälja på Auctionet.")
 
 
 def test_flipp_saknad_median_och_for_fa_jamforelser():
@@ -876,23 +897,22 @@ def test_flipp_saknad_median_och_for_fa_jamforelser():
 
 def test_flipp_varning_sanker_betyget():
     import flipp
-    assert flipp.betyg(30, 100, 5, "kopia") == (7, 0.3)
-    assert flipp.betyg(45, 100, 5, "kopia")[0] == 5
-    assert flipp.betyg(60, 100, 5, "nagg i kanten")[0] == 3
-    assert flipp.betyg(90, 100, 5, "skada")[0] == 0    # aldrig under 0
-    assert flipp.betyg(30, 100, 5, "  ")[0] == 10      # tom varning räknas inte
+    assert flipp.betyg(450, 2000, 5, "kopia") == (7, 0.3)
+    assert flipp.betyg(675, 2000, 5, "kopia")[0] == 5
+    assert flipp.betyg(900, 2000, 5, "nagg i kanten")[0] == 3
+    assert flipp.betyg(1350, 2000, 5, "skada")[0] == 0    # aldrig under 0
+    assert flipp.betyg(450, 2000, 5, "  ")[0] == 10       # tom varning räknas inte
 
 
 def test_flipp_motivering_och_kop_max():
     import flipp
-    assert flipp.kop_max(650) == 215 and flipp.kop_max(None) is None
-    assert flipp.motivering(150, "Utrop 150 SEK", {"median": 650, "antal": 12}) == \
-        "Utrop 150 kr, klubbas typiskt för 650 kr (12 jämförelser) – köp max 215 kr."
+    assert flipp.motivering(160, "Utrop 160 SEK", {"median": 2000, "antal": 12}, kalla="auctionet") == \
+        "Utrop 160 kr, klubbas typiskt för 2 000 kr (12 jämförelser) – vinst ca 1 300 kr på Auctionet, köp max 600 kr."
     m = flipp.motivering(1200, "Bud 1200 SEK", {"median": 4000, "antal": 7}, "nyproduktion")
     assert m.startswith("Bud 1 200 kr, klubbas typiskt för 4 000 kr") and m.endswith("Varning: nyproduktion.")
-    a = auctionet.tolka(dict(AUCTIONET_POST, estimate=150, title="Berså <tekanna>"))
-    assert flipp.notistext(a, 650) == ("🔎 Flipp: Berså &lt;tekanna&gt; – utrop 150 kr, klubbas typiskt 650 kr. "
-                                       + a.url)
+    a = auctionet.tolka(dict(AUCTIONET_POST, estimate=160, title="Berså <tekanna>"))
+    assert flipp.notistext(a, 2000) == ("🔎 Flipp: Berså &lt;tekanna&gt; – utrop 160 kr, klubbas typiskt 2 000 kr, "
+                                        "vinst ca 1 300 kr. " + a.url)
 
 
 def test_flipp_tolkning_av_svar():
@@ -916,16 +936,17 @@ def test_flipp_spar_ar_eget_och_sparar_falten(tmp_path):
     db = Databas(tmp_path / "t.db")
     b.pris, b.pris_text = 150, "Utrop 150 SEK"
     info = {"jamforsok": "Berså tekanna", "identifierat": "Gustavsberg, Berså", "varning": ""}
-    assert flipp.spara(db, b, info, {"median": 650, "lag": 500, "hog": 800, "antal": 12}) == 10
+    assert flipp.spara(db, b, info, {"median": 2000, "lag": 1500, "hog": 2500, "antal": 12}) == 10
     r = dict(db.con.execute("SELECT * FROM sedda").fetchone())
-    assert r["kop_max"] == 215 and round(r["kvot"], 3) == 0.231 and r["identifierat"] == "Gustavsberg, Berså"
-    assert r["jmf_median"] == 650 and r["motivering"].startswith("Utrop 150 kr")
+    assert r["kop_max"] == 600 and r["kvot"] == 0.125 and r["vinst"] == 1312 and r["identifierat"] == "Gustavsberg, Berså"
+    assert r["jmf_median"] == 2000 and r["motivering"].startswith("Utrop 150 kr")
     assert main.fran_rad(r).nyckel == b.nyckel
     # Budet steg: betyget räknas om utan nytt Claude-anrop.
-    b.pris, b.pris_text = 300, "Bud 300 SEK"
+    b.pris, b.pris_text = 500, "Bud 500 SEK"
     assert flipp.uppdatera_priser([b], db, cfg) == 1
     r = dict(db.con.execute("SELECT * FROM sedda").fetchone())
-    assert r["betyg"] == 8 and r["motivering"].startswith("Bud 300 kr")
+    assert r["betyg"] == 8 and r["motivering"].startswith("Bud 500 kr") and r["vinst"] == 875
+    assert flipp.uppdatera_priser([b], db, cfg) == 0      # inget ändrat – inget skrivs
 
 
 def test_flipp_profil_gar_inte_via_smakinstruktionen(tmp_path, monkeypatch):
@@ -963,7 +984,8 @@ def test_flipp_profil_gar_inte_via_smakinstruktionen(tmp_path, monkeypatch):
     monkeypatch.setattr(main, "tradera_orter", lambda db: 0)
     monkeypatch.setattr(bedomning, "_klient", lambda: klient)
     monkeypatch.setattr(kategoriprofil, "bygg", lambda c, k=None: {})
-    monkeypatch.setattr(prisjamforelse, "jamfor", lambda fras, uteslut=(): {"median": 650, "lag": 500, "hog": 800, "antal": 12})
+    monkeypatch.setattr(prisjamforelse, "jamfor", lambda fras, uteslut=(): {"median": 2000, "lag": 1500, "hog": 2500,
+                                                                            "antal": 12})
     monkeypatch.setattr(sajt, "bygg", lambda db, c: None)
     monkeypatch.setattr(notis, "aktiverad", lambda: False)
     monkeypatch.delenv("FYNDJAKT_BOT_TOKEN", raising=False)
@@ -976,7 +998,7 @@ def test_flipp_profil_gar_inte_via_smakinstruktionen(tmp_path, monkeypatch):
     assert "inredare" not in flippanrop[0]["params"]["system"]
     db = Databas(tmp_path / "t.db")
     rad = dict(db.con.execute("SELECT * FROM sedda WHERE nyckel = ?", (flipp_a.nyckel,)).fetchone())
-    assert rad["betyg"] == 10 and rad["kop_max"] == 215 and rad["motivering"].startswith("Utrop 150 kr")
+    assert rad["betyg"] == 10 and rad["kop_max"] == 600 and rad["motivering"].startswith("Utrop 150 kr")
     assert db.con.execute("SELECT betyg FROM sedda WHERE nyckel = ?", (smak_a.nyckel,)).fetchone()[0] == 8
 
 
@@ -985,12 +1007,12 @@ def test_flipp_falt_pa_sidan(tmp_path):
     db = Databas(tmp_path / "t.db")
     a = main.replace(auctionet.tolka(dict(AUCTIONET_POST, estimate=150)), spar="flipp", prefix="flipp|")
     flipp.spara(db, a, {"jamforsok": "Berså tekanna", "identifierat": "Gustavsberg, Berså", "varning": ""},
-                {"median": 650, "lag": 500, "hog": 800, "antal": 12})
+                {"median": 2000, "lag": 1500, "hog": 2500, "antal": 12})
     cfg = {"_admins": {"per"}, "spar": {"flipp": {"namn": "Flipp", "flipp": True, "sokningar": {"Gustavsberg": []}}}}
     ut = sajt.anvandarfynd(db, cfg)["per"]
     assert ut["spar"][0]["flipp"] is True
     p = ut["poster"][0]
-    assert p["kop_max"] == 215 and p["identifierat"] == "Gustavsberg, Berså" and p["jmf_antal"] == 12 and p["kvot"] < 0.35
+    assert p["kop_max"] == 600 and p["vinst"] == 1312 and p["identifierat"] == "Gustavsberg, Berså" and p["jmf_antal"] == 12 and p["kvot"] < 0.35
 
 
 def test_flipp_minst_fem_jamforelser():
@@ -1005,7 +1027,7 @@ def test_flipp_auktion_langt_kvar_betygsatts_inte_an():
     nu = int(time.time())
     jmf = {"median": 1000, "antal": 20}
     b, kvot, text = flipp.bedom_post(1, "Bud 1 kr", nu + 5 * 86400, jmf, nu=nu)
-    assert b == 0 and kvot == 0.001 and text.startswith("Slutar om 5 dagar")
+    assert b == 0 and kvot == 1 / 700 and text.startswith("Slutar om 5 dagar")
     assert flipp.bedom_post(1, "Bud 1 kr", nu + 86400, jmf, nu=nu)[0] == 10        # inom två dygn
     assert flipp.bedom_post(100, "Köp nu 100 kr", nu + 9 * 86400, jmf, nu=nu)[0] == 10  # fast pris väntar inte
     assert flipp.bedom_post(100, "Utrop 100 kr", None, jmf, nu=nu)[0] == 10
@@ -1080,7 +1102,7 @@ def test_flipp_jamforelse_utan_typ(monkeypatch):
     assert anrop[0][0] == "Picknick underlägg" and anrop[1][0] == "Picknick"
     assert "karott" in anrop[1][1] and "servis" in anrop[1][1] and "kanna" in anrop[1][1]
     assert flipp.motivering(55, "Bud 55 kr", res).startswith(
-        "Bud 55 kr, klubbas typiskt för 280 kr (32 jämförelser) (jämförelse utan typ) – köp max 92 kr.")
+        "Bud 55 kr, klubbas typiskt för 280 kr (32 jämförelser) (jämförelse utan typ) – för lågt värde")
     # Med tillräckligt många sålda av typen används den typade jämförelsen som den är.
     monkeypatch.setattr(prisjamforelse, "jamfor", lambda fras, uteslut=(): {"median": 150, "lag": 100, "hog": 200,
                                                                             "antal": 8})
@@ -1102,3 +1124,34 @@ def test_flipp_uteslut_ord_i_titeln():
     # Bara titeln och hela ord: "som nytt" i beskrivningen och "nyttig" i titeln fäller inte.
     a = auctionet.tolka(dict(AUCTIONET_POST, title="Kåge Argenta vas, nyttig storlek", description="Som nytt skick."))
     assert main.forfiltrera(a, cfg, f) is None
+
+
+def test_miniatyr_skalas_och_kodas():
+    import base64
+    import io
+    from PIL import Image
+    import bilder
+    ut = io.BytesIO()
+    Image.effect_noise((900, 600), 60).convert("RGB").save(ut, "PNG")  # brus – svårast att komprimera
+    data_url, bredd, hojd = bilder.mini(ut.getvalue())
+    assert data_url.startswith("data:image/jpeg;base64,")
+    assert (bredd, hojd) == (200, 133)
+    assert len(data_url) < 15_000
+    assert Image.open(io.BytesIO(base64.b64decode(data_url.split(",", 1)[1]))).size == (200, 133)
+
+
+def test_miniatyr_ateranvander_bedomningens_bild(monkeypatch):
+    import base64
+    import io
+    from PIL import Image
+    import bilder
+    ut = io.BytesIO()
+    Image.new("RGB", (400, 300), "brown").save(ut, "JPEG")
+    bedomning._BILDER["https://x/a.jpg"] = base64.b64encode(ut.getvalue()).decode()
+    bedomning._BILDER["https://x/trasig.jpg"] = None
+    monkeypatch.setattr(bilder, "_hamta", lambda url: (_ for _ in ()).throw(AssertionError("hämtade igen")))
+    assert bilder.bytes_for("https://x/a.jpg") == ut.getvalue()
+    assert bilder.bytes_for("https://x/trasig.jpg") is None
+    import flipp
+    monkeypatch.setitem(flipp._BILDER, "https://x/stor.jpg", base64.b64encode(b"640px").decode())
+    assert bilder.bytes_for("https://x/stor.jpg") == b"640px"      # flipp-spårets större bild duger också
