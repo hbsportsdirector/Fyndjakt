@@ -293,6 +293,8 @@ spar:
     namn: Samlingen
     prioritet: 1          # söks först: föremål som båda spåren hittar hamnar här
     profilfil: samlingsprofil.md
+    # Samlingen på sajten läses in som "har redan" varje natt – utom serier profilen uttryckligen jagar fler delar av.
+    har_redan_undantag: ["Blå Eld", "Röd Eld", "Domino", "Höglund", "Stig Lindberg"]
     tillagg: |
       Bedöm ENBART efter profilen ovan. Det som inte nämns där är inte intressant.
 

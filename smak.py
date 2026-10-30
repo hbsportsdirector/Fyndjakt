@@ -55,6 +55,46 @@ def admins(export: dict | None) -> set[str]:
     return {u["user_id"] for u in (export or {}).get("anvandare", []) if u.get("admin")}
 
 
+# ── Samlingen → "har redan" ─────────────────────────────────────────
+
+def samling_har_redan(cfg: dict) -> list[dict]:
+    """Samlingens föremål (vyn samling_har_redan) som [{user_id, id, namn, tillverkare, serie, lada}].
+    Med SUPABASE_SERVICE_ROLE_KEY läses vyn direkt, annars via funktionen samling_har_redan_export med bot-nyckeln."""
+    sb = cfg.get("supabase") or {}
+    url, service = sb.get("url"), os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+    if url and service:
+        r = requests.get(f"{url}/rest/v1/samling_har_redan", params={"select": "user_id,id,namn,tillverkare,serie,lada"},
+                         headers={"apikey": service, "Authorization": f"Bearer {service}"}, timeout=30)
+        r.raise_for_status()
+        return r.json()
+    ans = _anslutning(cfg)
+    if not ans:
+        return []
+    url, nyckel, token = ans
+    r = requests.post(f"{url}/rest/v1/rpc/samling_har_redan_export", json={"token": token},
+                      headers={"apikey": nyckel, "Content-Type": "application/json"}, timeout=30)
+    r.raise_for_status()
+    return r.json() or []
+
+
+def har_redan_rader(samling: list[dict], agare: set[str], undantag: list[str] | None = None) -> list[str]:
+    """Rader för spårets profil: "namn (tillverkare, serie)" för ägarnas föremål. Serier som profilen uttryckligen
+    jagar fler delar av (undantag, t.ex. "Blå Eld") tas inte med – där ska appen fortsätta tipsa."""
+    und = [u.lower() for u in (undantag or []) if u]
+    ut: list[str] = []
+    for f in samling:
+        if agare and f.get("user_id") not in agare:
+            continue
+        text = " ".join(str(f.get(k) or "") for k in ("namn", "tillverkare", "serie")).lower()
+        if any(u in text for u in und):
+            continue
+        detaljer = ", ".join(x for x in (f.get("tillverkare"), f.get("serie")) if x and x != "Okänd")
+        rad = f"{f.get('namn') or ''}" + (f" ({detaljer})" if detaljer else "")
+        if rad.strip() and rad not in ut:
+            ut.append(rad)
+    return ut[:80]
+
+
 # ── Användarnas egna profiler → spår ────────────────────────────────
 
 def _rensa_fras(q) -> str:
@@ -243,17 +283,27 @@ def tillampa(cfg: dict, export: dict | None) -> None:
     NYSTART.clear(); NYSTART.update({k: str(v) for k, v in (cfg.get("smak_nystart") or {}).items()})
     cfg["_admins"] = admins(export)  # huvudspårens fynd läggs upp till dem
     lagg_till_profiler(cfg, export)
+    try:
+        samling = samling_har_redan(cfg)
+    except Exception as e:  # samlingen får aldrig stoppa körningen
+        print(f"Samlingen: kunde inte hämta har redan-raderna – {e}")
+        samling = []
     for sid, spar in cfg["spar"].items():
         agare = _agare(spar, export)
         tillagg = profiltillagg(export, sid, agare)
         if tillagg:
             spar["profil"] = spar["profil"] + "\n\n" + tillagg
+        # Det som redan står i samlingen ska Fyndjakt sluta tipsa om (utom serier profilen jagar fler delar av).
+        har = har_redan_rader(samling, agare, spar.get("har_redan_undantag")) if not spar.get("flipp") else []
+        if har:
+            spar["profil"] += ("\n\nKUNDEN HAR REDAN FÖLJANDE I SIN SAMLING – ge 0–3 åt exakt samma föremål "
+                               "(kompletterande former i samma serie är fortfarande bra):\n- " + "\n- ".join(har))
         befintliga = {q.lower() for qs in spar["sokningar"].values() for q in qs}
         nya = [q for q in extra_sokningar(export, sid, agare) if q.lower() not in befintliga]
         if nya:
             spar["sokningar"]["Från Min smak"] = nya[:15] if spar.get("agare") else nya
     antal = len(export.get("reaktioner", [])), len(export.get("anteckningar", []))
-    print(f"Min smak: {antal[0]} reaktioner och {antal[1]} anteckningar inlästa.")
+    print(f"Min smak: {antal[0]} reaktioner, {antal[1]} anteckningar och {len(samling)} föremål ur samlingen inlästa.")
 
 
 def notifiera(cfg: dict, export: dict | None, fynd: dict) -> dict:
