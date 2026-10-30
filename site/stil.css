@@ -497,3 +497,6 @@ details.rakning p { margin: 6px 0; }
 .salj-kanal { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 8px 0 4px; font-size: 14px; }
 .salj-kanal b { font-family: var(--serif); font-size: 21px; color: var(--brass); }
 .stege span small { color: var(--muted); font-size: 11.5px; }
+.kort.borta { opacity: 0; transform: scale(.96); transition: opacity .3s, transform .3s; }
+.toast { display: flex; align-items: center; gap: 14px; }
+.toast button { background: #1b1a14; color: var(--brass); border: 0; border-radius: 999px; padding: 5px 12px; font-weight: 700; }

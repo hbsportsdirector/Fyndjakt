@@ -25,9 +25,22 @@
     const t = norm((p.titel || "") + " " + (p.motivering || "") + " " + (p.identifierat || ""));
     return st.q.split(/\s+/).map(norm).filter(Boolean).every(o => t.includes(o));
   }
+  // Det du ogillat eller köpt visas inte – inte heller samma föremål upplagt igen (samma titel, minst 20 tecken).
+  const titelNyckel = p => { const t = App.norm(p.titel); return t.length >= 20 ? p.spar + "|" + t : null; };
+  let doldaTitlar = null, doldaAntal = -1;
+  function dold(p) {
+    const r = konto.reakt.get(p.nyckel);
+    if (r && (r.typ === "ogillar" || r.typ === "kopt")) return true;
+    if (!doldaTitlar || doldaAntal !== konto.reakt.size) {
+      doldaTitlar = new Set([...konto.reakt.values()].filter(x => x.typ === "ogillar" || x.typ === "kopt").map(titelNyckel).filter(Boolean));
+      doldaAntal = konto.reakt.size;
+    }
+    const k = titelNyckel(p);
+    return !!(k && doldaTitlar.has(k));
+  }
   function synliga() {
     const nu = Date.now() / 1000;
-    return poster().filter(p => iSpar(p) && (!st.kalla || p.kalla === st.kalla) && (!st.region || p.region === st.region || p.region === "Okänd ort")
+    return poster().filter(p => !dold(p) && iSpar(p) && (!st.kalla || p.kalla === st.kalla) && (!st.region || p.region === st.region || p.region === "Okänd ort")
       && (+p.betyg || 0) >= st.min && traffSok(p) && (!p.slutar_ts || p.slutar_ts > nu - 3600));
   }
   function sorterare() {
@@ -107,9 +120,16 @@
         const nu = (konto.reakt.get(p.nyckel) || {}).typ;
         b.disabled = true;
         try {
-          if (nu === typ) { await taBortReaktion(p.nyckel); knappar.forEach(x => x.setAttribute("aria-pressed", "false")); k.classList.remove("ogillad"); }
-          else { await sparaReaktion(p, typ); knappar.forEach(x => x.setAttribute("aria-pressed", String(x === b))); k.classList.toggle("ogillad", typ === "ogillar");
-            toast(typ === "gillar" ? "Sparad under 👍 Gillade" : "Dold – appen lär sig"); }
+          if (nu === typ) { await taBortReaktion(p.nyckel); knappar.forEach(x => x.setAttribute("aria-pressed", "false")); }
+          else {
+            await sparaReaktion(p, typ); knappar.forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+            if (typ === "ogillar") {
+              // Kortet tonar ut och försvinner ur listan; Ångra lägger tillbaka det.
+              k.classList.add("borta");
+              setTimeout(() => { k.remove(); byggChips(); $("fynd-antal").textContent = antalText(); App.uppdateraBanner(); }, 350);
+              toast("Dold – appen lär sig", { text: "Ångra", onclick: async () => { try { await taBortReaktion(p.nyckel); byggChips(); render(); App.uppdateraBanner(); } catch (e) { toast(e.message); } } });
+            } else toast("Sparad – du gillar den");
+          }
         } catch (e) { toast(e.message); } finally { b.disabled = false; }
       };
       return b;
@@ -241,7 +261,7 @@
       }
       lista.append(g);
     }
-    $("fynd-antal").textContent = `${alla.length} aktiva fynd${snart.length ? ` · ${snart.length} slutar inom 24 h` : ""}`;
+    $("fynd-antal").textContent = antalText();
     App.rakna("fynd", snart.length || "");
     laddaMini([...snart, ...rader.slice(0, st.visa)].map(p => p.nyckel)).then(() => {
       lista.querySelectorAll(".kort").forEach(k => {});
@@ -257,10 +277,14 @@
   }
 
   // Spåren som chips – allt annat (sortering, källa, område, betyg) ligger bakom Filter-knappen.
+  function antalText() {
+    const alla = synliga(), snart = Logik.slutarSnart(alla).length;
+    return `${alla.length} aktiva fynd${snart ? ` · ${snart} slutar inom 24 h` : ""}`;
+  }
   function byggChips() {
     const val = [["alla", "Alla"], ...spar().filter(s => !s.flipp).map(s => [s.id, s.namn]), ...(spar().some(s => s.flipp) ? [["flipp", "Flipp"]] : [])];
     if (!val.some(([v]) => v === st.spar)) st.spar = "alla";
-    const antal = id => poster().filter(p => id === "alla" || (id === "flipp" ? flippSpar(p.spar) : p.spar === id)).length;
+    const antal = id => poster().filter(p => !dold(p) && (id === "alla" || (id === "flipp" ? flippSpar(p.spar) : p.spar === id))).length;
     $("fynd-chips").replaceChildren(...val.map(([v, t]) => {
       const b = el("button", { class: "chip", type: "button", "aria-pressed": String(st.spar === v) }, t, el("span", { class: "n" }, String(antal(v))));
       b.onclick = () => { st.spar = v; st.visa = 60; byggChips(); render(); };
@@ -301,5 +325,5 @@
     visa() { if (rot) render(); },
   });
   App.pa("visa-slutar-snart", () => { st.sort = "slutar"; st.spar = "alla"; if (rot) { byggChips(); render(); } });
-  App.pa("inloggad", () => { App.rakna("fynd", Logik.slutarSnart(poster()).length || ""); });
+  App.pa("inloggad", () => { App.rakna("fynd", Logik.slutarSnart(poster().filter(p => !dold(p))).length || ""); });
 })();

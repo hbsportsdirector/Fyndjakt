@@ -37,10 +37,13 @@ const App = (() => {
     return e;
   }
   let toastT = null;
-  function toast(text) {
+  // Kort besked nere i mitten. aktion = {text, onclick} ger en knapp (t.ex. Ångra) och visar beskedet längre.
+  function toast(text, aktion) {
     document.querySelectorAll(".toast").forEach(t => t.remove());
-    const t = el("div", { class: "toast", role: "status" }, text); document.body.appendChild(t);
-    clearTimeout(toastT); toastT = setTimeout(() => t.remove(), 2800);
+    const t = el("div", { class: "toast", role: "status" }, text);
+    if (aktion) t.append(el("button", { type: "button", onclick: () => { t.remove(); aktion.onclick(); } }, aktion.text));
+    document.body.appendChild(t);
+    clearTimeout(toastT); toastT = setTimeout(() => t.remove(), aktion ? 6000 : 2800);
   }
   function datum(d) { try { return new Date(d).toLocaleDateString("sv-SE", { day: "numeric", month: "short", year: "numeric" }); } catch (e) { return d; } }
   function idag() { return new Date().toISOString().slice(0, 10); }
@@ -252,7 +255,8 @@ const App = (() => {
   // ── Banner: brådskande fynd på alla flikar ────────────────────────
   function uppdateraBanner() {
     const b = $("banner");
-    const poster = ((konto.fynd || {}).poster || []);
+    // Det du ogillat eller köpt ska inte larma.
+    const poster = ((konto.fynd || {}).poster || []).filter(p => !["ogillar", "kopt"].includes((konto.reakt.get(p.nyckel) || {}).typ));
     const u = Logik.bradskande(poster);
     if (!u.length) { b.hidden = true; return; }
     const p = u[0];
