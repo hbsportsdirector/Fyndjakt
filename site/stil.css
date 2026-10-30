@@ -409,3 +409,62 @@ details.grupp .falt-grid { padding-bottom: 14px; }
 @media (max-width: 720px) { #s-ny { display: none; } .avsnitt-rubrik { flex-wrap: wrap; } }
 input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* ── Designpass: luft, lägre bilder, lugnare banner, tydligare färgkodning ───────────── */
+:root { --panel: #253329; --panel-2: #2c3b32; --line: #3d4f44; --radius: 12px; --meny: 236px; }
+body { font-size: 15px; }
+main { padding: 26px 36px 70px; }
+@media (max-width: 1100px) { main { padding: 22px 24px 60px; } }
+@media (max-width: 720px) { main { padding: calc(12px + env(safe-area-inset-top)) 16px calc(var(--flik) + 24px + env(safe-area-inset-bottom)); } }
+.sidomeny { padding: 26px 16px; }
+.sidomeny .logo { padding: 0 10px 22px; border-bottom: 1px solid var(--line); margin-bottom: 12px; }
+.meny-knapp { padding: 12px 14px; font-size: 15.5px; margin-bottom: 2px; }
+.meny-knapp .n { background: var(--panel-2); border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; font-size: 12px; }
+.meny-knapp[aria-current="page"] .n { background: var(--brass); color: #1b1a14; border-color: var(--brass); }
+.vy-huvud { margin-bottom: 18px; align-items: center; }
+.vy-huvud h2 { font-size: 38px; letter-spacing: -.01em; }
+.verktyg { padding: 12px 0; margin-bottom: 18px; }
+/* Fyndkort: 3:2-bilder och fler kort per rad på bred skärm, lugnare siffror */
+.rutnat { gap: 18px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); }
+@media (min-width: 1600px) { .rutnat { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); } }
+.kort { border-radius: var(--radius); transition: border-color .15s, transform .15s; }
+.kort:hover { border-color: var(--brass-dim); transform: translateY(-2px); }
+.kort .bild { aspect-ratio: 3/2; }
+.kort .marke { font-size: 12px; padding: 3px 9px; top: 8px; left: 8px; }
+.kort .marke.hoger { right: 8px; left: auto; }
+.kort .marke.kvot.fynd { background: var(--gron); color: #d9f0de; border-color: #4e8a5f; }
+.kort .marke.kvot.bra { background: rgba(201,163,91,.92); color: #1b1a14; border-color: var(--brass); }
+.kort .marke.kvot.neutral { background: rgba(20,26,22,.85); color: var(--muted); border-color: var(--line); }
+.kort .kropp { padding: 12px 14px 12px; gap: 6px; }
+.kort .etik { font-size: 10.5px; }
+.kort .titel { font-size: 19px; }
+.kort .varfor { font-size: 13.5px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.kort .tal { padding: 7px 10px; gap: 4px; border: 0; }
+.kort .tal b { font-size: 10px; }
+.kort .tal span { font-size: 18px; }
+.kort .meta { font-size: 12.5px; padding-top: 7px; }
+.kort .knappar { gap: 5px; }
+.kort .knappar button { padding: 7px 4px; font-size: 12.5px; min-height: 38px; }
+.avsnitt-rubrik { margin: 14px 0 12px; }
+.avsnitt-rubrik h3 { font-size: 22px; }
+/* Bannern: smal remsa på desktop, samma röda på mobil */
+@media (min-width: 721px) {
+  .banner { padding: 6px 36px; font-size: 13.5px; gap: 4px 12px; background: linear-gradient(90deg, var(--oxblood), #5a2323); }
+  .banner b { font-size: 15px; }
+  .banner::after { content: "Visa →"; margin-left: auto; font-weight: 600; opacity: .85; }
+}
+/* Samlingens lådor: lägre på desktop så att rutnätet kommer upp */
+@media (min-width: 721px) {
+  .lador { grid-template-columns: repeat(6, 1fr); gap: 10px; }
+  .lada { padding: 12px 14px; }
+  .lada .siffra { font-size: 28px; }
+}
+.s-kort { border-radius: var(--radius); transition: border-color .15s, transform .15s; }
+.s-kort:hover { transform: translateY(-2px); }
+.s-rutnat { gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); }
+.ruta { border-radius: var(--radius); }
+.chip { font-size: 14.5px; }
+.chip:hover { border-color: var(--brass-dim); }
+.knapp:hover:not(:disabled) { border-color: var(--brass-dim); }
+.knapp.primar:hover:not(:disabled) { background: #d6b36b; }
+.meny-knapp .n:empty { display: none; }

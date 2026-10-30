@@ -48,7 +48,9 @@
     else bild.append(el("div", { class: "ingen" }, "Ingen bild"));
     if (p.betyg != null) bild.append(el("span", { class: "marke" }, "★ " + p.betyg + "/10"));
     const kv = kvot(p);
-    if (kv != null) bild.append(el("span", { class: "marke hoger" + (kv <= 0.5 ? " rod" : "") }, Math.round(kv * 100) + " %"));
+    // Kvoten (pris ÷ typiskt): grönt = fyndläge, mässing = under typiskt pris, dämpat = inget särskilt.
+    if (kv != null) bild.append(el("span", { class: "marke hoger kvot " + (kv <= 0.5 ? "fynd" : kv <= 0.8 ? "bra" : "neutral"), title: "Pris nu delat med typiskt slutpris" },
+      Math.round(kv * 100) + " %" + (kv <= 0.5 ? " · fynd" : "")));
     k.append(bild);
     const kropp = el("div", { class: "kropp" });
     kropp.append(el("div", { class: "etik" }, [p.kategori, (spar().find(s => s.id === p.spar) || {}).namn].filter(Boolean).join(" · ")));
