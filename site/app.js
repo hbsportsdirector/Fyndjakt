@@ -153,6 +153,62 @@ const App = (() => {
     });
   }
 
+  // Bottenark med stora val (mobil: underifrån, desktop: i mitten). val = [{ikon, text, under, onclick}] eller eget innehåll.
+  function sheet(titel, innehall) {
+    const bak = el("div", { class: "ark-bak" });
+    const ark = el("div", { class: "ark", role: "dialog", "aria-modal": "true" }, el("div", { class: "handtag" }));
+    if (titel) ark.append(el("h2", {}, titel));
+    const stang = () => { bak.remove(); document.removeEventListener("keydown", esc_); };
+    const esc_ = e => { if (e.key === "Escape") stang(); };
+    if (Array.isArray(innehall)) {
+      ark.append(el("div", { class: "val" }, ...innehall.map(v => {
+        const b = el(v.label ? "label" : "button", { class: "knapp" + (v.primar ? " primar" : ""), type: v.label ? null : "button" },
+          el("span", { class: "ikon" }, v.ikon || ""), el("span", { class: "txt" }, v.text, v.under ? el("small", {}, v.under) : null));
+        if (v.label) { const inp = el("input", { type: "file", accept: "image/*", class: "dold", capture: v.capture || null, multiple: v.multiple ? "" : null }); inp.onchange = e => { stang(); v.onchange(e); }; b.append(inp); }
+        else b.onclick = () => { stang(); v.onclick(); };
+        return b;
+      })));
+    } else ark.append(...[innehall].flat());
+    bak.append(ark);
+    bak.addEventListener("click", e => { if (e.target === bak) stang(); });
+    document.addEventListener("keydown", esc_);
+    document.body.appendChild(bak);
+    return { el: ark, stang };
+  }
+
+  // Hjälptexter per del – visas med ?-knappen i rubriken.
+  const HJALP = {
+    fynd: `<p><b>Vad är det här?</b> Fyndjakt letar varje natt igenom Auctionet, Bukowskis, Tradera, Myrorna och Stadsmissionen och visar det som passar dina bevakningar.</p>
+      <p><b>Slutar snart</b> ligger alltid överst – det är de du måste ta ställning till i dag. Blir det riktigt bråttom (under 6 timmar, bra betyg eller lågt pris) dyker en röd rad upp överst på hela sajten.</p>
+      <p><b>Siffrorna på kortet:</b> Pris nu är budet eller utropet. Köp max är vad du som mest bör betala för att kunna sälja med vinst. Typiskt är vad liknande klubbats för. Procenttalet uppe i hörnet är pris ÷ typiskt – under 50 % är fyndläge.</p>
+      <p><b>Knapparna:</b> 👍/👎 lär appen din smak (👎 döljer kortet). <b>Äkta?</b> låter Claude titta på annonsens bilder efter tecken på nyproduktion. <b>Köpte den</b> lägger föremålet i samlingen under Till salu.</p>`,
+    samling: `<p><b>Lådorna</b> överst är samlingens delar – tryck på en för att bara se den. Siffran är antal föremål, raden under är deras uppskattade värde.</p>
+      <p><b>Lägg till</b> ett föremål med kamera, från galleriet eller utan bild. Tar du en bild föreslår Claude namn, tillverkare, serie och värde – ändra fritt.</p>
+      <p><b>Tryck på ett föremål</b> för att se allt om det. Där kan du redigera, lägga till bilder, flytta det till en annan låda, se prishistorik och – när det ligger i Till salu – följa prisstegen.</p>
+      <p><b>Värde:</b> "Auktion ca" är medianen från sålda jämförelser; "Min bedömning" är ditt eget spann. Saknas båda används marknadsvärdet från butiksbedömningen.</p>`,
+    butik: `<p><b>Tre steg:</b> fota föremålet, fota gärna stämpeln (undersidan), skriv priset. Beskedet kommer av sig självt när båda finns.</p>
+      <p><b>KÖP</b> = priset är under köptaket. Köptaket är en tredjedel av typiskt slutpris när du köper för att sälja, men 60 % när föremålet passar din smak (den du skrivit under Inställningar) – då är det samling, inte flipp.</p>
+      <p><b>FOTA STÄMPELN FÖRST</b> betyder att Claude är för osäker på vad det är. <b>KÖP INTE</b> visar alltid varför – för dyrt, nyproduktion eller för lågt värde.</p>
+      <p>Under beskedet ser du nettot per säljkanal och om något liknande redan finns i samlingen. <b>Lägg i samlingen</b> sparar föremålet med bilderna.</p>`,
+    prisguide: `<p>En lista över vad vanliga loppisfynd brukar gå för, med råd: <b>Köp</b> (säljer med marginal), <b>Kolla</b> (beror på skick, variant eller stämpel) och <b>Undvik</b> (för lågt andrahandsvärde).</p>
+      <p>Sök på objekt, fabrik eller formgivare. "Köp max" är högsta inköp som lämnar vinst när det säljs för det lägre priset på Tradera.</p>`,
+    stamplar: `<p>Så daterar du och avslöjar nyproduktion på stämplar från Gustavsberg, Rörstrand, Arabia, Royal Copenhagen och Meissen. Sök på det du ser under föremålet – "tre kronor", "hand", "vågor", "krona".</p>`,
+    kalkyl: `<p>Skriv in inköp, förväntat slutpris och kanal – kalkylen visar netto efter avgifter, vinst, marginal och timlön. Tabellen under jämför alla kanaler för samma pris.</p>`,
+    saljplan: `<p>Rätt kanal och rätt pris efter prisklass: under 300 kr auktion från 1 kr, 300–2 000 kr prisstege på Tradera (start +15 %, sänk 10 % var tionde dag, golv 85 %), över 2 000 kr auktionshus. Samma stege används i Samlingens sälj-fält.</p>`,
+    installningar: `<p><b>Samlingen:</b> smaken avgör köptaket i butiken, kanalen är förvald när du markerar något som sålt. <b>Bevakningar</b> styr vad Fyndjakt letar efter varje natt. <b>Min smak</b> visar vad appen lärt sig av dina 👍 och 👎.</p>`,
+  };
+  function hjalp(id) {
+    const d = delar[id];
+    const p = panel(el("div", { class: "hjalp-text" }, el("div", { class: "huvud" }, el("h2", {}, (d ? d.ikon + " " : "") + (d ? d.namn : "Hjälp")),
+      el("button", { class: "knapp liten", type: "button", onclick: () => p.stang() }, "Stäng")), el("div", { html: HJALP[id] || "" })), { mitten: true });
+  }
+  // Rubrikraden i en vy, med ?-knapp. Returnerar elementet så att delen kan lägga till egna knappar.
+  function huvud(id, titel, sub) {
+    const h = el("div", { class: "vy-huvud" }, el("h2", {}, titel), el("span", { class: "sub" }, sub || ""));
+    h.append(el("button", { class: "knapp hjalp", type: "button", "aria-label": "Hjälp om " + titel, onclick: () => hjalp(id) }, "?"));
+    return h;
+  }
+
   // ── Meny och vyer ─────────────────────────────────────────────────
   function byggMeny() {
     $("meny").replaceChildren(...ordning.filter(id => id !== "mer").map(id => {
@@ -238,12 +294,14 @@ const App = (() => {
     konto.inloggad = false;
     $("ingen-profil").hidden = true;
     if (session) {
+      $("login-status").textContent = "Hämtar din samling och dina fynd …";
       const { data: medlem } = await konto.sb.rpc("fyndjakt_ga_med");
-      if (!medlem) { $("ingen-profil").hidden = false; }
+      if (!medlem) { $("ingen-profil").hidden = false; $("login-status").textContent = ""; }
       else {
         try { await laddaKonto(); } catch (e) { console.error(e); toast("Kunde inte läsa allt från databasen."); }
         konto.inloggad = true;
       }
+      $("login-status").textContent = "";
     }
     document.body.classList.toggle("utloggad", !konto.inloggad);
     if (konto.inloggad) {
@@ -286,5 +344,5 @@ const App = (() => {
 
   return { KONFIG, konto, del, pa, sand, visa, rakna, start, mobil, $, kr, esc, el, toast, datum, idag, slug, nyttId, norm,
            skalaNer, dataUrlTillBase64, kannIgen, bildUrlar, bildUrl, laddaUppBild, taBortBild, hamtaAlla, panel, lightbox, fraga,
-           uppdateraBanner, laddaKonto };
+           sheet, hjalp, huvud, uppdateraBanner, laddaKonto };
 })();

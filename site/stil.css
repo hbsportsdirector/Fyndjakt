@@ -327,3 +327,85 @@ details.sec li { margin-bottom: 4px; }
 .lardom ul { margin: 6px 0 0; padding-left: 18px; }
 .mer-lista { display: flex; flex-direction: column; gap: 6px; }
 .mer-lista .knapp { justify-content: flex-start; font-size: 17px; padding: 14px 16px; border-radius: 12px; }
+
+/* ── UX-genomgång: tryckytor, bottenark, hjälp, tomma lägen ─────────── */
+.knapp, .chip, select, input[type=text], input[type=search], input[type=number], input[type=email], input[type=date], input[type=datetime-local] { min-height: 44px; }
+.knapp.liten { min-height: 36px; }
+@media (max-width: 720px) {
+  input, select, textarea { font-size: 16px; }   /* iOS zoomar annars in vid fokus */
+  .knapp { padding: 10px 16px; }
+  .kort .knappar button { min-height: 44px; font-size: 14px; }
+  .lada { padding: 10px 12px; }
+  .lada .siffra { font-size: 26px; }
+  .lador { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .vy-huvud .hoger { width: 100%; }
+}
+.vy-huvud .hjalp { margin-left: auto; width: 34px; height: 34px; min-height: 34px; padding: 0; border-radius: 999px; justify-content: center;
+  color: var(--brass); border-color: var(--brass-dim); font-family: var(--serif); font-size: 19px; font-weight: 700; }
+.vy-huvud .sub { flex-basis: 100%; }
+@media (min-width: 721px) { .vy-huvud .sub { flex-basis: auto; } }
+.hjalp-text { font-size: 15px; line-height: 1.55; }
+.hjalp-text h2 { margin-bottom: 10px; }
+.hjalp-text p { margin: 0 0 10px; }
+.hjalp-text b { color: var(--brass); }
+.chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 2px 0 6px; margin: 0 -2px; }
+.chips::-webkit-scrollbar { display: none; }
+.chips .chip { flex: none; white-space: nowrap; }
+.chip .n { color: inherit; opacity: .7; font-size: 12px; margin-left: 6px; }
+.chip.marker[aria-pressed="false"] { border-color: var(--brass-dim); }
+/* Bottenark: på mobil glider det upp underifrån, på desktop ligger det i mitten. */
+.ark-bak { position: fixed; inset: 0; background: rgba(8,12,10,.65); z-index: 45; display: flex; align-items: flex-end; justify-content: center; }
+.ark { background: var(--bg); border: 1px solid var(--line); border-radius: 18px 18px 0 0; width: 100%; max-height: 85vh; overflow-y: auto;
+  padding: 10px 18px calc(22px + env(safe-area-inset-bottom)); box-shadow: 0 -20px 60px rgba(0,0,0,.5); }
+.ark .handtag { width: 44px; height: 5px; border-radius: 999px; background: var(--line); margin: 0 auto 14px; }
+.ark h2 { font-size: 24px; margin-bottom: 12px; }
+.ark .val { display: flex; flex-direction: column; gap: 8px; }
+.ark .val .knapp { justify-content: flex-start; font-size: 17px; padding: 14px 16px; border-radius: 12px; gap: 12px; }
+.ark .val .knapp .ikon { font-size: 22px; width: 28px; text-align: center; }
+.ark .val .knapp small { color: var(--muted); font-size: 13px; display: block; font-weight: 400; }
+.ark .val .knapp .txt { display: flex; flex-direction: column; align-items: flex-start; text-align: left; }
+.ark label.falt { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+.ark .rad.knappar-rad { margin-top: 14px; }
+@media (min-width: 721px) {
+  .ark-bak { align-items: center; padding: 24px; }
+  .ark { width: min(520px, 100%); border-radius: 18px; max-height: 90vh; padding: 20px 22px 22px; }
+  .ark .handtag { display: none; }
+}
+.tom { padding: 40px 16px; }
+.tom .stor { font-family: var(--serif); font-size: 26px; font-style: italic; margin-bottom: 8px; }
+.tom p { font-family: var(--sans); font-style: normal; font-size: 15px; color: var(--muted); max-width: 440px; margin: 0 auto 14px; }
+.tom .rad { justify-content: center; }
+.laddar { text-align: center; color: var(--muted); padding: 40px 16px; font-family: var(--serif); font-size: 22px; font-style: italic; }
+.laddar::after { content: "…"; animation: punkter 1.2s steps(4) infinite; }
+@keyframes punkter { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
+.fab { position: fixed; right: 16px; bottom: calc(var(--flik) + 16px + env(safe-area-inset-bottom)); z-index: 20; width: 58px; height: 58px; border-radius: 999px;
+  background: var(--brass); color: #1b1a14; border: 0; font-size: 30px; line-height: 1; box-shadow: 0 8px 24px rgba(0,0,0,.5); display: none; }
+@media (max-width: 720px) { .fab { display: grid; place-items: center; } }
+/* Detaljpanelens visa-läge */
+.visa-fakta { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px 16px; }
+.visa-fakta div b { display: block; font-size: 11px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 2px; }
+.visa-fakta div span { font-size: 16px; }
+.visa-fakta div.stor span { font-family: var(--serif); font-size: 24px; font-weight: 600; }
+.visa-fakta div.stor span.kop { color: var(--gron-ljus); }
+.knapprad-stor { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin: 14px 0; }
+.knapprad-stor .knapp { justify-content: center; }
+details.grupp { border: 1px solid var(--line); border-radius: 12px; padding: 0 14px; margin-top: 10px; background: var(--panel); }
+details.grupp summary { cursor: pointer; padding: 12px 0; font-family: var(--serif); font-size: 19px; font-weight: 600; list-style: none; display: flex; align-items: center; }
+details.grupp summary::after { content: "›"; margin-left: auto; color: var(--brass); font-size: 22px; transition: transform .15s; }
+details.grupp[open] summary::after { transform: rotate(90deg); }
+details.grupp summary small { color: var(--muted); font-family: var(--sans); font-size: 13px; font-weight: 400; margin-left: 10px; }
+details.grupp .falt-grid { padding-bottom: 14px; }
+.steg-rad { display: flex; gap: 6px; margin-bottom: 12px; }
+.steg-rad span { flex: 1; text-align: center; font-size: 12px; color: var(--muted); padding: 6px 4px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); }
+.steg-rad span.klar { color: var(--gron-ljus); border-color: var(--gron); }
+.steg-rad span.nu { color: var(--brass); border-color: var(--brass); font-weight: 600; }
+.filter-knapp .n { background: var(--brass); color: #1b1a14; border-radius: 999px; padding: 0 7px; font-size: 12px; font-weight: 700; }
+.pg-kort .nums-rad { display: flex; gap: 14px; }
+.ruta.tips { border-style: dashed; border-color: var(--brass-dim); background: rgba(201,163,91,.06); font-size: 14px; }
+.ruta.tips b { color: var(--brass); }
+/* Rubrikraden: på mobil ligger ?-knappen uppe till höger bredvid rubriken, inte på en egen rad. */
+.vy-huvud h2 { order: 0; } .vy-huvud .hjalp { order: 1; } .vy-huvud .sub { order: 2; } .vy-huvud .hoger { order: 3; }
+@media (min-width: 721px) { .vy-huvud .hoger { order: 1; margin-left: auto; } .vy-huvud .hjalp { order: 3; margin-left: 0; } .vy-huvud .sub { order: 0; } }
+@media (max-width: 720px) { #s-ny { display: none; } .avsnitt-rubrik { flex-wrap: wrap; } }
+input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
