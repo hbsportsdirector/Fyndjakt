@@ -1306,9 +1306,10 @@ def test_omvardering_andrar_bara_det_som_ar_sakert():
     # Partier: det gamla värdet gäller hela partiet, jämförelsen ett styck.
     odon = {"kategori": "Keramik & porslin", "antal": 60, "tillverkare": "Gustavsberg", "serie": "Odon", "auk_median": 4000}
     assert vardering.beslut(odon, res(326), "Gustavsberg Odon")[1].startswith("parti om 60")
-    # Allmänt sökord som inte nämner tillverkare eller serie.
+    # Allmänt sökord som inte nämner tillverkare eller serie (och okänd tillverkare ändras aldrig automatiskt).
     skal = {"kategori": "Glas", "antal": 1, "tillverkare": "Okänd", "serie": "", "auk_median": 200}
-    assert "för allmänt sökord" in vardering.beslut(skal, res(250), "blå glasskål")[1]
+    assert vardering.beslut(skal, res(250), "blå glasskål")[1].startswith("osäker attribution")
+    assert "för allmänt sökord" in vardering.beslut(dict(skal, tillverkare="Boda"), res(250), "blå glasskål")[1]
     # Tiofaldig ändring: Kåge-vaser i stället för en osignerad Gustavsberg-vas, eller fel sorts föremål.
     vas = {"kategori": "Keramik & porslin", "antal": 1, "tillverkare": "Gustavsberg", "serie": "", "auk_median": 400}
     assert "stor ändring (×21.2)" in vardering.beslut(vas, res(8500), "Gustavsberg blå vas")[1]
@@ -1321,3 +1322,16 @@ def test_omvardering_andrar_bara_det_som_ar_sakert():
     assert vardering.beslut(dict(lundquist, anteckning=""), res(1200), "Evert Lundquist teckning")[1].startswith("konst")
     assert vardering.beslut(stella, res(200, antal=4), "Stella Polaris vas")[1] == "bara 4 sålda"
     assert vardering.beslut(stella, {"uppdatera": False, "antal": 1}, "Stella Polaris vas")[1] == "för få sålda (1)"
+    # Andra körningen: serien måste finnas i sökordet, och osäker attribution ändras aldrig automatiskt.
+    assert "för allmänt sökord" in vardering.beslut(stella, res(200), "Vicke Lindstrand vas glas")[1]
+    spiral = {"kategori": "Keramik & porslin", "antal": 1, "tillverkare": "Ingrid Atterberg, Upsala-Ekeby",
+              "serie": "Spiral, modell 2050", "auk_median": 475}
+    assert "för allmänt sökord" in vardering.beslut(spiral, res(350), "Atterberg Upsala-Ekeby vas")[1]
+    assert vardering.beslut(spiral, res(350), "Atterberg Spiral")[0]
+    hajtand = {"kategori": "Glas", "antal": 1, "tillverkare": "Gunnar Nylund, Strömbergshyttan (trolig)", "serie": "Hajtand", "auk_median": 700}
+    assert vardering.beslut(hajtand, res(652), "Nylund Hajtand")[1].startswith("osäker attribution")
+    nana = {"kategori": "Skulptur", "antal": 1, "tillverkare": "Okänd (i stil med Niki de Saint Phalle)", "serie": "Nana", "auk_median": 900}
+    assert vardering.beslut(nana, res(1104), "Nana skulptur Niki de Saint Phalle")[1].startswith("osäker attribution")
+    # Utan serie räcker tillverkaren.
+    landberg = {"kategori": "Glas", "antal": 1, "tillverkare": "Nils Landberg, Orrefors", "serie": "", "auk_median": 400}
+    assert vardering.beslut(landberg, res(300), "Nils Landberg Orrefors vas")[0]

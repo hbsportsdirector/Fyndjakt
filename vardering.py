@@ -99,11 +99,27 @@ INTE_AUTO = {"Konst"}               # unika verk: samma konstnärs median säger
 LAST = ("orört", "lås värde", "låst värde")   # står det i anteckningen rörs värdet aldrig automatiskt
 
 
+OSAKER_ATTRIBUTION = ("trolig", "i stil med", "okänd", "kanske", "?")
+INTE_SERIEORD = {"modell", "trolig", "serie", "nr"}
+
+
+def _stammar(text: str) -> set[str]:
+    return {o[:5] for o in prisjamforelse._ord(text.lower()) if len(o) >= 3 and not o.isdigit() and o not in INTE_SERIEORD}
+
+
 def specifik(fras: str, foremal: dict) -> bool:
-    """Innehåller sökfrasen föremålets tillverkare, formgivare eller serie? "blå keramikskål" gör inte det."""
-    namn = " ".join(str(foremal.get(k) or "") for k in ("tillverkare", "serie")).lower().replace("okänd", "")
-    egna = {o[:5] for o in prisjamforelse._ord(namn) if len(o) >= 3}
-    return any(o[:5] in egna for o in prisjamforelse._ord(fras))
+    """Gäller sökfrasen just det här föremålet? Den måste nämna tillverkaren/formgivaren eller serien – och har
+    föremålet en serie måste serien vara med ("Vicke Lindstrand vas" jämför alla hans vaser, inte Stella Polaris)."""
+    ord_ = {o[:5] for o in prisjamforelse._ord(fras)}
+    serie = _stammar(str(foremal.get("serie") or ""))
+    if serie:
+        return bool(serie & ord_)
+    return bool(_stammar(str(foremal.get("tillverkare") or "").replace("okänd", "")) & ord_)
+
+
+def osaker_attribution(foremal: dict) -> bool:
+    text = f"{foremal.get('tillverkare') or ''} {foremal.get('serie') or ''}".lower()
+    return any(o in text for o in OSAKER_ATTRIBUTION)
 
 
 def beslut(foremal: dict, res: dict, fras: str) -> tuple[bool, str]:
@@ -116,6 +132,8 @@ def beslut(foremal: dict, res: dict, fras: str) -> tuple[bool, str]:
         return False, "konst – unika verk, jämför själv"
     if (foremal.get("antal") or 1) > 1:
         return False, f"parti om {foremal['antal']} – jämförelsen gäller ett styck"
+    if osaker_attribution(foremal):
+        return False, "osäker attribution (trolig/i stil med/okänd)"
     if not specifik(fras, foremal):
         return False, f"för allmänt sökord (\"{fras}\")"
     if res["antal"] < MIN_SALDA_AUTO:
