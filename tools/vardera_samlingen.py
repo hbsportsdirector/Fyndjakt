@@ -72,18 +72,26 @@ def main_() -> int:
             resultat.append((f, fras, res))
             time.sleep(0.2)
 
-    poster = [{"id": f["id"], "fras": fras, "uppdatera": res["uppdatera"], "text": res["text"],
+    # Bara säkra värderingar ändras automatiskt (vardering.beslut); resten är förslag att granska.
+    beslut = {f["id"]: vardering.beslut(f, res, fras) for f, fras, res in resultat}
+    poster = [{"id": f["id"], "fras": fras, "uppdatera": beslut[f["id"]][0], "text": res["text"],
                "url": vardering.sok_url(fras), "median": res.get("median"), "lag": res.get("lag"),
                "hog": res.get("hog"), "antal": res["antal"]} for f, fras, res in resultat]
 
-    # Rapport: största ändringarna först, sedan tunt underlag.
-    andrade = [(f, res) for f, _, res in resultat if res["uppdatera"]]
-    andrade.sort(key=lambda t: -abs((t[1]["median"] or 0) - (t[0].get("auk_median") or 0)))
-    print(f"\nNytt värde för {len(andrade)} föremål (störst ändring först):")
-    for f, res in andrade:
+    def rad(f, fras, res, skal=""):
         gammal = f.get("auk_median")
-        print(f"  {f['id']:42} {gammal if gammal is not None else '–':>6} → {res['median']:>6} kr   {res['text']}")
+        nytt = res.get("median")
+        return (f"  {f['id']:42} {gammal if gammal is not None else '–':>6} → {nytt if nytt is not None else '–':>6} kr"
+                f"   sökte \"{fras}\"{'   [' + skal + ']' if skal else ''}\n      {res['text']}")
+    andrade = [(f, fras, res) for f, fras, res in resultat if beslut[f["id"]][0]]
+    forslag = [(f, fras, res) for f, fras, res in resultat if not beslut[f["id"]][0] and res["uppdatera"]]
     tunna = [(f, fras, res) for f, fras, res in resultat if not res["uppdatera"]]
+    print(f"\nNytt värde för {len(andrade)} föremål:")
+    for t in andrade:
+        print(rad(*t))
+    print(f"\nFörslag att granska – värdet INTE ändrat ({len(forslag)}):")
+    for f, fras, res in forslag:
+        print(rad(f, fras, res, beslut[f["id"]][1]))
     print(f"\nTunt underlag – värdet inte ändrat ({len(tunna)}):")
     for f, fras, res in tunna:
         print(f"  {f['id']:42} sökte \"{fras}\": {res['antal']} sålda, {res['osalda']} osålda")

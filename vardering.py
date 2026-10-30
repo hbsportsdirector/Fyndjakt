@@ -93,6 +93,42 @@ def text(res: dict, idag: date) -> str:
     return t + "."
 
 
+MIN_SALDA_AUTO = 5                  # så många sålda krävs för att värdet ska ändras utan granskning
+MAX_ANDRING = 2.0                   # nytt värde högst dubbla / minst halva det gamla – annars granskning
+INTE_AUTO = {"Konst"}               # unika verk: samma konstnärs median säger lite om just det här verket
+LAST = ("orört", "lås värde", "låst värde")   # står det i anteckningen rörs värdet aldrig automatiskt
+
+
+def specifik(fras: str, foremal: dict) -> bool:
+    """Innehåller sökfrasen föremålets tillverkare, formgivare eller serie? "blå keramikskål" gör inte det."""
+    namn = " ".join(str(foremal.get(k) or "") for k in ("tillverkare", "serie")).lower().replace("okänd", "")
+    egna = {o[:5] for o in prisjamforelse._ord(namn) if len(o) >= 3}
+    return any(o[:5] in egna for o in prisjamforelse._ord(fras))
+
+
+def beslut(foremal: dict, res: dict, fras: str) -> tuple[bool, str]:
+    """(ändra värdet automatiskt, skäl om inte). Allt som inte ändras automatiskt blir ett förslag att granska."""
+    if not res["uppdatera"]:
+        return False, f"för få sålda ({res['antal']})"
+    if any(o in (foremal.get("anteckning") or "").lower() for o in LAST):
+        return False, "värdet är låst i anteckningen"
+    if foremal.get("kategori") in INTE_AUTO:
+        return False, "konst – unika verk, jämför själv"
+    if (foremal.get("antal") or 1) > 1:
+        return False, f"parti om {foremal['antal']} – jämförelsen gäller ett styck"
+    if not specifik(fras, foremal):
+        return False, f"för allmänt sökord (\"{fras}\")"
+    if res["antal"] < MIN_SALDA_AUTO:
+        return False, f"bara {res['antal']} sålda"
+    gammal = foremal.get("auk_median")
+    if not gammal:
+        return False, "inget tidigare värde att jämföra med"
+    kvot = res["median"] / gammal
+    if not (1 / MAX_ANDRING <= kvot <= MAX_ANDRING):
+        return False, f"stor ändring (×{kvot:.1f}) – kontrollera"
+    return True, ""
+
+
 def sok_url(fras: str) -> str:
     from urllib.parse import quote
     return f"https://auctionet.com/sv/search?is=ended&q={quote(fras)}"

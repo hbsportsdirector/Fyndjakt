@@ -1295,3 +1295,29 @@ def test_vardering_tunt_underlag_andrar_inget():
     # Partier räknas per styck.
     par = [{"pris": 1000, "sald": True, "titel": f"Vaser, 2 st, Stella Polaris {i}", "text": ""} for i in range(3)]
     assert vardering.vardera({"namn": "Vas", "kategori": "Glas"}, par)["median"] == 500
+
+
+def test_omvardering_andrar_bara_det_som_ar_sakert():
+    """Fall från första körningen (30 okt 2026) som inte får ändras automatiskt – och ett som får."""
+    import vardering
+    res = lambda median, antal=20: {"uppdatera": True, "median": median, "antal": antal}
+    stella = {"kategori": "Glas", "antal": 1, "tillverkare": "Vicke Lindstrand, Orrefors", "serie": "Stella Polaris", "auk_median": 300}
+    assert vardering.beslut(stella, res(200), "Stella Polaris vas") == (True, "")
+    # Partier: det gamla värdet gäller hela partiet, jämförelsen ett styck.
+    odon = {"kategori": "Keramik & porslin", "antal": 60, "tillverkare": "Gustavsberg", "serie": "Odon", "auk_median": 4000}
+    assert vardering.beslut(odon, res(326), "Gustavsberg Odon")[1].startswith("parti om 60")
+    # Allmänt sökord som inte nämner tillverkare eller serie.
+    skal = {"kategori": "Glas", "antal": 1, "tillverkare": "Okänd", "serie": "", "auk_median": 200}
+    assert "för allmänt sökord" in vardering.beslut(skal, res(250), "blå glasskål")[1]
+    # Tiofaldig ändring: Kåge-vaser i stället för en osignerad Gustavsberg-vas, eller fel sorts föremål.
+    vas = {"kategori": "Keramik & porslin", "antal": 1, "tillverkare": "Gustavsberg", "serie": "", "auk_median": 400}
+    assert "stor ändring (×21.2)" in vardering.beslut(vas, res(8500), "Gustavsberg blå vas")[1]
+    tuna = {"kategori": "Keramik & porslin", "antal": 1, "tillverkare": "Rörstrand", "serie": "Tuna", "auk_median": 400}
+    assert "stor ändring" in vardering.beslut(tuna, res(24), "Rörstrand Tuna Stålhane")[1]
+    # Konst, låst värde, för få sålda.
+    lundquist = {"kategori": "Konst", "antal": 1, "tillverkare": "Evert Lundquist", "serie": "", "auk_median": 1500,
+                 "anteckning": "Skickad till Bukowskis. Värdet orört tills svar kommit."}
+    assert vardering.beslut(lundquist, res(1200), "Evert Lundquist teckning")[1] == "värdet är låst i anteckningen"
+    assert vardering.beslut(dict(lundquist, anteckning=""), res(1200), "Evert Lundquist teckning")[1].startswith("konst")
+    assert vardering.beslut(stella, res(200, antal=4), "Stella Polaris vas")[1] == "bara 4 sålda"
+    assert vardering.beslut(stella, {"uppdatera": False, "antal": 1}, "Stella Polaris vas")[1] == "för få sålda (1)"
