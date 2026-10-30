@@ -126,19 +126,21 @@ def test_gammal_databas_migreras(tmp_path):
 
 
 def test_sajt_byggs(tmp_path, monkeypatch):
-    import sajt
+    import sajt, json
     monkeypatch.setattr(sajt, "UT", tmp_path)
-    monkeypatch.setattr(sajt, "ROT", tmp_path.parent)
     db = Databas(tmp_path / "t.db")
     db.spara(auctionet.tolka(dict(AUCTIONET_POST, title="Lampa </script><b>"), "Belysning"), 9, "Mässing")
     cfg = {"min_betyg": 7, "_admins": {"per"}, "spar": {"hemmet": {"namn": "H", "sokningar": {"Belysning": []}}}}
-    for r in db.traffar(0):
-        pass
     db.con.execute("UPDATE sedda SET spar='hemmet'"); db.con.commit()
-    html = sajt.bygg(db, cfg).read_text(encoding="utf-8")
-    assert "__DATA__" not in html
-    assert "Mässing" not in html and "Lampa" not in html  # inga fynd i den publika sidan
+    fil = sajt.bygg(db, cfg)
+    assert fil == tmp_path / "data" / "fynd.json"
+    data = json.loads(fil.read_text(encoding="utf-8"))
+    assert data["poster"] == [] and data["spar"] == [] and data["uppdaterad"]  # inga fynd i den publika filen
     assert sajt.anvandarfynd(db, cfg)["per"]["poster"][0]["motivering"] == "Mässing"
+    # Spår med publik: true får sina fynd i filen.
+    cfg["spar"]["hemmet"]["publik"] = True
+    data = json.loads(sajt.bygg(db, cfg).read_text(encoding="utf-8"))
+    assert [p["motivering"] for p in data["poster"]] == ["Mässing"] and data["spar"][0]["namn"] == "H"
 
 
 def test_config_laddas():
@@ -358,26 +360,24 @@ def test_smak_utan_token(monkeypatch):
     assert smak.hamta({"supabase": {"url": "u", "nyckel": "k"}}) is None
 
 
-def test_sajt_med_konto(tmp_path, monkeypatch):
-    import sajt, json, re
-    monkeypatch.setattr(sajt, "UT", tmp_path)
-    db = Databas(tmp_path / "t.db")
-    db.spara(auctionet.tolka(AUCTIONET_POST, "Möbler"), 9, "x")
-    html = sajt.bygg(db, {"sajt_min_betyg": 8, "supabase": {"url": "https://x.supabase.co", "nyckel": "sb_publishable_x"}}).read_text(encoding="utf-8")
-    data = json.loads(re.search(r"const D = (.*?);\n", html).group(1))
-    assert data["supabase"]["url"] == "https://x.supabase.co"
-    assert "fyndjakt-kann-igen" in html and 'id="p-smak"' in html
-
-
-def test_sajt_ar_installerbar(tmp_path, monkeypatch):
-    import sajt, json
-    monkeypatch.setattr(sajt, "UT", tmp_path)
-    html = sajt.bygg(Databas(tmp_path / "t.db"), {"sajt_min_betyg": 8}).read_text(encoding="utf-8")
-    assert 'rel="manifest"' in html and 'apple-touch-icon' in html
-    m = json.loads((tmp_path / "manifest.webmanifest").read_text(encoding="utf-8"))
+def test_sajten_ar_en_statisk_app():
+    """Sidan ligger i site/ och läser Supabase direkt – samma projekt som config.yaml."""
+    import json
+    rot = Path(__file__).parent.parent / "site"
+    cfg = main.las_config()["supabase"]
+    app = (rot / "app.js").read_text(encoding="utf-8")
+    assert cfg["url"] in app and cfg["nyckel"] in app and cfg["vapid"] in app
+    html = (rot / "index.html").read_text(encoding="utf-8")
+    assert 'rel="manifest"' in html and "apple-touch-icon" in html and 'id="f-login"' in html
+    for fil in ["app.js", "logik.js", "fynd.js", "samling.js", "butik.js", "prisguide.js", "installningar.js", "stil.css"]:
+        assert f'"{fil}"' in html and (rot / fil).exists()
+    m = json.loads((rot / "manifest.webmanifest").read_text(encoding="utf-8"))
     assert m["display"] == "standalone"
     for ikon in m["icons"]:
-        assert (tmp_path / ikon["src"]).exists()
+        assert (rot / ikon["src"]).exists()
+    for data in ["prisguide", "stamplar", "checklista", "fototips"]:
+        assert json.loads((rot / "data" / f"{data}.json").read_text(encoding="utf-8"))
+    assert "fyndjakt-kann-igen" in app and "fyndjakt_ga_med" in app
 
 
 def test_raddning_av_avklippt_svar():
@@ -490,10 +490,10 @@ def test_egna_fynd_syns_inte_publikt(tmp_path, monkeypatch):
     db.spara(replace(a, spar="p5", prefix="kompis-1|"), 9, "Kompisens")
     cfg = {"sajt_min_betyg": 8, "spar": {"hemmet": {"namn": "Hem", "sokningar": {"Möbler": []}},
                                          "p5": {"namn": "Sommarhuset", "agare": "kompis-11-bbbb", "sokningar": {"Möbler": []}}}}
-    html = sajt.bygg(db, cfg).read_text(encoding="utf-8")
-    data = json.loads(re.search(r"const D = (.*?);\n", html).group(1))
+    text = sajt.bygg(db, cfg).read_text(encoding="utf-8")
+    data = json.loads(text)
     assert data["poster"] == [] and data["spar"] == []  # inget publikt
-    assert "Kompisens" not in html and "PERSMOTIV" not in html
+    assert "Kompisens" not in text and "PERSMOTIV" not in text
     cfg["_admins"] = {"per-0000-aaaa"}
     egna = sajt.anvandarfynd(db, cfg)
     assert sorted(egna) == ["kompis-11-bbbb", "per-0000-aaaa"]
@@ -1206,3 +1206,29 @@ def test_flipp_sparar_styck_och_raknar_om(tmp_path):
     assert flipp.uppdatera_priser([a], db, cfg) == 1
     r = dict(db.con.execute("SELECT * FROM sedda").fetchone())
     assert r["betyg"] == 8 and r["vinst"] == 1105 and "2 st à 1 300 kr" in r["motivering"]
+
+
+def test_samlingen_blir_har_redan(monkeypatch):
+    """Fyndjakt läser samlingen på sajten som "har redan" – utom serier profilen jagar fler delar av."""
+    import smak
+    samling = [
+        {"user_id": "per", "id": "a", "namn": "Vas, Eterna", "tillverkare": "Rörstrand", "serie": "Eterna", "lada": "egen"},
+        {"user_id": "per", "id": "b", "namn": "Tallrik 23 cm", "tillverkare": "Rörstrand", "serie": "Blå Eld", "lada": "egen"},
+        {"user_id": "per", "id": "c", "namn": "Skål", "tillverkare": "Okänd", "serie": "", "lada": "oklart"},
+        {"user_id": "kompis", "id": "d", "namn": "Lampa", "tillverkare": "Luxus", "serie": "", "lada": "egen"},
+    ]
+    rader = smak.har_redan_rader(samling, {"per"}, ["Blå Eld"])
+    assert rader == ["Vas, Eterna (Rörstrand, Eterna)", "Skål"]
+    assert smak.har_redan_rader(samling, {"kompis"}) == ["Lampa (Luxus)"]
+    # Vävs in i profilen för smakspåren men inte för flipp-spåret.
+    monkeypatch.setattr(smak, "samling_har_redan", lambda cfg: samling)
+    cfg = {"spar": {"samlingen": {"profil": "P", "sokningar": {}, "har_redan_undantag": ["Blå Eld"]},
+                    "flipp": {"profil": "F", "sokningar": {}, "flipp": True}}}
+    smak.tillampa(cfg, {"anvandare": [{"user_id": "per", "admin": True}], "reaktioner": [], "anteckningar": []})
+    assert "Vas, Eterna (Rörstrand, Eterna)" in cfg["spar"]["samlingen"]["profil"] and "Blå Eld" not in cfg["spar"]["samlingen"]["profil"]
+    assert cfg["spar"]["flipp"]["profil"] == "F"
+    # Går inte databasen att nå fortsätter körningen utan samlingen.
+    monkeypatch.setattr(smak, "samling_har_redan", lambda cfg: (_ for _ in ()).throw(RuntimeError("nere")))
+    cfg = {"spar": {"s": {"profil": "P", "sokningar": {}}}}
+    smak.tillampa(cfg, {"anvandare": [], "reaktioner": [], "anteckningar": []})
+    assert cfg["spar"]["s"]["profil"] == "P"
