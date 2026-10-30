@@ -12,7 +12,9 @@ auktionshus på Auctionet":
 Blir vinsten (netto − inköp) under MIN_VINST ger det 0 – då är det inte värt besväret.
 Färre än 5 jämförelser (eller ingen median) ger 0. Nyproduktion/replika och föremål utanför keramik, glas och
 design får 0; övriga varningar (kopia, skada) sänker betyget med 3. Jämförelsen görs på samma föremålstyp
-("Picknick underlägg", inte "Picknick"); finns för få sålda av typen används en typlös jämförelse × 0,4. Auktioner med mer än två dygn kvar betygsätts inte än (0) – ett bud på
+("Picknick underlägg", inte "Picknick"); finns för få sålda av typen används en typlös jämförelse × 0,4.
+Jämförelsen räknas per föremål (sålda partier delas med antalet), och annonsens värde = styckpris × antal
+föremål i annonsen. Annonser med olika sorters föremål ("ljusstake och äggkoppar") är blandade partier och får 0. Auktioner med mer än två dygn kvar betygsätts inte än (0) – ett bud på
 1 kr fem dagar före slutet säger inget om slutpriset. De räknas om varje natt tills de är inom två dygn.
 """
 import json
@@ -26,6 +28,8 @@ MIN_JAMFORELSER = 5
 TIDIG = 2 * 86400        # auktioner med mer kvar än så betygsätts inte än
 UTANFOR = "Utanför keramik, glas och design"
 NYPRODUKTION = "nyproduktion"
+BLANDAT = "Blandat parti"  # olika sorters föremål i samma annons – jämförelsen gäller bara en del av dem
+MAX_STYCK = 100
 TYPLOS_ANDEL = 0.4       # typlös jämförelse (för få sålda av samma typ): median × 0,4
 MIN_TYPADE = 3           # färre sålda av samma typ → typlös jämförelse
 BILDER = 3               # bilder per annons – stämplar och baksidor avgör äktheten
@@ -57,6 +61,12 @@ Blanda inte ihop annonserna – bilden hör till annonsen som står närmast fö
   + serie + föremålstypen, t.ex. "Picknick underlägg", "Berså tekanna", "Lisa Larson lejon", "Kåge Argenta vas".
   Föremålstypen MÅSTE ingå – "Picknick" ensamt jämför ett underlägg med karotter och serviser.
   Ta inte med ord som sällan står i auktionstitlar (färger, mått, "fin", "vintage").
+  Sökfrasen ska gälla ETT föremål – inte antal eller "par", "set", "parti".
+- "antal": hur många föremål annonsen säljer, enligt titel, text och bilder. En kopp med fat är 1, en kanna med
+  lock är 1. "Vaser, 2 st" är 2, "Tallrikar, 5 delar" är 5, "ett par figuriner" är 2, en servis på 14 delar är 14.
+- "blandat": true om annonsen säljer OLIKA sorters föremål eller olika serier, så att en sökfras inte täcker dem
+  (t.ex. "ljusstake och äggkoppar", "vas, fat och bricka", "lejon och fågel", "11 delar, bland annat Upsala-Ekeby
+  och Gustavsberg"). Flera likadana föremål ("2 koppar Mon Amie", "Malin och Pelle" i samma serie) är inte blandat.
 
 Avgör om föremålet är ORIGINAL (produktionsperiod) eller NYPRODUKTION/REPLIKA. Kännetecken på nyproduktion: Rörstrand krönt R-logo (2000+) i stället för tre kronor; "Made in Sri Lanka/Thailand/Indonesia/Portugal"; Picknick i vit, blank, tunn benporslin med skarpt tryck och runda muggar/underlägg med kork; Berså med ankarstämpel utan bladlogotyp eller "Gustafsberg"-stavning tryckt; Paratiisi med runda tallrikar; Lisa Larson "K-Studion" eller japansk märkning utan krackelering; Mon Amie 0,33 l-mugg; Muminmugg med "By Arabia" eller Made in Thailand; glas/porslin med streckkodsetikett eller nypris. Titlar med "ny", "nytt", "oanvänd", "i kartong", "nyproduktion", "nyutgåva", "modern", "2000-tal", "2010-tal" talar för nyproduktion. Svara med "varning" = "nyproduktion" när något av detta syns, och "akthet_sakerhet" 0–1.
 
@@ -69,7 +79,7 @@ Titta på ALLA bilderna (stämpel, baksida, etiketter) innan du avgör äktheten
   kläder, möbler, smycken, böcker, bilder, licensprodukter som påsar och muggunderlägg i papp), annars false.
 
 Svara ENBART med en JSON-lista, en post per annons, utan annan text:
-[{"nr": 1, "jamforsok": "<sökfras med föremålstyp>", "typ": "<föremålstyp>", "identifierat": "<fabrik/formgivare/serie>", "varning": "<nyproduktion, kopia, skada, oidentifierad serie eller tom sträng>", "akthet_sakerhet": <0–1>, "utanfor": false}, …]"""
+[{"nr": 1, "jamforsok": "<sökfras med föremålstyp>", "typ": "<föremålstyp>", "identifierat": "<fabrik/formgivare/serie>", "varning": "<nyproduktion, kopia, skada, oidentifierad serie eller tom sträng>", "akthet_sakerhet": <0–1>, "antal": 1, "blandat": false, "utanfor": false}, …]"""
 
 
 # ── Betyget ────────────────────────────────────────────────────────
@@ -77,6 +87,16 @@ Svara ENBART med en JSON-lista, en post per annons, utan annan text:
 def nyproduktion(varning: str) -> bool:
     v = (varning or "").lower()
     return NYPRODUKTION in v or "replika" in v
+
+
+def blandat(varning: str) -> bool:
+    return (varning or "").strip().lower().startswith(BLANDAT.lower())
+
+
+def varde(jmf: dict | None) -> int | None:
+    """Typiskt slutpris för hela annonsen: medianen gäller ett föremål, annonsen kan sälja flera."""
+    jmf = jmf or {}
+    return jmf["median"] * max(1, int(jmf.get("styck") or 1)) if jmf.get("median") else None
 
 
 def inkop(pris: int, kalla: str = "") -> float:
@@ -100,8 +120,8 @@ def betyg(pris: int | None, median: int | None, antal: int | None, varning: str 
         return 0, None
     kvot = inkop(pris, kalla) / netto(median)
     b = next((b for grans, b in STEG if kvot <= grans), 0)
-    if (varning or "").strip().lower().startswith(UTANFOR.lower()) or nyproduktion(varning):
-        return 0, kvot  # sållas bort – nyproduktion och fel sortiment är aldrig fynd
+    if (varning or "").strip().lower().startswith(UTANFOR.lower()) or nyproduktion(varning) or blandat(varning):
+        return 0, kvot  # sållas bort – nyproduktion och fel sortiment är aldrig fynd, blandat går inte att jämföra
     if vinst(pris, median, kalla) < MIN_VINST:
         return 0, kvot  # inte värt besväret
     if b and (varning or "").strip():
@@ -146,11 +166,13 @@ def motivering(pris: int | None, pris_text: str, jmf: dict | None, varning: str 
     if not pris:
         return "Pris saknas – går inte att jämföra."
     utan_typ = " (jämförelse utan typ)" if jmf.get("sakerhet") == "låg" else ""
-    text = (f"{pris_etikett(pris_text)} {_kr(pris)}, klubbas typiskt för {_kr(jmf['median'])} "
-            f"({jmf['antal']} jämförelser){utan_typ}")
-    km = kop_max(jmf["median"], kalla)
+    styck = max(1, int(jmf.get("styck") or 1))
+    per = f"{styck} st à {_kr(jmf['median'])}, " if styck > 1 else ""
+    text = (f"{pris_etikett(pris_text)} {_kr(pris)}, klubbas typiskt för {_kr(varde(jmf))} "
+            f"({per}{jmf['antal']} jämförelser){utan_typ}")
+    km = kop_max(varde(jmf), kalla)
     if km:
-        text += f" – vinst ca {_kr(vinst(pris, jmf['median'], kalla))} på Auctionet, köp max {_kr(km)}."
+        text += f" – vinst ca {_kr(vinst(pris, varde(jmf), kalla))} på Auctionet, köp max {_kr(km)}."
     else:
         text += " – för lågt värde för att löna sig att sälja på Auctionet."
     if (varning or "").strip():
@@ -162,10 +184,13 @@ def bedom_post(pris: int | None, pris_text: str, slutar_ts: int | None, jmf: dic
                nu: float | None = None, kalla: str = "") -> tuple[int, float | None, str]:
     """(betyg, kvot, motivering) för en annons – samma regler när den bedöms första gången och när den räknas om."""
     jmf = jmf or {}
-    b, kvot = betyg(pris, jmf.get("median"), jmf.get("antal"), varning, kalla)
+    b, kvot = betyg(pris, varde(jmf), jmf.get("antal"), varning, kalla)
     text = motivering(pris, pris_text, jmf, varning, kalla)
     if (varning or "").strip().lower().startswith(UTANFOR.lower()):
         return 0, kvot, f"{UTANFOR}."
+    if blandat(varning):
+        return 0, kvot, (f"{BLANDAT} – olika sorters föremål, jämförelsen gäller bara en del av dem. Värdera själv. "
+                         f"{text.split(' Varning:')[0]}")
     if nyproduktion(varning):
         return 0, kvot, f"Nyproduktion – inget fynd. {text}"
     if b and for_tidig(pris_text, slutar_ts, nu):
@@ -268,6 +293,13 @@ def tolka(text: str, antal: int) -> dict[int, dict]:
             varning = str(d.get("varning") or "").strip()[:120]
             if d.get("utanfor") is True or str(d.get("utanfor")).lower() == "true":
                 varning = UTANFOR  # sparas som varning så att omräkningarna också ger 0
+            if varning != UTANFOR and not nyproduktion(varning) and \
+                    (d.get("blandat") is True or str(d.get("blandat")).lower() == "true"):
+                varning = BLANDAT  # sparas som varning så att omräkningarna också ger 0
+            try:
+                styck = max(1, min(MAX_STYCK, int(d.get("antal"))))
+            except (TypeError, ValueError):
+                styck = 1
             typ = str(d.get("typ") or "").strip().lower()[:30]
             try:
                 sakerhet = max(0.0, min(1.0, float(d.get("akthet_sakerhet"))))
@@ -275,7 +307,7 @@ def tolka(text: str, antal: int) -> dict[int, dict]:
                 sakerhet = None
             ut[nr] = {"jamforsok": med_typ(fras, typ), "typ": typ,
                       "identifierat": str(d.get("identifierat") or "").strip()[:120],
-                      "varning": varning, "akthet_sakerhet": sakerhet}
+                      "varning": varning, "akthet_sakerhet": sakerhet, "styck": styck}
     return ut
 
 
@@ -340,13 +372,13 @@ def jamfor_typat(fras: str, typ: str) -> dict | None:
     och serviser. Färre än MIN_TYPADE sålda av typen: typlös sökning, median × 0,4 och sakerhet "låg"."""
     liten = any(t[:max(3, len(t) - 2)] in (typ or "") for t in SMA_TYPER)
     uteslut = STORA_TYPER if liten else ()
-    res = prisjamforelse.jamfor(fras, uteslut)
+    res = prisjamforelse.jamfor(fras, uteslut, per_styck=True)
     if res and res["antal"] >= MIN_TYPADE:
         return {**res, "sakerhet": ""}
     typlos = utan_typ(fras, typ)
     if not typlos or typlos.lower() == fras.lower():
         return res and {**res, "sakerhet": ""}
-    bred = prisjamforelse.jamfor(typlos, uteslut)
+    bred = prisjamforelse.jamfor(typlos, uteslut, per_styck=True)
     if not bred:
         return res and {**res, "sakerhet": ""}
     return {**bred, **{k: round(bred[k] * TYPLOS_ANDEL) for k in ("median", "lag", "hog")}, "sakerhet": "låg"}
@@ -369,14 +401,15 @@ def jamfor_alla(fraser: list[tuple[str, str]], tradar: int = 4) -> dict[tuple, d
 
 def spara(db, a, info: dict, jmf: dict | None) -> int:
     """Sparar annonsen med maskinbetyg, prisjämförelse och flippfälten. Returnerar betyget."""
-    b, kvot, text = bedom_post(a.pris, a.pris_text, a.slutar_ts, jmf, info.get("varning", ""), kalla=a.kalla)
+    styck = info.get("styck") or 1
+    hel = {**jmf, "styck": styck} if jmf else None  # medianen gäller ett föremål, annonsen kan sälja flera
+    b, kvot, text = bedom_post(a.pris, a.pris_text, a.slutar_ts, hel, info.get("varning", ""), kalla=a.kalla)
     a.jamforsok = info["jamforsok"]
     db.spara(a, b, text, b >= 10)
     db.spara_jamforelse(a.nyckel, info["jamforsok"], jmf)
-    median = (jmf or {}).get("median")
-    db.spara_flipp(a.nyckel, kvot, kop_max(median, a.kalla), info.get("identifierat", ""),
+    db.spara_flipp(a.nyckel, kvot, kop_max(varde(hel), a.kalla), info.get("identifierat", ""),
                    info.get("varning", ""), (jmf or {}).get("sakerhet", ""), info.get("akthet_sakerhet"),
-                   vinst(a.pris, median, a.kalla))
+                   vinst(a.pris, varde(hel), a.kalla), styck)
     return b
 
 
@@ -429,12 +462,14 @@ def uppdatera_priser(annonser: list, db, cfg: dict) -> int:
     n = 0
     platser = ",".join("?" * len(flipp))
     for r in db.con.execute(
-            f"SELECT nyckel, pris, betyg, motivering, kop_max, vinst, jmf_median, jmf_antal, jmf_sakerhet, varning "
-            f"FROM sedda WHERE nyckel IN ({platser}) AND jmf_tid IS NOT NULL AND betyg >= 0", list(flipp)).fetchall():
+            f"SELECT nyckel, pris, betyg, motivering, kop_max, vinst, jmf_median, jmf_antal, jmf_sakerhet, varning, "
+            f"styck FROM sedda WHERE nyckel IN ({platser}) AND jmf_tid IS NOT NULL AND betyg >= 0",
+            list(flipp)).fetchall():
         a = flipp[r["nyckel"]]
-        jmf = {"median": r["jmf_median"], "antal": r["jmf_antal"], "sakerhet": r["jmf_sakerhet"] or ""}
+        jmf = {"median": r["jmf_median"], "antal": r["jmf_antal"], "sakerhet": r["jmf_sakerhet"] or "",
+               "styck": r["styck"] or 1}
         b, kvot, text = bedom_post(a.pris, a.pris_text, a.slutar_ts, jmf, r["varning"] or "", kalla=a.kalla)
-        km, v = kop_max(r["jmf_median"], a.kalla), vinst(a.pris, r["jmf_median"], a.kalla)
+        km, v = kop_max(varde(jmf), a.kalla), vinst(a.pris, varde(jmf), a.kalla)
         if (a.pris, b, text, km, v) == (r["pris"], r["betyg"], r["motivering"], r["kop_max"], r["vinst"]):
             continue
         db.con.execute("UPDATE sedda SET pris=?, pris_text=?, betyg=?, motivering=?, kvot=?, kop_max=?, vinst=? "

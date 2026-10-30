@@ -920,7 +920,8 @@ def test_flipp_tolkning_av_svar():
     text = ('[{"nr": 1, "jamforsok": "Berså tekanna", "identifierat": "Gustavsberg, Stig Lindberg, Berså", "varning": ""},'
             ' {"nr": 2, "jamforsok": "", "identifierat": "?"}, {"nr": 3, "jamforsok": "Lisa Larson lejon", "varn')
     assert flipp.tolka(text, 3) == {1: {"jamforsok": "Berså tekanna", "typ": "", "akthet_sakerhet": None,
-                                        "identifierat": "Gustavsberg, Stig Lindberg, Berså", "varning": ""}}
+                                        "identifierat": "Gustavsberg, Stig Lindberg, Berså", "varning": "",
+                                        "styck": 1}}
 
 
 def test_flipp_spar_ar_eget_och_sparar_falten(tmp_path):
@@ -984,7 +985,7 @@ def test_flipp_profil_gar_inte_via_smakinstruktionen(tmp_path, monkeypatch):
     monkeypatch.setattr(main, "tradera_orter", lambda db: 0)
     monkeypatch.setattr(bedomning, "_klient", lambda: klient)
     monkeypatch.setattr(kategoriprofil, "bygg", lambda c, k=None: {})
-    monkeypatch.setattr(prisjamforelse, "jamfor", lambda fras, uteslut=(): {"median": 2000, "lag": 1500, "hog": 2500,
+    monkeypatch.setattr(prisjamforelse, "jamfor", lambda fras, uteslut=(), per_styck=False: {"median": 2000, "lag": 1500, "hog": 2500,
                                                                             "antal": 12})
     monkeypatch.setattr(sajt, "bygg", lambda db, c: None)
     monkeypatch.setattr(notis, "aktiverad", lambda: False)
@@ -1093,7 +1094,7 @@ def test_flipp_jamforelse_utan_typ(monkeypatch):
     import flipp, prisjamforelse
     anrop = []
 
-    def jamfor(fras, uteslut=()):
+    def jamfor(fras, uteslut=(), per_styck=False):
         anrop.append((fras, uteslut))
         return None if "underlägg" in fras else {"median": 700, "lag": 450, "hog": 1100, "antal": 32}
     monkeypatch.setattr(prisjamforelse, "jamfor", jamfor)
@@ -1104,7 +1105,7 @@ def test_flipp_jamforelse_utan_typ(monkeypatch):
     assert flipp.motivering(55, "Bud 55 kr", res).startswith(
         "Bud 55 kr, klubbas typiskt för 280 kr (32 jämförelser) (jämförelse utan typ) – för lågt värde")
     # Med tillräckligt många sålda av typen används den typade jämförelsen som den är.
-    monkeypatch.setattr(prisjamforelse, "jamfor", lambda fras, uteslut=(): {"median": 150, "lag": 100, "hog": 200,
+    monkeypatch.setattr(prisjamforelse, "jamfor", lambda fras, uteslut=(), per_styck=False: {"median": 150, "lag": 100, "hog": 200,
                                                                             "antal": 8})
     assert flipp.jamfor_typat("Picknick underlägg", "underlägg")["sakerhet"] == ""
     # Prisjämförelsen sorterar bort serviser och karotter för små föremål.
@@ -1155,3 +1156,53 @@ def test_miniatyr_ateranvander_bedomningens_bild(monkeypatch):
     import flipp
     monkeypatch.setitem(flipp._BILDER, "https://x/stor.jpg", base64.b64encode(b"640px").decode())
     assert bilder.bytes_for("https://x/stor.jpg") == b"640px"      # flipp-spårets större bild duger också
+
+
+def test_jamforelse_per_styck():
+    import prisjamforelse as pj
+    assert [pj.styck_i(t) for t in ["WILHELM KÅGE. Vaser, 2 st, Argenta", "Tallrikar, 5 delar, Valencia",
+                                    "Figuriner, ett par, Eva och Adam", "Mon Amie, tre st koppar", "Berså tekanna",
+                                    "Vas 16 cm", "Picknick, parti"]] == [2, 5, 2, 3, 1, 1, 1]
+    poster = [{"state": "sold", "currency": "SEK", "highest_bid": p, "ends_at": 0, "title": t} for p, t in
+              [(1300, "Kåge Argenta vaser, 2 st"), (700, "Kåge Argenta vas"), (2100, "Argenta vaser 3 st")]]
+    assert pj.tolka(poster, "Argenta vas") == [1300, 700, 2100]
+    assert pj.tolka(poster, "Argenta vas", per_styck=True) == [650, 700, 700]
+
+
+def test_flipp_annons_med_flera_foremal():
+    import flipp
+    text = ('[{"nr": 1, "jamforsok": "Kåge Argenta vas", "typ": "vas", "identifierat": "Gustavsberg, Kåge, Argenta", '
+            '"varning": "", "antal": 2, "blandat": false},'
+            ' {"nr": 2, "jamforsok": "Kähler Hammershøi ljusstake", "typ": "ljusstake", "identifierat": "Kähler", '
+            '"varning": "", "antal": 5, "blandat": true},'
+            ' {"nr": 3, "jamforsok": "Berså tekanna", "typ": "tekanna", "identifierat": "Berså", "varning": "nyproduktion",'
+            ' "antal": "x", "blandat": true}]')
+    info = flipp.tolka(text, 3)
+    assert info[1]["styck"] == 2 and info[1]["varning"] == ""
+    assert info[2]["styck"] == 5 and info[2]["varning"] == flipp.BLANDAT
+    assert info[3]["styck"] == 1 and info[3]["varning"] == "nyproduktion"   # nyproduktion går före blandat
+    # Två vaser à 1 300 kr: annonsens värde är 2 600 kr, inte 1 300.
+    jmf = {"median": 1300, "antal": 12, "styck": 2}
+    assert flipp.varde(jmf) == 2600
+    b, kvot, text = flipp.bedom_post(300, "Bud 300 kr", None, jmf, kalla="auctionet")
+    assert b == 10 and text.startswith("Bud 300 kr, klubbas typiskt för 2 600 kr (2 st à 1 300 kr, 12 jämförelser)")
+    assert flipp.bedom_post(300, "Bud 300 kr", None, {**jmf, "styck": 1}, kalla="auctionet")[0] == 8
+    # Blandat parti: går inte att jämföra – 0 och en förklaring.
+    b, _, text = flipp.bedom_post(130, "Bud 130 kr", None, {"median": 1577, "antal": 9, "styck": 5}, flipp.BLANDAT)
+    assert b == 0 and text.startswith("Blandat parti – olika sorters föremål")
+
+
+def test_flipp_sparar_styck_och_raknar_om(tmp_path):
+    import flipp
+    cfg = {"spar": {"flipp": {"flipp": True}}}
+    db = Databas(tmp_path / "t.db")
+    a = main.replace(auctionet.tolka(dict(AUCTIONET_POST, estimate=300, title="Kåge Argenta vaser, 2 st")),
+                     spar="flipp", prefix="flipp|")
+    info = {"jamforsok": "Kåge Argenta vas", "identifierat": "Argenta", "varning": "", "styck": 2}
+    assert flipp.spara(db, a, info, {"median": 1300, "lag": 1000, "hog": 1600, "antal": 12}) == 10
+    r = dict(db.con.execute("SELECT * FROM sedda").fetchone())
+    assert r["styck"] == 2 and r["jmf_median"] == 1300 and r["kop_max"] == 792 and r["vinst"] == 1605
+    a.pris, a.pris_text = 700, "Bud 700 SEK"            # budet steg – värdet gäller fortfarande båda vaserna
+    assert flipp.uppdatera_priser([a], db, cfg) == 1
+    r = dict(db.con.execute("SELECT * FROM sedda").fetchone())
+    assert r["betyg"] == 8 and r["vinst"] == 1105 and "2 st à 1 300 kr" in r["motivering"]

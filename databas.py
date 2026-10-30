@@ -39,6 +39,7 @@ KOLUMNER = {
     "jmf_sakerhet": "TEXT",       # "låg" = typlös jämförelse (median × 0,4)
     "akthet_sakerhet": "REAL",    # Claudes säkerhet 0–1 på äktheten
     "vinst": "INTEGER",           # flipp: kr kvar efter försäljning på Auctionet
+    "styck": "INTEGER",           # flipp: antal föremål i annonsen (jmf_median gäller ett)
 }
 
 
@@ -162,10 +163,11 @@ class Databas:
             (spar, tid, int(time.time())))}
 
     def spara_flipp(self, nyckel: str, kvot: float | None, kop_max: int | None, identifierat: str, varning: str,
-                    jmf_sakerhet: str = "", akthet_sakerhet: float | None = None, vinst: int | None = None):
+                    jmf_sakerhet: str = "", akthet_sakerhet: float | None = None, vinst: int | None = None,
+                    styck: int | None = None):
         self.con.execute("UPDATE sedda SET kvot=?, kop_max=?, identifierat=?, varning=?, jmf_sakerhet=?, "
-                         "akthet_sakerhet=?, vinst=? WHERE nyckel=?",
-                         (kvot, kop_max, identifierat, varning, jmf_sakerhet, akthet_sakerhet, vinst, nyckel))
+                         "akthet_sakerhet=?, vinst=?, styck=? WHERE nyckel=?",
+                         (kvot, kop_max, identifierat, varning, jmf_sakerhet, akthet_sakerhet, vinst, styck, nyckel))
         self.con.commit()
 
     def rensa_gamla(self, dagar: int = 120):

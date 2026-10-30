@@ -10,6 +10,8 @@ API = "https://auctionet.com/api/v2/items.json"
 HEADERS = {"User-Agent": "Fyndjakt/1.0 (privat bevakning)"}
 MAX_ALDER_AR = 5
 SMAORD = {"och", "med", "i", "av", "på", "för", "en", "ett", "the", "a"}
+TALORD = {"två": 2, "tre": 3, "fyra": 4, "fem": 5, "sex": 6, "sju": 7, "åtta": 8, "nio": 9, "tio": 10,
+          "elva": 11, "tolv": 12}
 
 
 def _ord(fras: str) -> list[str]:
@@ -22,8 +24,21 @@ def relevant(titel: str, fras: str) -> bool:
     return all(o[:max(3, len(o) - 2)] in t for o in _ord(fras))
 
 
-def salda(fras: str, sidor: int = 3, nu: float | None = None, uteslut: tuple = ()) -> list[int]:
-    """Slutpriser (SEK) för sålda föremål som matchar sökfrasen (och inte har något av orden i uteslut)."""
+def styck_i(titel: str) -> int:
+    """Antal föremål som en auktionstitel säljer: "vaser, 2 st" → 2, "14 delar" → 14, "ett par" → 2, annars 1."""
+    t = (titel or "").lower()
+    m = re.search(r"\b(\d{1,3})\s*(?:st|st\.|stycken|delar|pcs)\b", t) or \
+        re.search(r"\b(" + "|".join(TALORD) + r")\s+(?:st|stycken|delar)\b", t)
+    if m:
+        n = TALORD.get(m.group(1)) or int(m.group(1))
+        return max(1, min(n, 100))
+    return 2 if re.search(r"\b(?:ett\s+)?par\b", t) else 1
+
+
+def salda(fras: str, sidor: int = 3, nu: float | None = None, uteslut: tuple = (),
+          per_styck: bool = False) -> list[int]:
+    """Slutpriser (SEK) för sålda föremål som matchar sökfrasen (och inte har något av orden i uteslut).
+    per_styck: partier räknas om till pris per föremål ("vaser, 2 st" för 1 300 kr → 650 kr)."""
     nu = nu or time.time()
     gräns = nu - MAX_ALDER_AR * 365 * 86400
     priser = []
@@ -32,14 +47,14 @@ def salda(fras: str, sidor: int = 3, nu: float | None = None, uteslut: tuple = (
                          headers=HEADERS, timeout=30)
         r.raise_for_status()
         data = r.json()
-        priser += tolka(data.get("items", []), fras, gräns, uteslut)
+        priser += tolka(data.get("items", []), fras, gräns, uteslut, per_styck)
         if sida >= (data.get("pagination") or {}).get("total_pages", 1):
             break
         time.sleep(1)
     return priser
 
 
-def tolka(poster: list[dict], fras: str, gräns: float = 0, uteslut: tuple = ()) -> list[int]:
+def tolka(poster: list[dict], fras: str, gräns: float = 0, uteslut: tuple = (), per_styck: bool = False) -> list[int]:
     ut = []
     for p in poster:
         if p.get("state") != "sold" or p.get("currency") != "SEK":
@@ -49,7 +64,7 @@ def tolka(poster: list[dict], fras: str, gräns: float = 0, uteslut: tuple = ())
             continue
         titel = (p.get("title") or "").lower()
         if relevant(titel, fras) and not any(o in titel for o in uteslut):
-            ut.append(int(pris))
+            ut.append(round(pris / styck_i(titel)) if per_styck else int(pris))
     return ut
 
 
@@ -62,7 +77,7 @@ def sammanfatta(priser: list[int]) -> dict | None:
     return {"median": round(statistics.median(s)), "lag": round(kvart[0]), "hog": round(kvart[2]), "antal": len(s)}
 
 
-def jamfor(fras: str, uteslut: tuple = ()) -> dict | None:
+def jamfor(fras: str, uteslut: tuple = (), per_styck: bool = False) -> dict | None:
     if not fras or not _ord(fras):
         return None
-    return sammanfatta(salda(fras, uteslut=uteslut))
+    return sammanfatta(salda(fras, uteslut=uteslut, per_styck=per_styck))

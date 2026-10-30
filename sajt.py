@@ -73,7 +73,7 @@ def region_for(kalla: str, plats: str) -> tuple[str, str]:
 FALT = ["nyckel", "titel", "url", "betyg", "motivering", "kalla", "kategori",
         "pris", "pris_text", "plats", "slutar", "slutar_ts", "bilder", "sedd", "spar",
         "jamforsok", "jmf_median", "jmf_lag", "jmf_hog", "jmf_antal", "sokord",
-        "kvot", "kop_max", "identifierat", "varning", "jmf_sakerhet", "vinst"]
+        "kvot", "kop_max", "identifierat", "varning", "jmf_sakerhet", "vinst", "styck"]
 
 
 def _poster(db, cfg: dict, spar_ids: set[str] | None, rader: list[dict] | None = None) -> list[dict]:
@@ -759,8 +759,9 @@ function card(p) {
       const t = document.createElement("dt"); t.textContent = dt; const v = document.createElement("dd"); v.textContent = dd;
       d.append(t, v); dl.appendChild(d); };
     rad(/^bud/i.test(p.pris_text || "") ? "Bud nu" : /^köp nu/i.test(p.pris_text || "") ? "Köp nu" : "Utrop", p.pris ? kr(p.pris) : p.pris_text);
-    rad("Klubbas typiskt", p.jmf_median ? kr(p.jmf_median) + " (" + p.jmf_antal + " sålda"
-      + (p.jmf_sakerhet === "låg" ? ", utan typ × 0,4" : "") + ")" : "");
+    const st = p.styck > 1 ? p.styck : 1;
+    rad("Klubbas typiskt", p.jmf_median ? kr(p.jmf_median * st) + " (" + (st > 1 ? st + " st à " + kr(p.jmf_median) + ", " : "")
+      + p.jmf_antal + " sålda" + (p.jmf_sakerhet === "låg" ? ", utan typ × 0,4" : "") + ")" : "");
     rad("Vinst på Auctionet", p.vinst != null ? "ca " + kr(p.vinst) : "", p.vinst > 0 ? "kop" : "");
     rad("Köp max", p.kop_max ? kr(p.kop_max) : "", "kop");
     rad("Inköp mot netto", p.kvot != null ? Math.round(p.kvot * 100) + " %" : "");

@@ -80,6 +80,9 @@ Färre än 5 jämförelser ger 0. Nyproduktion/replika och föremål utanför ke
 skada drar av 3. Äktheten avgörs av Sonnet på upp till 3 bilder (stämplar, baksida, etiketter). Jämförelsen görs på
 samma föremålstyp ("Picknick underlägg"), och små föremål jämförs aldrig mot karotter, kannor och serviser; finns
 färre än 3 sålda av typen används en typlös jämförelse × 0,4 ("jämförelse utan typ").
+Annonser med flera föremål ("Vaser, 2 st") värderas som styckpris × antal: Claude räknar föremålen, och sålda
+partier i jämförelsen delas med sitt antal. Annonser med olika sorters föremål ("ljusstake och äggkoppar") är
+blandade partier och får 0 – jämförelsen skulle bara gälla en del av dem.
 Auktioner med mer än två dygn kvar betygsätts inte förrän de är inom två dygn (ett bud på 1 kr säger inget om slutpriset).
 Köp max = högsta pris där inköpet är högst halva nettot och vinsten minst 300 kr – föremål som klubbas för
 under ca 500 kr lönar sig aldrig.
