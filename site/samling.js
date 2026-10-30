@@ -261,7 +261,7 @@
   function visaVy(it, p) {
     const v = el("div");
     v.append(el("div", { class: "huvud" }, el("h2", {}, it.namn), el("button", { class: "knapp liten", type: "button", onclick: () => p.stang() }, "Stäng")));
-    v.append(el("div", { class: "muted", style: "margin:-8px 0 12px" }, `${LADNAMN[it.lada]} · ${under(it) || ""}${it.kategori ? " · " + it.kategori : ""}`));
+    v.append(el("div", { class: "muted", style: "margin:-8px 0 12px" }, [LADNAMN[it.lada], under(it), it.kategori].filter(Boolean).join(" · ")));
     const galleri = el("div", { class: "galleri" }); v.append(galleri); renderGalleri(it, galleri, p);
     const knappar = el("div", { class: "knapprad-stor" },
       el("button", { class: "knapp primar", type: "button", onclick: () => p.byt("redigera") }, "✎ Redigera"),
@@ -288,7 +288,9 @@
     if (it.anteckning) v.append(el("div", { class: "ruta", style: "margin-top:12px;white-space:pre-wrap" }, it.anteckning));
     const saljRuta = el("div"); v.append(saljRuta); renderSalj(it, saljRuta, p);
     const hist = el("div"); v.append(el("h3", {}, "Prishistorik")); v.append(hist); laddaHistorik(it, hist);
-    v.append(el("p", { class: "muted", style: "margin-top:16px;font-size:13px" }, `Tillagd ${it.skapad ? App.datum(it.skapad) : "–"} · ändrad ${it.uppdaterad ? App.datum(it.uppdaterad) : "–"}`));
+    v.append(el("div", { class: "rad", style: "margin-top:16px" },
+      el("span", { class: "muted", style: "font-size:13px" }, `Tillagd ${it.skapad ? App.datum(it.skapad) : "–"} · ändrad ${it.uppdaterad ? App.datum(it.uppdaterad) : "–"}`),
+      el("button", { class: "knapp fara liten hoger", type: "button", onclick: () => taBort(it, p) }, "🗑 Ta bort")));
     return v;
   }
 
@@ -309,7 +311,7 @@
     form.append(el("div", { class: "rad", style: "margin-top:16px" },
       el("button", { class: "knapp primar", type: "submit" }, "Spara"),
       el("button", { class: "knapp", type: "button", onclick: () => p.byt("visa") }, "Avbryt"),
-      el("button", { class: "knapp fara hoger", type: "button", onclick: e => taBort(it, e.target, p) }, "Ta bort")), status);
+      el("button", { class: "knapp fara hoger", type: "button", onclick: () => taBort(it, p) }, "🗑 Ta bort")), status);
     form.onsubmit = async e => {
       e.preventDefault(); status.textContent = "Sparar …";
       try {
@@ -377,8 +379,15 @@
       render(); toast("Markerad som såld"); p.byt("visa");
     } catch (x) { toast(x.message); }
   }
-  async function taBort(it, knapp, p) {
-    if (knapp.dataset.saker !== "1") { knapp.dataset.saker = "1"; knapp.textContent = "Tryck igen för att ta bort"; return; }
+  // Ta bort: frågar först i ett ark – det går inte att ångra, och samlingen är gemensam.
+  function taBort(it, p) {
+    App.sheet(`Ta bort ”${it.namn}”?`, [
+      { ikon: "🗑", text: "Ja, ta bort för gott", under: "Föremålet, bilderna och prishistoriken försvinner för alla som delar samlingen. Går inte att ångra.", onclick: () => radera(it, p) },
+      ...(it.lada !== "salt" ? [{ ikon: "✓", text: "Den är såld – flytta till Sålt i stället", under: "Då finns den kvar i statistiken över vinst", onclick: () => markeraSald(it, p) }] : []),
+      { ikon: "↩", text: "Avbryt", onclick: () => {} },
+    ]);
+  }
+  async function radera(it, p) {
     const { error } = await konto.sb.from("samling_foremal").delete().eq("id", it.id);
     if (error) { toast("Kunde inte ta bort: " + error.message); return; }
     for (const b of it.bilder || []) { try { await App.taBortBild(b.path); } catch (e) {} }
