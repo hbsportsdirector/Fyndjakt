@@ -1232,3 +1232,66 @@ def test_samlingen_blir_har_redan(monkeypatch):
     cfg = {"spar": {"s": {"profil": "P", "sokningar": {}}}}
     smak.tillampa(cfg, {"anvandare": [], "reaktioner": [], "anteckningar": []})
     assert cfg["spar"]["s"]["profil"] == "P"
+
+
+# ── Omvärderingen av samlingen ─────────────────────────────────────────
+
+def _post(pris, titel, sald=True, beskrivning="", ends=FRAMTID - 86400 * 400):
+    return {"id": 1, "currency": "SEK", "state": "sold" if sald else "unsold", "highest_bid": pris if sald else 0,
+            "title": titel, "description": beskrivning, "ends_at": ends, "bids": []}
+
+
+def test_hojd_ur_text():
+    import vardering
+    assert vardering.hojd("Vas, höjd 25 cm") == 25 and vardering.hojd("VAS, Orrefors, höjd ca 25,5 cm.") == 25.5
+    assert vardering.hojd("Vas 18 cm hög") == 18 and vardering.hojd("Vas, 22 cm") == 22
+    assert vardering.hojd("H. 12 cm, diameter 9 cm") == 12
+    assert vardering.hojd('Vas "Stella Polaris", klart glas') is None
+    assert vardering.hojd("Skål Ø 20 cm") is None and vardering.hojd("Akvarell ca 100×60 cm") is None
+
+
+def test_avslutade_med_osalda():
+    import prisjamforelse
+    poster = [_post(300, "VAS, Stella Polaris, Orrefors", beskrivning="<p>Höjd 12 cm.</p>"),
+              _post(0, "VAS, Stella Polaris", sald=False),
+              _post(500, "SKÅL, Orrefors"),                                   # fel sökord
+              dict(_post(400, "Vas Stella Polaris"), currency="EUR")]          # fel valuta
+    ut = prisjamforelse.avslutade_ur(poster, "Stella Polaris vas")
+    assert [(p["pris"], p["sald"]) for p in ut] == [(300, True), (0, False)]
+    assert "Höjd 12 cm." in ut[0]["text"]
+
+
+def test_vardering_jamfor_samma_storlek():
+    import vardering
+    from datetime import date
+    sma = [{"pris": p, "sald": True, "titel": "Vas Stella Polaris", "text": "Vas Stella Polaris höjd 12 cm"} for p in (200, 250, 300, 350)]
+    stora = [{"pris": p, "sald": True, "titel": "Vas Stella Polaris", "text": "Vas Stella Polaris höjd 26 cm"} for p in (800, 900, 1100)]
+    osalda = [{"pris": 0, "sald": False, "titel": "Vas Stella Polaris", "text": "Vas Stella Polaris höjd 24 cm"}]
+    alla = sma + stora + osalda
+    # Utan känd höjd: alla storlekar blandas.
+    res = vardering.vardera({"namn": "Vas Stella Polaris", "kategori": "Glas"}, alla, date(2026, 10, 30))
+    assert res["median"] == 350 and res["antal"] == 7 and res["uppdatera"] and not res["storleksfiltrerat"]
+    assert res["andel_osald"] == 0.12 and "12 % osålda" in res["text"]
+    # Höjden i namnet: bara de stora jämförs.
+    res = vardering.vardera({"namn": "Vas Stella Polaris, höjd 25 cm", "kategori": "Glas"}, alla, date(2026, 10, 30))
+    assert res["median"] == 900 and res["antal"] == 3 and res["storleksfiltrerat"] and res["osalda"] == 1
+    assert res["text"] == ("Auctionet 30 okt 2026: 3 sålda, median 900 kr (800–1 100 kr), 25 % osålda"
+                           " – jämfört med föremål 19–31 cm höga.")
+    # För få i samma storlek: blandade storlekar och det sägs.
+    res = vardering.vardera({"namn": "Vas, höjd 50 cm", "kategori": "Glas"}, alla, date(2026, 10, 30))
+    assert not res["storleksfiltrerat"] and "för få i samma storlek (50 cm)" in res["text"]
+    # Konst jämförs aldrig på mått.
+    assert vardering.vardera({"namn": "Akvarell 25 cm", "kategori": "Konst"}, alla)["storlek"] is None
+
+
+def test_vardering_tunt_underlag_andrar_inget():
+    import vardering
+    from datetime import date
+    poster = [{"pris": 700, "sald": True, "titel": "Träsnitt Hyodo", "text": ""},
+              {"pris": 0, "sald": False, "titel": "Träsnitt Hyodo", "text": ""}]
+    res = vardering.vardera({"namn": "Träsnitt", "kategori": "Konst"}, poster, date(2026, 10, 30))
+    assert not res["uppdatera"] and "median" not in res
+    assert res["text"] == "Auctionet 30 okt 2026: för få sålda (1) – värdet är inte ändrat, 1 osålda."
+    # Partier räknas per styck.
+    par = [{"pris": 1000, "sald": True, "titel": f"Vaser, 2 st, Stella Polaris {i}", "text": ""} for i in range(3)]
+    assert vardering.vardera({"namn": "Vas", "kategori": "Glas"}, par)["median"] == 500

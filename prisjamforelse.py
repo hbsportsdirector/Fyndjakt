@@ -68,6 +68,46 @@ def tolka(poster: list[dict], fras: str, gräns: float = 0, uteslut: tuple = (),
     return ut
 
 
+def _ren_text(html: str) -> str:
+    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", html or "")).strip()
+
+
+def avslutade_ur(poster: list[dict], fras: str, gräns: float = 0) -> list[dict]:
+    """Avslutade auktioner (sålda och osålda) som matchar sökfrasen: [{pris, sald, titel, text, slutade}].
+    pris är klubbat pris för sålda, 0 för osålda. text = titel + beskrivning (för att läsa av mått)."""
+    ut = []
+    for p in poster:
+        if p.get("currency") != "SEK" or (p.get("ends_at") or 0) < gräns:
+            continue
+        titel = (p.get("title") or "").strip()
+        if not relevant(titel.lower(), fras):
+            continue
+        sald = p.get("state") == "sold"
+        pris = (p.get("highest_bid") or max((b.get("amount", 0) for b in p.get("bids") or []), default=0)) if sald else 0
+        if sald and not pris:
+            continue
+        ut.append({"pris": int(pris), "sald": sald, "titel": titel, "slutade": p.get("ends_at"),
+                   "text": titel + " " + _ren_text(p.get("description", "")) + " " + _ren_text(p.get("condition", ""))})
+    return ut
+
+
+def avslutade(fras: str, sidor: int = 3, nu: float | None = None) -> list[dict]:
+    """Som salda(), men med osålda och beskrivningar – för omvärderingen av samlingen (vardering.py)."""
+    nu = nu or time.time()
+    gräns = nu - MAX_ALDER_AR * 365 * 86400
+    ut = []
+    for sida in range(1, sidor + 1):
+        r = requests.get(API, params={"q": fras, "is": "ended", "per_page": 48, "page": sida},
+                         headers=HEADERS, timeout=30)
+        r.raise_for_status()
+        data = r.json()
+        ut += avslutade_ur(data.get("items", []), fras, gräns)
+        if sida >= (data.get("pagination") or {}).get("total_pages", 1):
+            break
+        time.sleep(1)
+    return ut
+
+
 def sammanfatta(priser: list[int]) -> dict | None:
     """Median och mittersta hälften (25–75 %). Kräver minst 3 försäljningar."""
     if len(priser) < 3:
