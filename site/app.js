@@ -186,7 +186,8 @@ const App = (() => {
       <p><b>Lägg till</b> ett föremål med kamera, från galleriet eller utan bild. Tar du en bild föreslår Claude namn, tillverkare, serie och värde – ändra fritt.</p>
       <p><b>Tryck på ett föremål</b> för att se allt om det. Där kan du redigera, lägga till bilder, flytta det till en annan låda, se prishistorik och – när det ligger i Till salu – följa prisstegen.</p>
       <p><b>Värde ca</b> är medianen av vad liknande sålts för på Auctionet. Samlingen omvärderas automatiskt en gång i månaden – står höjden i namnet ("höjd 25 cm") jämförs bara med föremål i samma storlek. Under <b>Underlag</b> ser du hur många som sålts, spannet och hur stor andel som gick osåld.</p>
-      <p>Finns för få jämförelser visas Claudes uppskattning, och sist din egen värdering (den ligger under Redigera → Mer).</p>`,
+      <p>Under <b>Värderat</b> står varifrån värdet kommer: ett datum om det är omvärderat mot Auctionet, annars varför inte (för få sålda, parti, konst). Föremål som inte omvärderats har kvar värdet från gamla Loppiskollen.</p>
+      <p><b>Tidigare uppskattning</b> är ett spann som följde med från gamla Loppiskollen. Det används bara när inget annat värde finns.</p>`,
     butik: `<p><b>Tre steg:</b> fota föremålet, fota gärna stämpeln (undersidan), skriv priset. Beskedet kommer av sig självt när båda finns.</p>
       <p><b>KÖP</b> = priset är under köptaket. Köptaket är en tredjedel av typiskt slutpris när du köper för att sälja, men 60 % när föremålet passar din smak (den du skrivit under Inställningar) – då är det samling, inte flipp.</p>
       <p><b>FOTA STÄMPELN FÖRST</b> betyder att Claude är för osäker på vad det är. <b>KÖP INTE</b> visar alltid varför – för dyrt, nyproduktion eller för lågt värde.</p>

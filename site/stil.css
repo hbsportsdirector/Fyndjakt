@@ -491,3 +491,5 @@ details.rakning p { margin: 6px 0; }
 .rakning-rader div span { color: var(--muted); }
 .rakning-rader div.summa { border-bottom: 0; }
 .rakning-rader div.summa b { color: var(--gron-ljus); font-family: var(--serif); font-size: 17px; }
+.visa-fakta div.bred { grid-column: 1 / -1; }
+.visa-fakta div.bred span { font-size: 14.5px; color: var(--muted); }
