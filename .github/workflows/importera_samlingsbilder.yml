@@ -3,13 +3,9 @@ name: Importera samlingsbilder
 # Engångskörning: laddar upp samlingens bilder (tools/samling-migrering) till Supabase-bucketen `samling`
 # och fyller i samling_foremal.bilder. Går att köra om. Använder SUPABASE_SERVICE_ROLE_KEY om den finns,
 # annars nattkörningens FYNDJAKT_BOT_TOKEN via edge-funktionen (som hämtar bilderna från repot på GitHub).
+# Körs för hand (bilderna ligger inte i repot längre – lägg dem i tools/samling-migrering/ och committa tillfälligt).
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "tools/samling-migrering/**"
-      - "tools/importera_samlingsbilder.py"
-      - ".github/workflows/importera_samlingsbilder.yml"
 
 permissions:
   contents: read

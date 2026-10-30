@@ -1,4 +1,7 @@
 __pycache__/
 .pytest_cache/
 *.pyc
-site/
+# Byggs av sajt.py (fynddata till den publika sidan)
+site/data/fynd.json
+# Tillfällig bildmigrering – bilderna ligger i Supabase nu
+tools/samling-migrering/
