@@ -210,6 +210,8 @@ const App = (() => {
   async function loggaUt() { await konto.sb.auth.signOut(); }
   async function laddaKonto() {
     const sb = konto.sb;
+    // Samlingen är gemensam för administratörerna (Per och Jill) – databasens regler avgör vad man ser,
+    // så den filtreras inte på user_id här.
     const [jag, prof, fynd, r, a, v, inst, saml] = await Promise.all([
       sb.from("fyndjakt_anvandare").select("admin,namn").eq("user_id", konto.uid).maybeSingle(),
       sb.from("fyndjakt_profiler").select("*").order("id"),
@@ -218,7 +220,7 @@ const App = (() => {
       sb.from("fyndjakt_anteckningar").select("*").order("skapad", { ascending: false }),
       sb.from("fyndjakt_sokord_val").select("spar,sokord,aktiv"),
       sb.from("samling_installningar").select("smak,kanal").eq("user_id", konto.uid).maybeSingle(),
-      hamtaAlla(() => sb.from("samling_foremal").select("*").eq("user_id", konto.uid).order("uppdaterad", { ascending: false })),
+      hamtaAlla(() => sb.from("samling_foremal").select("*").order("uppdaterad", { ascending: false })),
     ]);
     konto.admin = !!(jag.data && jag.data.admin);
     konto.namn = (jag.data && jag.data.namn) || konto.session.user.email || "";
