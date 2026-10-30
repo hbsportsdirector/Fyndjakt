@@ -1,0 +1,62 @@
+[
+ {
+  "rubrik": "På loppisen",
+  "punkter": [
+   "Vänd allt. Stämpeln först: studiohand, tre kronor, Arabia-krona, RC-vågor, handskriven signatur = plocka upp.",
+   "Pingtesta tallrikar och koppar. Dra fingret över RC-stämpeln efter rits.",
+   "Känn under: stödmärken och oglaserade partier = original; helt slät botten = ofta nyproduktion.",
+   "Berså: bladstämpel med namn = original. Ankare = nytt.",
+   "Lisa Larson: \"Gustavsberg\" = köp. \"K-Studion\" = bara billigt.",
+   "Muminmugg: krona + årtal eller \"Made in Finland\" = köp direkt.",
+   "Räkna i Kalkyl-fliken innan köp över 100 kr. Kolla Tradera \"Avslutade\".",
+   "Skadat? Bara om sällsynt (Friberg, ABC-flicka, King). Då –50 %.",
+   "Hela serviser: en kopp med nagg sänker partipriset. Sälj hela delarna styckvis."
+  ],
+  "numrerad": true
+ },
+ {
+  "rubrik": "Sälj rätt kanal",
+  "tabell": [
+   [
+    "Under 300 kr",
+    "Tradera-auktion 1 kr-utrop, samfrakt. Marketplace/Blocket för avhämtning."
+   ],
+   [
+    "300–2 000 kr",
+    "Tradera. Etsy för signerat mot EU/UK. Blocket fast pris för hela serviser."
+   ],
+   [
+    "Över 2 000 kr",
+    "Bukowskis / Stockholms Auktionsverk online eller Catawiki."
+   ],
+   [
+    "Danskt studio",
+    "Bruun Rasmussen / Catawiki."
+   ],
+   [
+    "USA",
+    "Bara över ~1 500 kr, DHL Express med tull förbetald."
+   ]
+  ]
+ },
+ {
+  "rubrik": "Packa",
+  "punkter": [
+   "Varje del separat i bubbelplast. Tallrikar och koppar på högkant, aldrig i stapel.",
+   "Extra runt pip, handtag, lock.",
+   "Dubbelvägg eller kartong-i-kartong, 5–6 cm dämpning runt om. Skaka: hörs något, packa om.",
+   "Alltid spårbart. Varubrev täcks inte av säljarskyddet.",
+   "Budgetera 2–3 % av omsättningen för fraktskador."
+  ],
+  "numrerad": false
+ },
+ {
+  "rubrik": "Juridik i tre rader",
+  "punkter": [
+   "Köpa för att sälja = näringsverksamhet. Enskild firma med F-skatt på verksamt.se.",
+   "Momsbefriad under 120 000 kr/år. Bokför från första kronan.",
+   "Tradera/Blocket/Sellpy rapporterar dig (DAC7) vid 30 försäljningar eller 2 000 EUR/år. 14 dagars ångerrätt gäller dina köpare."
+  ],
+  "numrerad": false
+ }
+]
