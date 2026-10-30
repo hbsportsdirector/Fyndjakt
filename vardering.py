@@ -147,6 +147,12 @@ def beslut(foremal: dict, res: dict, fras: str) -> tuple[bool, str]:
     return True, ""
 
 
+def foreslas(res: dict, skal: str) -> bool:
+    """Blir värderingen ett förslag att granska på sajten? Inte för partier (jämförelsen gäller ett styck och
+    vore missvisande), låsta värden eller när det inte finns något värde att föreslå."""
+    return bool(res.get("uppdatera") and res.get("median")) and not skal.startswith(("parti", "värdet är låst"))
+
+
 def sok_url(fras: str) -> str:
     from urllib.parse import quote
     return f"https://auctionet.com/sv/search?is=ended&q={quote(fras)}"

@@ -75,8 +75,9 @@ def main_() -> int:
     # Bara säkra värderingar ändras automatiskt (vardering.beslut); resten är förslag att granska.
     beslut = {f["id"]: vardering.beslut(f, res, fras) for f, fras, res in resultat}
     poster = [{"id": f["id"], "fras": fras, "uppdatera": beslut[f["id"]][0], "text": res["text"],
-               "url": vardering.sok_url(fras), "median": res.get("median"), "lag": res.get("lag"),
-               "hog": res.get("hog"), "antal": res["antal"]} for f, fras, res in resultat]
+               "forslag": not beslut[f["id"]][0] and vardering.foreslas(res, beslut[f["id"]][1]),
+               "skal": beslut[f["id"]][1], "url": vardering.sok_url(fras), "median": res.get("median"),
+               "lag": res.get("lag"), "hog": res.get("hog"), "antal": res["antal"]} for f, fras, res in resultat]
 
     def rad(f, fras, res, skal=""):
         gammal = f.get("auk_median")
@@ -89,7 +90,7 @@ def main_() -> int:
     print(f"\nNytt värde för {len(andrade)} föremål:")
     for t in andrade:
         print(rad(*t))
-    print(f"\nFörslag att granska – värdet INTE ändrat ({len(forslag)}):")
+    print(f"\nInte ändrat automatiskt ({len(forslag)}) – de som inte är partier eller låsta blir förslag på sajten:")
     for f, fras, res in forslag:
         print(rad(f, fras, res, beslut[f["id"]][1]))
     print(f"\nTunt underlag – värdet inte ändrat ({len(tunna)}):")
@@ -100,7 +101,7 @@ def main_() -> int:
         print("\nTorrkörning – inget sparat.")
         return 0
     n = rpc(ans, "samling_varde_spara", poster=poster)
-    print(f"\nSparat: {n} föremål fick nytt värde.")
+    print(f"\nSparat: {n} föremål fick nytt värde, {sum(p['forslag'] for p in poster)} förslag att granska på sajten.")
     return 0
 
 

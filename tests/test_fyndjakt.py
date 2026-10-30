@@ -1335,3 +1335,13 @@ def test_omvardering_andrar_bara_det_som_ar_sakert():
     # Utan serie räcker tillverkaren.
     landberg = {"kategori": "Glas", "antal": 1, "tillverkare": "Nils Landberg, Orrefors", "serie": "", "auk_median": 400}
     assert vardering.beslut(landberg, res(300), "Nils Landberg Orrefors vas")[0]
+
+
+def test_vilka_som_blir_forslag():
+    import vardering
+    res = {"uppdatera": True, "median": 175, "antal": 42}
+    assert vardering.foreslas(res, "stor ändring (×0.4) – kontrollera")
+    assert vardering.foreslas(res, "konst – unika verk, jämför själv")
+    assert not vardering.foreslas(res, "parti om 60 – jämförelsen gäller ett styck")
+    assert not vardering.foreslas(res, "värdet är låst i anteckningen")
+    assert not vardering.foreslas({"uppdatera": False, "antal": 1}, "för få sålda (1)")
