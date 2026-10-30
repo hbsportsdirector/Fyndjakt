@@ -140,10 +140,11 @@
   }
 
   // ── Samlingens värde ───────────────────────────────────────────────
-  // Värdet på ett föremål: auktionsmedianen, annars mitten av min egen bedömning, annars mitten av marknaden.
+  // Värdet på ett föremål: auktionsmedianen (omvärderas mot Auctionet), annars mitten av Claudes uppskattning,
+  // annars mitten av den egna värderingen.
   function mitt(a, b) { return a != null || b != null ? Math.round(((a ?? b) + (b ?? a)) / 2) : null; }
   function varde(it) {
-    const v = it.auk_median ?? mitt(it.uppskattat_min, it.uppskattat_max) ?? mitt(it.marknad_min, it.marknad_max);
+    const v = it.auk_median ?? mitt(it.marknad_min, it.marknad_max) ?? mitt(it.uppskattat_min, it.uppskattat_max);
     return v == null ? null : v * Math.max(1, +it.antal || 1);
   }
   // Det pris man väntar sig få vid försäljning: Tradera-priset om satt, annars värdet per styck.

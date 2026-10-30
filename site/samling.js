@@ -65,16 +65,25 @@
     if ((+it.antal || 1) > 1) kropp.append(el("div", { class: "under" }, it.antal + " st"));
     const pris = el("div", { class: "pris" });
     if (it.lada === "salt") pris.append("Såld för ", el("b", {}, kr(it.salt_for)));
-    else {
-      if (it.auk_median) pris.append("Auktion ca ", el("b", {}, kr(it.auk_median)));
-      if (it.uppskattat_min != null || it.uppskattat_max != null) pris.append(el("div", {}, "Min bedömning " + spann(it.uppskattat_min, it.uppskattat_max)));
-      if (!it.auk_median && it.uppskattat_min == null && it.uppskattat_max == null) pris.append(it.marknad_min != null || it.marknad_max != null ? "Marknad " + spann(it.marknad_min, it.marknad_max) : "Inget pris än");
-    }
+    else pris.append(...vardeRad(it));
     kropp.append(pris);
     k.append(kropp);
     k.onclick = () => oppnaDetalj(it.id);
     return k;
   }
+
+  // Ett värde per föremål: auktionsmedianen (omvärderas varje månad), annars Claudes uppskattning, annars den egna.
+  const harMarknad = it => it.marknad_min != null || it.marknad_max != null;
+  const harEgen = it => it.uppskattat_min != null || it.uppskattat_max != null;
+  const manad = d => { try { return new Date(d).toLocaleDateString("sv-SE", { month: "short", year: "numeric" }); } catch (e) { return ""; } };
+  function vardeRad(it) {
+    if (it.auk_median) return ["Värde ca ", el("b", {}, kr(it.auk_median)), it.pris_uppdaterad ? el("span", { class: "muted" }, " · " + manad(it.pris_uppdaterad)) : ""];
+    if (harMarknad(it)) return ["Uppskattat ", el("b", {}, spann(it.marknad_min, it.marknad_max))];
+    if (harEgen(it)) return ["Egen värdering ", el("b", {}, spann(it.uppskattat_min, it.uppskattat_max))];
+    return ["Inget värde än"];
+  }
+  // Den egna värderingen ligger långt över marknaden (mer än dubbla värdet)?
+  const egenForHog = it => harEgen(it) && it.auk_median && (it.uppskattat_min ?? it.uppskattat_max) > 2 * it.auk_median;
 
   async function fyllBilder(sek) {
     const imgs = [...sek.querySelectorAll("img[data-path]")].filter(i => !i.src);
@@ -125,10 +134,10 @@
   const GRUNDFAKTA = [["namn", "Namn", "text", "bred"], ["kategori", "Kategori", "select"], ["tillverkare", "Tillverkare", "text"], ["serie", "Serie", "text"],
     ["antal", "Antal", "number"], ["period", "Period", "text"], ["stampel", "Stämpel", "text"], ["skick", "Skick", "text"]];
   const KOP = [["inkopspris", "Inköpspris (kr)", "number"], ["inkopt", "Inköpt", "date"], ["inkopsstalle", "Inköpsställe", "text"]];
-  const VARDE = [["uppskattat_min", "Min bedömning, lägst (kr)", "number"], ["uppskattat_max", "Min bedömning, högst (kr)", "number"],
-    ["auk_median", "Auktion median (kr)", "number"], ["marknad_min", "Marknad lägst (kr)", "number"], ["marknad_max", "Marknad högst (kr)", "number"]];
-  const MER = [["saker", "Hur säker", "text"], ["marknad_sakerhet", "Marknad säkerhet", "text"], ["jfr", "Jämförelse", "text"], ["jfr_url", "Jämförelse-länk", "text"],
-    ["pris_uppdaterad", "Pris uppdaterat", "date"], ["sokord", "Sökord", "text", "bred"]];
+  const VARDE = [["auk_median", "Värde – auktionsmedian (kr)", "number"], ["marknad_min", "Uppskattat lägst (kr)", "number"], ["marknad_max", "Uppskattat högst (kr)", "number"]];
+  const MER = [["uppskattat_min", "Egen värdering lägst (kr)", "number"], ["uppskattat_max", "Egen värdering högst (kr)", "number"], ["saker", "Säkerhet, egen värdering", "text"],
+    ["marknad_sakerhet", "Säkerhet, uppskattning", "text"], ["jfr", "Underlag", "text", "bred"], ["jfr_url", "Underlag – länk", "text"],
+    ["pris_uppdaterad", "Värderat", "date"], ["sokord", "Sökord (används vid omvärderingen)", "text", "bred"]];
   const ANTECKNING = [["anteckning", "Anteckning", "textarea", "bred"]];
   const FALT = [...GRUNDFAKTA, ...KOP, ...VARDE, ...MER, ...ANTECKNING];
   const SALJ = [["tradera_pris", "Utgångspris (kr)", "number"], ["tradera_lagsta", "Lägsta pris (kr)", "number"], ["upplagd", "Upplagd", "datetime-local"], ["steg_satt", "Steg satt (0 = första)", "number"]];
@@ -196,15 +205,15 @@
     const f = (b, s, cls) => { if (s == null || s === "" || s === "–") return; fakta.append(el("div", { class: cls || "" }, el("b", {}, b), el("span", { class: cls === "stor" && /Köp|Sål/.test(b) ? "kop" : "" }, s))); };
     if (it.lada === "salt") { f("Såld för", kr(it.salt_for), "stor"); f("Inköpt för", it.inkopspris != null ? kr(it.inkopspris) : null, "stor"); f("Vinst", it.salt_for != null && it.inkopspris != null ? kr(it.salt_for - it.inkopspris) : null, "stor"); f("Såld", [it.salt_datum ? App.datum(it.salt_datum) : "", it.salt_kanal].filter(Boolean).join(" via ")); }
     else {
-      f("Auktion ca", it.auk_median ? kr(it.auk_median) : null, "stor");
-      f("Min bedömning", it.uppskattat_min != null || it.uppskattat_max != null ? spann(it.uppskattat_min, it.uppskattat_max) : null, "stor");
-      f("Marknad", it.marknad_min != null || it.marknad_max != null ? spann(it.marknad_min, it.marknad_max) + (it.marknad_sakerhet ? " (" + it.marknad_sakerhet + ")" : "") : null);
+      f("Värde ca", it.auk_median ? kr(it.auk_median) : null, "stor");
+      if (!it.auk_median) f("Uppskattat", harMarknad(it) ? spann(it.marknad_min, it.marknad_max) + (it.marknad_sakerhet ? " (" + it.marknad_sakerhet + ")" : "") : null, "stor");
       f("Inköpt för", it.inkopspris != null ? kr(it.inkopspris) : null, "stor");
+      f("Värderat", it.pris_uppdaterad ? App.datum(it.pris_uppdaterad) : "inte omvärderat än");
     }
     f("Inköpt", [it.inkopt ? App.datum(it.inkopt) : "", it.inkopsstalle].filter(Boolean).join(" på "));
     f("Antal", (+it.antal || 1) > 1 ? it.antal + " st" : null); f("Period", it.period); f("Stämpel", it.stampel); f("Skick", it.skick);
-    f("Säkerhet", it.saker); f("Sökord", it.sokord);
-    if (it.jfr) fakta.append(el("div", {}, el("b", {}, "Jämförelse"), it.jfr_url ? el("a", { href: it.jfr_url, target: "_blank", rel: "noopener" }, it.jfr) : el("span", {}, it.jfr)));
+    if (harEgen(it)) f("Egen värdering", spann(it.uppskattat_min, it.uppskattat_max) + (it.saker ? " (" + it.saker + ")" : "") + (egenForHog(it) ? " ⚠ långt över marknaden" : ""));
+    if (it.jfr) fakta.append(el("div", { style: "grid-column:1/-1" }, el("b", {}, "Underlag"), it.jfr_url ? el("a", { href: it.jfr_url, target: "_blank", rel: "noopener" }, it.jfr) : el("span", {}, it.jfr)));
     v.append(fakta);
     if (it.anteckning) v.append(el("div", { class: "ruta", style: "margin-top:12px;white-space:pre-wrap" }, it.anteckning));
     const saljRuta = el("div"); v.append(saljRuta); renderSalj(it, saljRuta, p);
@@ -221,10 +230,10 @@
     form.append(el("div", { class: "falt-grid" }, el("label", {}, "Låda", lada)));
     form.append(grupp("Grundfakta", it, GRUNDFAKTA, true));
     form.append(grupp("Köp", it, KOP, true, [it.inkopspris != null ? kr(it.inkopspris) : "", it.inkopsstalle].filter(Boolean).join(" · ")));
-    form.append(grupp("Värde", it, VARDE, it.lada !== "salt", it.auk_median ? "auktion ca " + kr(it.auk_median) : ""));
+    form.append(grupp("Värde", it, VARDE, it.lada !== "salt", it.auk_median ? "värde ca " + kr(it.auk_median) : ""));
     if (it.lada === "salj") form.append(grupp("Till salu", it, SALJ, true, "pris, upplagd, steg"));
     if (it.lada === "salt") form.append(grupp("Såld", it, SALT, true));
-    form.append(grupp("Mer", it, MER, false, "säkerhet, jämförelse, sökord"));
+    form.append(grupp("Mer", it, MER, false, "egen värdering, underlag, sökord"));
     form.append(el("div", { class: "falt-grid", style: "margin-top:10px" }, ...ANTECKNING.map(f => falt(it, f))));
     const status = el("div", { class: "status" });
     form.append(el("div", { class: "rad", style: "margin-top:16px" },

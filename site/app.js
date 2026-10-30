@@ -185,7 +185,8 @@ const App = (() => {
     samling: `<p><b>Lådorna</b> överst är samlingens delar – tryck på en för att bara se den. Siffran är antal föremål, raden under är deras uppskattade värde.</p>
       <p><b>Lägg till</b> ett föremål med kamera, från galleriet eller utan bild. Tar du en bild föreslår Claude namn, tillverkare, serie och värde – ändra fritt.</p>
       <p><b>Tryck på ett föremål</b> för att se allt om det. Där kan du redigera, lägga till bilder, flytta det till en annan låda, se prishistorik och – när det ligger i Till salu – följa prisstegen.</p>
-      <p><b>Värde:</b> "Auktion ca" är medianen från sålda jämförelser; "Min bedömning" är ditt eget spann. Saknas båda används marknadsvärdet från butiksbedömningen.</p>`,
+      <p><b>Värde ca</b> är medianen av vad liknande sålts för på Auctionet. Samlingen omvärderas automatiskt en gång i månaden – står höjden i namnet ("höjd 25 cm") jämförs bara med föremål i samma storlek. Under <b>Underlag</b> ser du hur många som sålts, spannet och hur stor andel som gick osåld.</p>
+      <p>Finns för få jämförelser visas Claudes uppskattning, och sist din egen värdering (den ligger under Redigera → Mer).</p>`,
     butik: `<p><b>Tre steg:</b> fota föremålet, fota gärna stämpeln (undersidan), skriv priset. Beskedet kommer av sig självt när båda finns.</p>
       <p><b>KÖP</b> = priset är under köptaket. Köptaket är en tredjedel av typiskt slutpris när du köper för att sälja, men 60 % när föremålet passar din smak (den du skrivit under Inställningar) – då är det samling, inte flipp.</p>
       <p><b>FOTA STÄMPELN FÖRST</b> betyder att Claude är för osäker på vad det är. <b>KÖP INTE</b> visar alltid varför – för dyrt, nyproduktion eller för lågt värde.</p>
