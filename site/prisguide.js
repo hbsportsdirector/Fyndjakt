@@ -138,7 +138,11 @@
         <div id="sp-checklista" style="margin-top:14px"></div>`;
       const r = () => {
         const plan = Logik.saljplan(+$("sp-pris").value || 0);
-        const ut = $("sp-resultat"); ut.replaceChildren(el("p", {}, plan.text));
+        const ut = $("sp-resultat"); ut.replaceChildren();
+        if (plan.kanalNamn) ut.append(el("div", { class: "salj-kanal" }, el("span", { class: "muted" }, "Lägg ut på"), el("b", {}, plan.kanalNamn),
+          el("span", { class: "muted" }, `ca ${kr(plan.netto)} i handen${plan.typ === "stege" ? " vid startpriset" : ""}`)));
+        ut.append(el("p", {}, plan.text));
+        if (plan.alternativ) ut.append(el("p", { class: "muted" }, "Alternativ: " + plan.alternativ));
         if (plan.typ === "stege") {
           ut.append(el("div", { class: "stege" }, ...plan.steg.map((p, i) => el("span", { class: i === 0 ? "nu" : "" }, `Dag ${i * Logik.STEG_DAGAR}: ${kr(p)}`))));
           ut.append(el("p", { class: "muted", style: "margin-top:8px" }, `Netto på Tradera vid start ${kr(Logik.channelNet("tradera", plan.start))}, vid golv ${kr(Logik.channelNet("tradera", plan.golv))}.`));

@@ -324,14 +324,20 @@
     const e = Logik.forvantat(it);
     const plan = Logik.saljplan(e, { upplagd: it.upplagd, steg_satt: it.steg_satt });
     const r = el("div", { class: "ruta", style: "margin-top:14px" });
-    r.append(el("div", { class: "etik" }, "Till salu" + (e ? " · förväntat " + kr(e) : "")));
+    r.append(el("div", { class: "etik" }, "Till salu" + (e ? " · förväntat pris " + kr(e) : "")));
     if (!e) r.append(el("p", { style: "margin:6px 0" }, "Sätt ett utgångspris (Redigera → Till salu) eller ett värde, så räknas säljplanen ut."));
-    else r.append(el("p", { style: "margin:6px 0" }, plan.text));
+    else {
+      // Var den ska ligga – det viktigaste, överst och tydligt.
+      r.append(el("div", { class: "salj-kanal" }, el("span", { class: "muted" }, "Lägg ut på"), el("b", {}, plan.kanalNamn),
+        el("span", { class: "muted" }, `ca ${kr(plan.netto)} i handen${plan.typ === "stege" ? " vid startpriset" : ""} efter avgifter`)));
+      r.append(el("p", { style: "margin:6px 0" }, plan.text));
+    }
     if (it.upplagd) r.append(el("p", { class: "muted", style: "margin:0 0 6px" }, `Upplagd ${App.datum(it.upplagd)}${it.tradera_lagsta ? " · lägsta pris " + kr(it.tradera_lagsta) : ""}`));
     if (plan.typ === "stege") {
       const steg = el("div", { class: "stege" });
       plan.steg.forEach((pris, i) => {
-        const s = el("span", {}, (i === 0 ? "Start " : i === plan.steg.length - 1 ? "Golv " : "") + kr(pris));
+        const s = el("span", { title: `ca ${kr(plan.nettoSteg[i])} i handen på Tradera` }, (i === 0 ? "Start " : i === plan.steg.length - 1 ? "Golv " : "") + kr(pris),
+          el("small", {}, ` → ${kr(plan.nettoSteg[i])}`));
         if (plan.lage && i === plan.lage.satt) s.classList.add("nu");
         if (plan.lage && plan.lage.sank != null && i === plan.lage.bor) s.classList.add("sank");
         steg.append(s);
@@ -352,7 +358,8 @@
         }
       }
     }
-    if (plan.typ === "auktionshus") r.append(el("p", { class: "muted" }, "Netto via Bukowskis ca " + kr(plan.netto)));
+    if (plan.typ === "stege") r.append(el("p", { class: "muted", style: "margin:6px 0 0;font-size:13px" }, "Siffran efter pilen är vad du får i handen på Tradera (10 %, max 200 kr, emballage och svinn)."));
+    if (plan.alternativ) r.append(el("p", { class: "muted", style: "margin:6px 0 0;font-size:13px" }, "Alternativ: " + plan.alternativ));
     ruta.append(r);
   }
 

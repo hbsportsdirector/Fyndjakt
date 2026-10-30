@@ -493,3 +493,7 @@ details.rakning p { margin: 6px 0; }
 .rakning-rader div.summa b { color: var(--gron-ljus); font-family: var(--serif); font-size: 17px; }
 .visa-fakta div.bred { grid-column: 1 / -1; }
 .visa-fakta div.bred span { font-size: 14.5px; color: var(--muted); }
+/* Säljplan: var den ska läggas ut */
+.salj-kanal { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 8px 0 4px; font-size: 14px; }
+.salj-kanal b { font-family: var(--serif); font-size: 21px; color: var(--brass); }
+.stege span small { color: var(--muted); font-size: 11.5px; }

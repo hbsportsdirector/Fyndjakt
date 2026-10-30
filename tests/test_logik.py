@@ -164,3 +164,12 @@ def test_flipp_rakning_samma_som_python():
     r = L("L.flippRakning(2582, 'tradera')")
     assert r == {"slutpris": 2582, "netto": 1966, "tak": 983, "halva": True, "frakt": 80, "prov": 0, "efterFrakt": 902, "kopMax": 902}
     assert L("L.flippRakning(400, 'myrorna').kopMax") is None   # lönar sig aldrig
+
+
+def test_saljplan_sager_var_den_ska_ligga():
+    assert L("L.saljplan(250).kanalNamn") == "Tradera – auktion"
+    p = L("L.saljplan(400)")
+    assert p["kanal"] == "tradera" and "Tradera" in p["kanalNamn"] and "Tradera" in p["text"]
+    assert p["nettoSteg"] == [round(L(f"L.channelNet('tradera', {x})")) for x in p["steg"]]
+    assert p["netto"] == p["nettoSteg"][0] and "Blocket" in p["alternativ"]
+    assert L("L.saljplan(5000).kanal") == "bukowskis"

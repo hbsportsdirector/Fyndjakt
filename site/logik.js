@@ -120,13 +120,21 @@
   function saljplan(forvantat, lage) {
     const e = +forvantat;
     if (!e) return { typ: "okand", text: "Sätt ett förväntat pris först." };
-    if (e < 300) return { typ: "auktion", e, text: `Under 300 kr: Tradera-auktion 7 dagar, utrop 1 kr${e >= 150 ? " (eller 49 kr)" : ""}. Ingen prisstege – marknaden hittar priset på en vecka.` };
-    if (e > 2000) return { typ: "auktionshus", e, netto: Math.round(channelNet("bukowskis", e)),
+    // kanal = var den ska läggas ut; alternativ = när något annat kan vara bättre. netto = i handen efter avgifter.
+    if (e < 300) return { typ: "auktion", e, kanal: "tradera", kanalNamn: "Tradera – auktion",
+      netto: Math.round(channelNet("tradera", e)),
+      alternativ: "Blocket eller Marketplace om den är stor eller ömtålig och kan hämtas – ingen avgift, men oftast lägre pris.",
+      text: `Under 300 kr: Tradera-auktion 7 dagar, utrop 1 kr${e >= 150 ? " (eller 49 kr)" : ""}. Ingen prisstege – marknaden hittar priset på en vecka.` };
+    if (e > 2000) return { typ: "auktionshus", e, kanal: "bukowskis", kanalNamn: "Auktionshus – Bukowskis eller Auktionsverket",
+      netto: Math.round(channelNet("bukowskis", e)),
+      alternativ: `Catawiki för utländska samlare. Tradera bara med reservationspris på ${kr(Math.round(e * STEG_GOLV))}.`,
       text: `Över 2 000 kr: lämna till Bukowskis eller Auktionsverket (17–17,5 % + 170 kr), eller Catawiki. Tradera bara med reservationspris på ${kr(Math.round(e * STEG_GOLV))}.` };
     const stege = prisstege(e);
     const nu = lage ? stegeLage(stege, lage.upplagd, lage.steg_satt, lage.nu) : null;
-    return { typ: "stege", e, ...stege, lage: nu,
-      text: `300–2 000 kr: köp nu på ${kr(stege.start)} med "ta emot bud", sänk 10 % var ${STEG_DAGAR}:e dag ner till golvet ${kr(stege.golv)}. Därefter auktion med reservationspris eller paketera.` };
+    return { typ: "stege", e, ...stege, lage: nu, kanal: "tradera", kanalNamn: "Tradera – köp nu med ”ta emot bud”",
+      netto: Math.round(channelNet("tradera", stege.start)), nettoSteg: stege.steg.map(p => Math.round(channelNet("tradera", p))),
+      alternativ: "Blocket med avhämtning om den är stor eller tung att skicka – ingen avgift, men räkna med att bli prutad.",
+      text: `300–2 000 kr: lägg ut på Tradera som köp nu på ${kr(stege.start)} med "ta emot bud", sänk 10 % var ${STEG_DAGAR}:e dag ner till golvet ${kr(stege.golv)}. Därefter Tradera-auktion med reservationspris eller paketera.` };
   }
 
   // ── Fynd: slutar snart ─────────────────────────────────────────────
