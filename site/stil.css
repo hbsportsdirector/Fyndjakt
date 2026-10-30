@@ -468,3 +468,26 @@ main { padding: 26px 36px 70px; }
 .knapp:hover:not(:disabled) { border-color: var(--brass-dim); }
 .knapp.primar:hover:not(:disabled) { background: #d6b36b; }
 .meny-knapp .n:empty { display: none; }
+/* Värderingsförslag */
+.forslag-rad { display: flex; align-items: center; gap: 10px 16px; flex-wrap: wrap; margin-bottom: 14px; }
+.forslag-rad span { flex: 1 1 260px; }
+.forslag-lista { display: flex; flex-direction: column; gap: 10px; }
+.forslag-kort { display: flex; gap: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; }
+.forslag-kort .fk-bild { width: 76px; height: 76px; flex: none; border-radius: 8px; overflow: hidden; background: var(--panel-2); }
+.forslag-kort .fk-bild img { width: 100%; height: 100%; object-fit: cover; }
+.forslag-kort .fk-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.forslag-kort .fk-namn { font-family: var(--serif); font-size: 18px; font-weight: 600; line-height: 1.2; }
+.forslag-kort .fk-varden { font-size: 15px; }
+.forslag-kort .fk-varden b { font-family: var(--serif); font-size: 20px; }
+.forslag-kort .fk-varden .upp b { color: var(--gron-ljus); }
+.forslag-kort .fk-varden .ner b { color: #e9a77b; }
+.forslag-kort .fk-skal, .forslag-kort .fk-underlag { font-size: 13px; }
+.forslag-kort .rad { margin-top: 4px; }
+/* Fyndkortens förklaring av köp max */
+details.rakning { font-size: 13px; }
+details.rakning summary { cursor: pointer; color: var(--brass); padding: 2px 0; }
+details.rakning p { margin: 6px 0; }
+.rakning-rader div { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; border-bottom: 1px dotted var(--line); }
+.rakning-rader div span { color: var(--muted); }
+.rakning-rader div.summa { border-bottom: 0; }
+.rakning-rader div.summa b { color: var(--gron-ljus); font-family: var(--serif); font-size: 17px; }

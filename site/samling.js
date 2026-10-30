@@ -92,7 +92,62 @@
     for (const i of imgs) { const u = urls[i.dataset.path]; if (u) i.src = u; else i.replaceWith(el("div", { class: "ingen" }, "Bild saknas")); }
   }
 
+  // ── Värderingsförslag att granska ─────────────────────────────────
+  // Omvärderingen lägger här de värden den inte vågar ändra själv. Man väljer "Använd" eller "Behåll mitt".
+  const forslagFor = it => konto.forslag.get(it.id);
+  function renderForslagRad() {
+    const ruta = $("s-forslag"); if (!ruta) return;
+    const n = lista().filter(forslagFor).length;
+    ruta.replaceChildren(...(n ? [el("div", { class: "ruta tips forslag-rad" },
+      el("span", {}, el("b", {}, `${n} ${n === 1 ? "värdering" : "värderingar"} att granska`),
+        " – omvärderingen hittade nya priser som den inte ändrade själv."),
+      el("button", { class: "knapp primar", type: "button", onclick: granskaLista }, "Granska"))] : []));
+  }
+  function forslagKort(it, fs, klar) {
+    const k = el("div", { class: "forslag-kort" });
+    const bild = el("div", { class: "fk-bild" });
+    const p = forstaBild(it);
+    if (p) App.bildUrl(p).then(u => { if (u) bild.append(el("img", { src: u, alt: "" })); });
+    const andring = it.auk_median ? fs.median / it.auk_median : null;
+    k.append(bild, el("div", { class: "fk-txt" },
+      el("div", { class: "fk-namn" }, it.namn),
+      el("div", { class: "fk-varden" },
+        el("span", {}, ...(it.auk_median ? ["Nu ", el("b", {}, kr(it.auk_median))] : ["Inget värde nu"])), " → ",
+        el("span", { class: andring && andring > 1 ? "upp" : "ner" }, "förslag ", el("b", {}, kr(fs.median))),
+        andring ? el("span", { class: "muted" }, ` (${andring >= 1 ? "×" + andring.toFixed(1) : "−" + Math.round((1 - andring) * 100) + " %"})`) : null),
+      el("div", { class: "muted fk-skal" }, "Varför inte automatiskt: " + fs.skal + "."),
+      el("div", { class: "fk-underlag" }, fs.url ? el("a", { href: fs.url, target: "_blank", rel: "noopener" }, fs.text) : fs.text,
+        fs.fras ? el("span", { class: "muted" }, ` Sökte ”${fs.fras}”.`) : null),
+      el("div", { class: "rad" },
+        el("button", { class: "knapp primar liten", type: "button", onclick: e => svara(it, true, e.currentTarget, klar) }, "Använd " + kr(fs.median)),
+        el("button", { class: "knapp liten", type: "button", onclick: e => svara(it, false, e.currentTarget, klar) }, "Behåll " + (it.auk_median ? kr(it.auk_median) : "mitt")),
+        el("button", { class: "knapp liten", type: "button", onclick: () => oppnaDetalj(it.id) }, "Öppna"))));
+    return k;
+  }
+  async function svara(it, anvand, knapp, klar) {
+    knapp.disabled = true;
+    const { data, error } = await konto.sb.rpc("samling_forslag_svara", { p_id: it.id, p_anvand: anvand });
+    if (error) { knapp.disabled = false; toast("Kunde inte spara: " + error.message); return; }
+    konto.forslag.delete(it.id);
+    if (data) { Object.assign(it, data); const i = konto.samling.findIndex(x => x.id === it.id); if (i >= 0) konto.samling[i] = it; }
+    toast(anvand ? "Nytt värde: " + kr(it.auk_median) : "Behåller " + (it.auk_median ? kr(it.auk_median) : "värdet"));
+    render(); klar();
+  }
+  function granskaLista() {
+    const lista_ = el("div", { class: "forslag-lista" });
+    const p = App.panel([el("div", { class: "huvud" }, el("h2", {}, "Värderingar att granska"), el("button", { class: "knapp liten", type: "button", onclick: () => p.stang() }, "Klar")),
+      el("p", { class: "muted" }, "Omvärderingen jämför med sålda föremål på Auctionet. De här ändrade den inte själv – för att ändringen är stor, sökordet allmänt, attributionen osäker eller underlaget litet. Titta på jämförelserna (länken) innan du väljer."),
+      lista_]);
+    const fyll = () => {
+      const rader = lista().filter(forslagFor).sort((a, b) => Math.abs(Math.log((forslagFor(b).median || 1) / (b.auk_median || 1))) - Math.abs(Math.log((forslagFor(a).median || 1) / (a.auk_median || 1))));
+      lista_.replaceChildren(...rader.map(it => forslagKort(it, forslagFor(it), fyll)));
+      if (!rader.length) lista_.append(el("div", { class: "tom" }, el("div", { class: "stor" }, "Allt granskat"), el("p", {}, "Nästa omvärdering görs den 2:a i nästa månad.")));
+    };
+    fyll();
+  }
+
   function render() {
+    renderForslagRad();
     try { localStorage.setItem("samling-vy", JSON.stringify(st)); } catch (e) {}
     renderLador();
     const rader = synliga();
@@ -215,6 +270,7 @@
     if (harEgen(it)) f("Egen värdering", spann(it.uppskattat_min, it.uppskattat_max) + (it.saker ? " (" + it.saker + ")" : "") + (egenForHog(it) ? " ⚠ långt över marknaden" : ""));
     if (it.jfr) fakta.append(el("div", { style: "grid-column:1/-1" }, el("b", {}, "Underlag"), it.jfr_url ? el("a", { href: it.jfr_url, target: "_blank", rel: "noopener" }, it.jfr) : el("span", {}, it.jfr)));
     v.append(fakta);
+    if (forslagFor(it)) v.append(el("div", { style: "margin-top:12px" }, forslagKort(it, forslagFor(it), () => p.byt("visa"))));
     if (it.anteckning) v.append(el("div", { class: "ruta", style: "margin-top:12px;white-space:pre-wrap" }, it.anteckning));
     const saljRuta = el("div"); v.append(saljRuta); renderSalj(it, saljRuta, p);
     const hist = el("div"); v.append(el("h3", {}, "Prishistorik")); v.append(hist); laddaHistorik(it, hist);
@@ -465,6 +521,7 @@
         el("button", { class: "knapp primar", type: "button", id: "s-ny", onclick: laggTillMeny }, "＋ Lägg till"),
         el("button", { class: "knapp", type: "button", "aria-label": "Mer", onclick: merMeny }, "⋯")), h.querySelector(".hjalp"));
       sek.append(h,
+        el("div", { id: "s-forslag" }),
         el("div", { class: "lador", id: "s-lador" }), el("div", { class: "sammanstallning", id: "s-sammanstallning" }),
         el("div", { class: "verktyg" }, el("div", { class: "rad" },
           el("input", { id: "s-q", type: "search", placeholder: "Sök namn, tillverkare, serie …", "aria-label": "Sök i samlingen" }),

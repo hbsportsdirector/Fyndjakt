@@ -11,7 +11,7 @@ const App = (() => {
   const $ = id => document.getElementById(id);
   const konto = { sb: null, inloggad: false, session: null, uid: null, admin: false, namn: "", profiler: [], fynd: null,
                   reakt: new Map(), anteckningar: [], sokordVal: new Map(), installningar: { smak: "", kanal: "tradera" },
-                  samling: [], harRedan: [] };
+                  samling: [], harRedan: [], forslag: new Map() };
   const delar = {};          // id → {namn, ikon, montera(el), visa(), mobil?}
   const ordning = [];
   const MOBIL_FLIKAR = ["fynd", "samling", "butik", "prisguide", "mer"];
@@ -269,7 +269,7 @@ const App = (() => {
     const sb = konto.sb;
     // Samlingen är gemensam för administratörerna (Per och Jill) – databasens regler avgör vad man ser,
     // så den filtreras inte på user_id här.
-    const [jag, prof, fynd, r, a, v, inst, saml] = await Promise.all([
+    const [jag, prof, fynd, r, a, v, inst, saml, fors] = await Promise.all([
       sb.from("fyndjakt_anvandare").select("admin,namn").eq("user_id", konto.uid).maybeSingle(),
       sb.from("fyndjakt_profiler").select("*").order("id"),
       sb.from("fyndjakt_fynd").select("data").maybeSingle(),
@@ -278,6 +278,7 @@ const App = (() => {
       sb.from("fyndjakt_sokord_val").select("spar,sokord,aktiv"),
       sb.from("samling_installningar").select("smak,kanal").eq("user_id", konto.uid).maybeSingle(),
       hamtaAlla(() => sb.from("samling_foremal").select("*").order("uppdaterad", { ascending: false })),
+      sb.from("samling_forslag").select("*"),
     ]);
     konto.admin = !!(jag.data && jag.data.admin);
     konto.namn = (jag.data && jag.data.namn) || konto.session.user.email || "";
@@ -288,6 +289,7 @@ const App = (() => {
     konto.sokordVal = new Map((v.data || []).map(x => [x.spar + "|" + x.sokord, x.aktiv]));
     konto.installningar = inst.data || { smak: "", kanal: "tradera" };
     konto.samling = saml.data || [];
+    konto.forslag = new Map(((fors && fors.data) || []).map(x => [x.foremal_id, x]));
     if (saml.error) console.error(saml.error);
   }
   async function uppdateraKonto(session) {
