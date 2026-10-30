@@ -1,0 +1,6 @@
+# Sökfraser för tools/dubbelkoll.py – en per rad. Ändra och pusha till main så körs dubbelkollen.
+# 2026-10-30: Spode/Copeland Blue Italian-partierna (spode-copeland, spode-modern)
+Blue Italian
+Copeland Italian
+Spode Italian
+Copeland Spode

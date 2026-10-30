@@ -1,0 +1,27 @@
+name: Dubbelkoll av värde
+
+# Listar avslutade auktioner på Auctionet för sökfraserna i tools/dubbelkoll.txt (parti mot parti).
+# Körs när filen ändras på main, eller för hand. Resultatet står i körningens logg.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "tools/dubbelkoll.txt"
+      - "tools/dubbelkoll.py"
+
+permissions:
+  contents: read
+
+jobs:
+  dubbelkoll:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python tools/dubbelkoll.py
