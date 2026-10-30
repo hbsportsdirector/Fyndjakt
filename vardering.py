@@ -147,10 +147,16 @@ def beslut(foremal: dict, res: dict, fras: str) -> tuple[bool, str]:
     return True, ""
 
 
-def foreslas(res: dict, skal: str) -> bool:
+MAX_FORSLAG = 3.0   # mer än tre gånger eller mindre än en tredjedel: sökningen träffar nästan alltid fel sorts föremål
+
+
+def foreslas(res: dict, skal: str, gammal: int | None = None) -> bool:
     """Blir värderingen ett förslag att granska på sajten? Inte för partier (jämförelsen gäller ett styck och
-    vore missvisande), låsta värden eller när det inte finns något värde att föreslå."""
-    return bool(res.get("uppdatera") and res.get("median")) and not skal.startswith(("parti", "värdet är låst"))
+    vore missvisande), låsta värden, när det inte finns något värde att föreslå – eller när förslaget är orimligt
+    långt från nuvarande värde (Tuna-ugnsform 400 → 24 kr, Gustavsberg-vas 400 → 8 500 kr)."""
+    if not (res.get("uppdatera") and res.get("median")) or skal.startswith(("parti", "värdet är låst")):
+        return False
+    return not gammal or 1 / MAX_FORSLAG <= res["median"] / gammal <= MAX_FORSLAG
 
 
 def sok_url(fras: str) -> str:

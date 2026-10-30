@@ -171,8 +171,9 @@
       tillverkare: (p.identifierat || "").split(",")[0].trim() || "Okänd", serie: "", antal: p.styck > 1 ? p.styck : 1,
       sokord: p.jamforsok || "", inkopspris: pris, inkopt: App.idag(), inkopsstalle: KALLNAMN[p.kalla] || p.kalla,
       anteckning: `Köpt via Fyndjakt ${App.idag()}${pris ? " för " + kr(pris) : ""}. ${p.url || ""}` + (p.identifierat ? `\nClaude: ${p.identifierat}` : ""),
-      auk_median: p.jmf_median || null, uppskattat_min: p.jmf_lag || null, uppskattat_max: p.jmf_hog || null, tradera_pris: p.jmf_median || null,
-      saker: "trolig", bilder: [] };
+      auk_median: p.jmf_median || null, tradera_pris: p.jmf_median || null,
+      jfr: p.jmf_median ? `Fyndjakt: ${p.jmf_antal || "?"} sålda på Auctionet, median ${kr(p.jmf_median)}${p.jmf_lag ? ` (${kr(p.jmf_lag)}–${kr(p.jmf_hog)})` : ""}.` : "",
+      bilder: [] };
     try {
       const { error } = await konto.sb.from("samling_foremal").insert(rad);
       if (error) throw new Error("Kunde inte spara i samlingen: " + error.message);

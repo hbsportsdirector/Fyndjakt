@@ -72,22 +72,21 @@
     return k;
   }
 
-  // Ett värde per föremål: auktionsmedianen (omvärderas varje månad), annars Claudes uppskattning, annars den
-  // tidigare uppskattningen som följde med från gamla Loppiskollen (uppskattat_min/max – inte något du angett).
+  // Ett värde per föremål: auktionsmedianen (omvärderas varje månad), annars Claudes uppskattning från Butik.
+  // Värden som inte omvärderats märks "ej kontrollerat".
   const harMarknad = it => it.marknad_min != null || it.marknad_max != null;
-  const harEgen = it => it.uppskattat_min != null || it.uppskattat_max != null;
   const manad = d => { try { return new Date(d).toLocaleDateString("sv-SE", { month: "short", year: "numeric" }); } catch (e) { return ""; } };
   function vardeRad(it) {
-    if (it.auk_median) return ["Värde ca ", el("b", {}, kr(it.auk_median)), it.pris_uppdaterad ? el("span", { class: "muted" }, " · " + manad(it.pris_uppdaterad)) : ""];
+    if (it.auk_median) return ["Värde ca ", el("b", {}, kr(it.auk_median)), el("span", { class: "muted" }, " · " + (it.pris_uppdaterad ? manad(it.pris_uppdaterad) : "ej kontrollerat"))];
     if (harMarknad(it)) return ["Uppskattat ", el("b", {}, spann(it.marknad_min, it.marknad_max))];
-    if (harEgen(it)) return ["Tidigare uppskattning ", el("b", {}, spann(it.uppskattat_min, it.uppskattat_max))];
     return ["Inget värde än"];
   }
-  // Den egna värderingen ligger långt över marknaden (mer än dubbla värdet)?
   // Varifrån "Värde ca" kommer, och varför ett föremål inte har omvärderats (samma regler som vardering.beslut).
   function vardeKalla(it) {
     if (it.pris_uppdaterad) return "Auctionet " + App.datum(it.pris_uppdaterad);
-    return "Inte omvärderat – " + ejOmvarderatSkal(it) + ". Värdet kommer från gamla Loppiskollen" + (it.jfr ? " och bygger på underlaget nedan." : ".");
+    const kalla = /Köpt via Fyndjakt/.test(it.anteckning || "") ? "Fyndjakts jämförelse när den köptes"
+      : /Bedömd i butiken/.test(it.anteckning || "") ? "butiksbedömningen" : "gamla Loppiskollen";
+    return `Äldre värde från ${kalla} – ej kontrollerat. Inte omvärderat: ${ejOmvarderatSkal(it)}.` + (it.jfr ? " Underlaget står nedan." : "");
   }
   function ejOmvarderatSkal(it) {
     if (/orört|lås(t)? värde/i.test(it.anteckning || "")) return "värdet är låst i anteckningen";
@@ -96,7 +95,6 @@
     const sok = it.sokord ? ` (sökte ”${it.sokord}”)` : "";
     return `för få sålda att jämföra med på Auctionet${sok}` + (it.kategori === "Konst" ? "; konst ändras aldrig automatiskt" : "");
   }
-  const egenForHog = it => harEgen(it) && it.auk_median && (it.uppskattat_min ?? it.uppskattat_max) > 2 * it.auk_median;
 
   async function fyllBilder(sek) {
     const imgs = [...sek.querySelectorAll("img[data-path]")].filter(i => !i.src);
@@ -203,8 +201,7 @@
     ["antal", "Antal", "number"], ["period", "Period", "text"], ["stampel", "Stämpel", "text"], ["skick", "Skick", "text"]];
   const KOP = [["inkopspris", "Inköpspris (kr)", "number"], ["inkopt", "Inköpt", "date"], ["inkopsstalle", "Inköpsställe", "text"]];
   const VARDE = [["auk_median", "Värde – auktionsmedian (kr)", "number"], ["marknad_min", "Uppskattat lägst (kr)", "number"], ["marknad_max", "Uppskattat högst (kr)", "number"]];
-  const MER = [["uppskattat_min", "Tidigare uppskattning lägst (kr)", "number"], ["uppskattat_max", "Tidigare uppskattning högst (kr)", "number"], ["saker", "Säkerhet, tidigare uppskattning", "text"],
-    ["marknad_sakerhet", "Säkerhet, uppskattning", "text"], ["jfr", "Underlag", "text", "bred"], ["jfr_url", "Underlag – länk", "text"],
+  const MER = [["marknad_sakerhet", "Säkerhet, uppskattning", "text"], ["jfr", "Underlag", "text", "bred"], ["jfr_url", "Underlag – länk", "text"],
     ["pris_uppdaterad", "Värderat", "date"], ["sokord", "Sökord (används vid omvärderingen)", "text", "bred"]];
   const ANTECKNING = [["anteckning", "Anteckning", "textarea", "bred"]];
   const FALT = [...GRUNDFAKTA, ...KOP, ...VARDE, ...MER, ...ANTECKNING];
@@ -280,8 +277,6 @@
     }
     f("Inköpt", [it.inkopt ? App.datum(it.inkopt) : "", it.inkopsstalle].filter(Boolean).join(" på "));
     f("Antal", (+it.antal || 1) > 1 ? it.antal + " st" : null); f("Period", it.period); f("Stämpel", it.stampel); f("Skick", it.skick);
-    if (harEgen(it)) f("Tidigare uppskattning", spann(it.uppskattat_min, it.uppskattat_max) + " – från gamla Loppiskollen" + (it.saker ? `, bedömd som ${it.saker}` : "")
-      + (egenForHog(it) ? ". ⚠ Mer än dubbla värdet." : it.auk_median && (it.uppskattat_min ?? 0) > it.auk_median ? ". Ligger över värdet ovan." : "."), "bred");
     if (it.jfr) fakta.append(el("div", { style: "grid-column:1/-1" }, el("b", {}, "Underlag"), it.jfr_url ? el("a", { href: it.jfr_url, target: "_blank", rel: "noopener" }, it.jfr) : el("span", {}, it.jfr)));
     v.append(fakta);
     if (forslagFor(it)) v.append(el("div", { style: "margin-top:12px" }, forslagKort(it, forslagFor(it), () => p.byt("visa"))));
@@ -305,7 +300,7 @@
     form.append(grupp("Värde", it, VARDE, it.lada !== "salt", it.auk_median ? "värde ca " + kr(it.auk_median) : ""));
     if (it.lada === "salj") form.append(grupp("Till salu", it, SALJ, true, "pris, upplagd, steg"));
     if (it.lada === "salt") form.append(grupp("Såld", it, SALT, true));
-    form.append(grupp("Mer", it, MER, false, "tidigare uppskattning, underlag, sökord"));
+    form.append(grupp("Mer", it, MER, false, "underlag, sökord"));
     form.append(el("div", { class: "falt-grid", style: "margin-top:10px" }, ...ANTECKNING.map(f => falt(it, f))));
     const status = el("div", { class: "status" });
     form.append(el("div", { class: "rad", style: "margin-top:16px" },
@@ -525,7 +520,7 @@
   // ── CSV ───────────────────────────────────────────────────────────
   function exportCsv() {
     const kol = ["id", "lada", "namn", "kategori", "tillverkare", "serie", "antal", "period", "stampel", "skick", "inkopspris", "inkopt", "inkopsstalle",
-      "uppskattat_min", "uppskattat_max", "marknad_min", "marknad_max", "auk_median", "tradera_pris", "tradera_lagsta", "upplagd", "steg_satt",
+      "marknad_min", "marknad_max", "auk_median", "tradera_pris", "tradera_lagsta", "upplagd", "steg_satt",
       "salt_for", "salt_datum", "salt_kanal", "sokord", "anteckning", "skapad", "uppdaterad"];
     const c = v => { const s = v == null ? "" : String(v); return /[";\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
     const rader = [kol.join(";"), ...synliga().map(it => kol.map(k => c(it[k])).join(";"))];

@@ -156,11 +156,11 @@
 
   // ── Samlingens värde ───────────────────────────────────────────────
   // Värdet på ett föremål: auktionsmedianen (omvärderas mot Auctionet), annars mitten av Claudes uppskattning,
-  // annars mitten av den tidigare uppskattningen från gamla Loppiskollen (uppskattat_min/max).
+  // (uppskattat_min/max används inte längre – de gamla uppskattningarna raderades 2026-10-30.)
   function mitt(a, b) { return a != null || b != null ? Math.round(((a ?? b) + (b ?? a)) / 2) : null; }
   function varde(it) {
     // Värdet gäller hela posten – ett parti om 60 delar har ett värde för alla 60, inte per del.
-    return it.auk_median ?? mitt(it.marknad_min, it.marknad_max) ?? mitt(it.uppskattat_min, it.uppskattat_max);
+    return it.auk_median ?? mitt(it.marknad_min, it.marknad_max);
   }
   // Det pris man väntar sig få vid försäljning: Tradera-priset om satt, annars värdet per styck.
   function forvantat(it) {

@@ -75,7 +75,7 @@ def main_() -> int:
     # Bara säkra värderingar ändras automatiskt (vardering.beslut); resten är förslag att granska.
     beslut = {f["id"]: vardering.beslut(f, res, fras) for f, fras, res in resultat}
     poster = [{"id": f["id"], "fras": fras, "uppdatera": beslut[f["id"]][0], "text": res["text"],
-               "forslag": not beslut[f["id"]][0] and vardering.foreslas(res, beslut[f["id"]][1]),
+               "forslag": not beslut[f["id"]][0] and vardering.foreslas(res, beslut[f["id"]][1], f.get("auk_median")),
                "skal": beslut[f["id"]][1], "url": vardering.sok_url(fras), "median": res.get("median"),
                "lag": res.get("lag"), "hog": res.get("hog"), "antal": res["antal"]} for f, fras, res in resultat]
 

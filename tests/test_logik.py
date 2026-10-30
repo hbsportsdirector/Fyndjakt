@@ -144,9 +144,9 @@ def test_bradskande_banner():
 def test_samlingens_varde():
     it = {"auk_median": 500, "uppskattat_min": 100, "uppskattat_max": 300, "antal": 2}
     assert L(f"L.varde({json.dumps(it)})") == 500           # auktionsmedianen först – den gäller hela posten
-    assert L("L.varde({uppskattat_min: 100, uppskattat_max: 300})") == 200
+    assert L("L.varde({uppskattat_min: 100, uppskattat_max: 300})") is None   # gamla uppskattningar räknas inte längre
     assert L("L.varde({marknad_min: 100})") == 100
-    assert L("L.varde({marknad_min: 300, marknad_max: 500, uppskattat_min: 2000, uppskattat_max: 9000})") == 400  # uppskattning före egen
+    assert L("L.varde({marknad_min: 300, marknad_max: 500, uppskattat_min: 2000, uppskattat_max: 9000})") == 400
     assert L("L.varde({})") is None
     s = L("L.sammanstallning([{lada:'salt', inkopspris: 100, salt_for: 400}, {lada:'salt', inkopspris: 50, salt_for: 100}, {lada:'egen', auk_median: 900}])")
     assert s["salt"] == {"antal": 2, "varde": 0, "inkopt": 150, "salt": 500, "vinst": 350}

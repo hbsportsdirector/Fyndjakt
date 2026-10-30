@@ -1345,3 +1345,7 @@ def test_vilka_som_blir_forslag():
     assert not vardering.foreslas(res, "parti om 60 – jämförelsen gäller ett styck")
     assert not vardering.foreslas(res, "värdet är låst i anteckningen")
     assert not vardering.foreslas({"uppdatera": False, "antal": 1}, "för få sålda (1)")
+    # Orimligt långt från nuvarande värde: sökningen har träffat fel sorts föremål – föreslås inte.
+    assert vardering.foreslas(res, "stor ändring (×0.4) – kontrollera", 400)            # 400 → 175
+    assert not vardering.foreslas({**res, "median": 24}, "osäker attribution", 400)      # Tuna-ugnsform
+    assert not vardering.foreslas({**res, "median": 8500}, "stor ändring (×21.2)", 400)  # blå Gustavsberg-vas
