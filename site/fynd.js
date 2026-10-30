@@ -61,9 +61,12 @@
     const tal = el("div", { class: "tal" });
     const cell = (b, v, cls) => el("div", { class: cls || "" }, el("b", {}, b), el("span", {}, v));
     tal.append(cell("Pris nu", p.pris ? kr(p.pris) : (p.pris_text || "–")));
+    const slutpris = p.jmf_median ? p.jmf_median * (p.styck > 1 ? p.styck : 1) : null;
     tal.append(cell("Köp max", p.kop_max ? kr(p.kop_max) : p.jmf_median ? kr(Math.round(p.jmf_median * Logik.KOPTAK_FLIPP)) : "–", "kop"));
-    tal.append(cell("Typiskt", p.jmf_median ? kr(p.jmf_median * (p.styck > 1 ? p.styck : 1)) : "–"));
+    tal.append(cell("Säljs för", slutpris ? kr(slutpris) : "–"));
     kropp.append(tal);
+    // Hur köp max räknas – annars ser glappet mellan köp max och slutpris obegripligt ut.
+    if (slutpris) kropp.append(el("details", { class: "rakning" }, el("summary", {}, "Hur räknas köp max?"), rakning(p, slutpris)));
     const meta = el("div", { class: "meta" });
     const t = Logik.tidKvar(p);
     if (t != null) { const s = el("span", { class: t < 6 * 3600 ? "het" : t < 86400 ? "snart" : "", "data-ts": p.slutar_ts }); s.textContent = tidtext(t); meta.append(s); }
@@ -76,6 +79,22 @@
     const akta = el("div", { class: "akta", hidden: true }); kropp.append(akta);
     k.append(kropp);
     return k;
+  }
+  function rakning(p, slutpris) {
+    const st = p.styck > 1 ? ` (${p.styck} st à ${kr(p.jmf_median)})` : "";
+    const salda = p.jmf_antal ? ` – medianen av ${p.jmf_antal} sålda på Auctionet` : "";
+    if (!p.kop_max) return el("p", {}, `Liknande klubbas för ca ${kr(slutpris)}${st}${salda}. Köp max är en tredjedel av det: ${kr(Math.round(slutpris * Logik.KOPTAK_FLIPP))}.`);
+    const r = Logik.flippRakning(slutpris, p.kalla);
+    if (!r.kopMax) return el("p", {}, `Liknande klubbas för ca ${kr(slutpris)}${st}${salda}. Efter auktionshusets provision (20 %) och avgift (100 kr) blir nettot bara ${kr(r.netto)} – det lönar sig inte att köpa för att sälja vidare.`);
+    const rad = (t, v, cls) => el("div", { class: cls || "" }, el("span", {}, t), el("b", {}, v));
+    const ut = el("div", { class: "rakning-rader" },
+      rad("Klubbas typiskt" + st, kr(r.slutpris)),
+      rad("− auktionshusets provision 20 % och avgift 100 kr", "= " + kr(r.netto) + " netto"),
+      rad(r.halva ? "Betala högst halva nettot" : "Lämna minst 300 kr i vinst", kr(r.tak)));
+    if (r.frakt) ut.append(rad(`− frakt ${kr(r.frakt)} från ${KALLNAMN[p.kalla] || p.kalla}`, kr(r.efterFrakt)));
+    if (r.prov) ut.append(rad(`÷ köparprovision ${Math.round(r.prov * 100)} % på ${KALLNAMN[p.kalla] || p.kalla}`, ""));
+    ut.append(rad("Köp max", kr(r.kopMax), "summa"));
+    return el("div", {}, el("p", { class: "muted" }, `Räknat på att du säljer vidare via ett auktionshus på Auctionet${salda}. Halva nettot är marginalen för risk, arbete och att priset kan bli lägre.`), ut);
   }
   const tidtext = t => t < 0 ? "Avslutad" : "Slutar om " + Logik.tidText(t);
 

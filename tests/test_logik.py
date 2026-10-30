@@ -151,3 +151,16 @@ def test_samlingens_varde():
     s = L("L.sammanstallning([{lada:'salt', inkopspris: 100, salt_for: 400}, {lada:'salt', inkopspris: 50, salt_for: 100}, {lada:'egen', auk_median: 900}])")
     assert s["salt"] == {"antal": 2, "varde": 0, "inkopt": 150, "salt": 500, "vinst": 350}
     assert s["egen"]["varde"] == 900
+
+
+def test_flipp_rakning_samma_som_python():
+    """Förklaringen på fyndkortet räknar exakt som flipp.kop_max."""
+    import sys
+    sys.path.insert(0, str(Path(__file__).parent.parent))
+    import flipp
+    for median in (600, 1000, 2582, 4000):
+        for kalla in ("tradera", "auctionet", "bukowskis", "myrorna"):
+            assert L(f"L.flippRakning({median}, '{kalla}').kopMax") == flipp.kop_max(median, kalla), (median, kalla)
+    r = L("L.flippRakning(2582, 'tradera')")
+    assert r == {"slutpris": 2582, "netto": 1966, "tak": 983, "halva": True, "frakt": 80, "prov": 0, "efterFrakt": 902, "kopMax": 902}
+    assert L("L.flippRakning(400, 'myrorna').kopMax") is None   # lönar sig aldrig

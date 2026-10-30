@@ -71,6 +71,21 @@
     return { ...ut, besked: "KÖP INTE", klass: "nej", skal: `Max ${kr(tak.tak)} (${tak.regel})` + (r.varning ? " · ⚠ " + r.varning : "") };
   }
 
+  // ── Fyndjakts "köp max" (samma räkning som flipp.py) ──────────────
+  // Sälj via ett auktionshus på Auctionet: netto = slutpris − 20 % − 100 kr. Köp max = högst halva nettot (och minst
+  // 300 kr vinst), minus frakt, delat med köparprovisionen där köpet görs.
+  const FLIPP = { saljProvision: 0.20, saljAvgift: 100, kvot: 0.5, minVinst: 300,
+                  kopProvision: { auctionet: 0.25, bukowskis: 0.25 }, frakt: { tradera: 80 } };
+  function flippRakning(slutpris, kalla) {
+    if (!slutpris) return null;
+    const netto = slutpris * (1 - FLIPP.saljProvision) - FLIPP.saljAvgift;
+    const halva = netto * FLIPP.kvot, tak = Math.min(halva, netto - FLIPP.minVinst);
+    const frakt = FLIPP.frakt[kalla] || 0, prov = FLIPP.kopProvision[kalla] || 0;
+    const kopMax = Math.trunc((tak - frakt) / (1 + prov));
+    return { slutpris, netto: Math.round(netto), tak: Math.round(tak), halva: tak === halva, frakt, prov,
+             efterFrakt: Math.trunc(tak - frakt), kopMax: kopMax > 0 ? kopMax : null };
+  }
+
   // ── Säljplan och prisstege ─────────────────────────────────────────
   // < 300 kr → auktion från 1 kr. 300–2 000 kr → prisstege: start +15 % över förväntat, −10 % var 10:e dag,
   // golv 85 %. > 2 000 kr → auktionshus.
@@ -168,7 +183,7 @@
 
   function kr(n) { return n == null || isNaN(n) ? "–" : Math.round(n).toLocaleString("sv-SE") + " kr"; }
 
-  const Logik = { KANALER, avgift, channelNet, bestChannel, koptak, butikBesked, prisstege, stegeLage, saljplan, nice,
+  const Logik = { KANALER, avgift, channelNet, bestChannel, koptak, butikBesked, flippRakning, prisstege, stegeLage, saljplan, nice,
                   slutarSnart, bradskande, tidKvar, tidText, kvot, varde, forvantat, sammanstallning, kr,
                   STEG_DAGAR, KOPTAK_FLIPP, KOPTAK_SAMLING };
   if (typeof module !== "undefined" && module.exports) module.exports = Logik;
