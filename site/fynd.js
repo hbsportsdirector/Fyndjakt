@@ -198,7 +198,12 @@
     let rader = alla.filter(p => !snartIds.has(p.nyckel)).sort(sorterare());
     const lista = $("fynd-lista"); lista.replaceChildren();
     if (!alla.length) {
-      lista.append(el("div", { class: "tom" }, poster().length ? "Inga fynd med de här filtren." : "Inga fynd än – nattkörningen fyller på."));
+      const tom = el("div", { class: "tom" });
+      if (!poster().length) tom.append(el("div", { class: "stor" }, "Inga fynd än"), el("p", {}, "Fyndjakt letar varje natt. Har du ingen bevakning än – skapa en under Inställningar, så letar appen direkt."),
+        el("div", { class: "rad" }, el("button", { class: "knapp", type: "button", onclick: () => App.visa("installningar") }, "Till Inställningar")));
+      else tom.append(el("div", { class: "stor" }, "Inget matchar"), el("p", {}, "Prova ett annat spår, ett annat ord eller nollställ filtret."),
+        el("div", { class: "rad" }, el("button", { class: "knapp", type: "button", onclick: () => { st.q = ""; st.kalla = ""; st.region = ""; st.min = 0; st.spar = "alla"; $("fynd-q").value = ""; byggChips(); render(); } }, "Visa alla fynd")));
+      lista.append(tom);
     }
     if (snart.length) {
       lista.append(el("div", { class: "avsnitt-rubrik het" }, el("h3", {}, "⏱ Slutar inom 24 timmar"), el("span", {}, snart.length + " st – kolla dessa först")));
@@ -229,46 +234,50 @@
     timer = setInterval(() => lista.querySelectorAll("[data-ts]").forEach(s => { const t = +s.dataset.ts - Date.now() / 1000; s.textContent = tidtext(t); s.className = t < 6 * 3600 ? "het" : t < 86400 ? "snart" : ""; }), 60000);
   }
 
-  function byggFilter() {
-    const sp = $("fynd-spar");
-    sp.replaceChildren(new Option("Alla spår", "alla"), new Option("Flipp", "flipp"), ...spar().filter(s => !s.flipp).map(s => new Option(s.namn, s.id)));
-    sp.value = [...sp.options].some(o => o.value === st.spar) ? st.spar : "alla"; st.spar = sp.value;
+  // Spåren som chips – allt annat (sortering, källa, område, betyg) ligger bakom Filter-knappen.
+  function byggChips() {
+    const val = [["alla", "Alla"], ...spar().filter(s => !s.flipp).map(s => [s.id, s.namn]), ...(spar().some(s => s.flipp) ? [["flipp", "Flipp"]] : [])];
+    if (!val.some(([v]) => v === st.spar)) st.spar = "alla";
+    const antal = id => poster().filter(p => id === "alla" || (id === "flipp" ? flippSpar(p.spar) : p.spar === id)).length;
+    $("fynd-chips").replaceChildren(...val.map(([v, t]) => {
+      const b = el("button", { class: "chip", type: "button", "aria-pressed": String(st.spar === v) }, t, el("span", { class: "n" }, String(antal(v))));
+      b.onclick = () => { st.spar = v; st.visa = 60; byggChips(); render(); };
+      return b;
+    }));
+    const aktiva = [st.kalla, st.region, st.min ? "m" : ""].filter(Boolean).length;
+    const fk = $("fynd-filter"); fk.replaceChildren(...["⚙ Filter", aktiva ? el("span", { class: "n" }, String(aktiva)) : null].filter(Boolean));
+    fk.classList.toggle("primar", aktiva > 0);
+  }
+  function filterArk() {
     const finns = new Set(poster().map(p => p.region));
-    $("fynd-region").replaceChildren(new Option("Hela Sverige", ""), ...REGORDNING.filter(r => finns.has(r)).map(r => new Option(r, r)));
-    $("fynd-region").value = finns.has(st.region) ? st.region : ""; st.region = $("fynd-region").value;
-    $("fynd-kalla").replaceChildren(new Option("Alla källor", ""), ...[...new Set(poster().map(p => p.kalla))].sort().map(k => new Option(KALLNAMN[k] || k, k)));
-    $("fynd-sort").value = st.sort; $("fynd-min").value = String(st.min);
+    const sel = (id, etikett, val, varde) => { const s = el("select", { id }, ...val.map(([v, t]) => new Option(t, v))); s.value = varde; return el("label", { class: "falt" }, etikett, s); };
+    const sort = sel("fa-sort", "Sortera", [["slutar", "Slutar snart först"], ["kvot", "Bäst pris (kvot) först"], ["betyg", "Högst betyg först"]], st.sort);
+    const kalla = sel("fa-kalla", "Källa", [["", "Alla källor"], ...[...new Set(poster().map(p => p.kalla))].sort().map(k => [k, KALLNAMN[k] || k])], st.kalla);
+    const region = sel("fa-region", "Område", [["", "Hela Sverige"], ...REGORDNING.filter(r => finns.has(r)).map(r => [r, r])], st.region);
+    const min = sel("fa-min", "Lägsta betyg", [["0", "Alla betyg"], ["6", "Betyg 6+"], ["8", "Betyg 8+"], ["10", "Bara 10"]], String(st.min));
+    const ark = App.sheet("Sortera och filtrera", el("div", {}, sort, kalla, region, min,
+      el("div", { class: "rad knappar-rad" },
+        el("button", { class: "knapp primar", type: "button", onclick: () => { st.sort = sort.querySelector("select").value; st.kalla = kalla.querySelector("select").value; st.region = region.querySelector("select").value; st.min = +min.querySelector("select").value; ark.stang(); byggChips(); render(); } }, "Visa fynden"),
+        el("button", { class: "knapp", type: "button", onclick: () => { st.sort = "slutar"; st.kalla = ""; st.region = ""; st.min = 0; ark.stang(); byggChips(); render(); } }, "Nollställ"))));
   }
 
   App.del("fynd", { namn: "Fynd", ikon: "🔎",
     montera(sek) {
       rot = sek;
-      sek.innerHTML = `
-        <div class="vy-huvud"><h2>Fynd</h2><span class="sub" id="fynd-upd"></span></div>
-        <div class="verktyg">
-          <div class="rad">
-            <select id="fynd-spar" aria-label="Spår"></select>
-            <select id="fynd-sort" aria-label="Sortera"><option value="slutar">Slutar snart först</option><option value="kvot">Bäst pris (kvot) först</option><option value="betyg">Högst betyg först</option></select>
-            <select id="fynd-kalla" aria-label="Källa"></select>
-            <select id="fynd-region" aria-label="Område"></select>
-            <select id="fynd-min" aria-label="Lägsta betyg"><option value="0">Alla betyg</option><option value="6">Betyg 6+</option><option value="8">Betyg 8+</option><option value="10">Bara 10</option></select>
-            <input id="fynd-q" type="search" placeholder="Sök i fynden …" aria-label="Sök">
-            <span class="muted hoger" id="fynd-antal"></span>
-          </div>
-        </div>
-        <div id="fynd-lista"></div>`;
-      byggFilter();
-      $("fynd-upd").textContent = konto.fynd && konto.fynd.uppdaterad ? "uppdaterade " + konto.fynd.uppdaterad : "";
-      $("fynd-spar").onchange = e => { st.spar = e.target.value; st.visa = 60; render(); };
-      $("fynd-sort").onchange = e => { st.sort = e.target.value; render(); };
-      $("fynd-kalla").onchange = e => { st.kalla = e.target.value; render(); };
-      $("fynd-region").onchange = e => { st.region = e.target.value; render(); };
-      $("fynd-min").onchange = e => { st.min = +e.target.value; render(); };
+      sek.replaceChildren(App.huvud("fynd", "Fynd", konto.fynd && konto.fynd.uppdaterad ? "uppdaterade " + konto.fynd.uppdaterad : ""),
+        el("div", { class: "verktyg" },
+          el("div", { class: "chips", id: "fynd-chips" }),
+          el("div", { class: "rad", style: "margin-top:6px" },
+            el("input", { id: "fynd-q", type: "search", placeholder: "Sök i fynden …", "aria-label": "Sök" }),
+            el("button", { class: "knapp filter-knapp", type: "button", id: "fynd-filter", onclick: filterArk }, "⚙ Filter"),
+            el("span", { class: "muted hoger", id: "fynd-antal" }))),
+        el("div", { id: "fynd-lista" }));
+      byggChips();
       $("fynd-q").oninput = e => { st.q = e.target.value.trim(); render(); };
       render();
     },
     visa() { if (rot) render(); },
   });
-  App.pa("visa-slutar-snart", () => { st.sort = "slutar"; if ($("fynd-sort")) $("fynd-sort").value = "slutar"; if (rot) render(); });
+  App.pa("visa-slutar-snart", () => { st.sort = "slutar"; st.spar = "alla"; if (rot) { byggChips(); render(); } });
   App.pa("inloggad", () => { App.rakna("fynd", Logik.slutarSnart(poster()).length || ""); });
 })();
