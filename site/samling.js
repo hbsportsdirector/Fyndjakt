@@ -1,4 +1,4 @@
-// Samling: lådor, rutnät, detaljpanel med redigering, bilder, sälj-fält och prishistorik.
+// Samling: lådor, rutnät, detaljpanel (visa först – redigera bakom en knapp), bilder, sälj-fält och prishistorik.
 (() => {
   "use strict";
   const { konto, el, kr, toast, $ } = App;
@@ -12,6 +12,7 @@
   const lista = () => konto.samling;
   const under = it => [it.tillverkare && it.tillverkare !== "Okänd" ? it.tillverkare : "", it.serie || ""].filter(Boolean).join(" · ");
   const forstaBild = it => ((it.bilder || [])[0] || {}).path || null;
+  const spann = (a, b) => a == null && b == null ? "–" : a == null ? "upp till " + kr(b) : b == null || a === b ? kr(a) : Math.round(a).toLocaleString("sv-SE") + "–" + kr(b);
 
   function synliga() {
     const q = App.norm(st.q);
@@ -55,7 +56,7 @@
     const k = el("button", { class: "s-kort", type: "button", "data-id": it.id });
     const b = el("div", { class: "bild" });
     const p = forstaBild(it);
-    if (p) { const i = el("img", { alt: "", loading: "lazy", "data-path": p }); b.append(i); } else b.append(el("div", { class: "ingen" }, "Ingen bild"));
+    if (p) b.append(el("img", { alt: "", loading: "lazy", "data-path": p })); else b.append(el("div", { class: "ingen" }, "Ingen bild"));
     b.append(el("span", { class: "lada-etikett " + it.lada }, LADNAMN[it.lada] || it.lada));
     k.append(b);
     const kropp = el("div", { class: "kropp" });
@@ -74,7 +75,6 @@
     k.onclick = () => oppnaDetalj(it.id);
     return k;
   }
-  const spann = (a, b) => a == null && b == null ? "–" : a == null ? "upp till " + kr(b) : b == null || a === b ? kr(a) : Math.round(a).toLocaleString("sv-SE") + "–" + kr(b);
 
   async function fyllBilder(sek) {
     const imgs = [...sek.querySelectorAll("img[data-path]")].filter(i => !i.src);
@@ -87,9 +87,17 @@
     try { localStorage.setItem("samling-vy", JSON.stringify(st)); } catch (e) {}
     renderLador();
     const rader = synliga();
-    $("s-antal").textContent = rader.length + " föremål";
+    $("s-antal").textContent = rader.length + " föremål" + (st.lada ? " i " + LADNAMN[st.lada] : "");
     const g = $("s-rutnat"); g.replaceChildren(...rader.map(sKort));
-    if (!rader.length) g.append(el("div", { class: "tom", style: "grid-column:1/-1" }, lista().length ? "Inget matchar." : "Samlingen är tom – lägg till ditt första föremål."));
+    if (!rader.length) {
+      const tom = el("div", { class: "tom", style: "grid-column:1/-1" });
+      if (!lista().length) tom.append(el("div", { class: "stor" }, "Samlingen är tom"), el("p", {}, "Lägg till ditt första föremål – fota det så föreslår Claude namn, tillverkare och värde."),
+        el("div", { class: "rad" }, el("button", { class: "knapp primar", type: "button", onclick: laggTillMeny }, "＋ Lägg till föremål")));
+      else if (st.q || st.kategori) tom.append(el("div", { class: "stor" }, "Inget matchar"), el("p", {}, "Prova ett annat ord, eller rensa filtret."),
+        el("div", { class: "rad" }, el("button", { class: "knapp", type: "button", onclick: () => { st.q = ""; st.kategori = ""; $("s-q").value = ""; render(); } }, "Rensa sökning")));
+      else tom.append(el("div", { class: "stor" }, "Inget i " + LADNAMN[st.lada]), el("p", {}, st.lada === "salj" ? "Öppna ett föremål och tryck Flytta för att lägga det till salu." : st.lada === "salt" ? "När du markerar ett föremål som sålt hamnar det här, med vinst och kanal." : "Flytta föremål hit från detaljvyn, eller lägg till nya."));
+      g.append(tom);
+    }
     fyllBilder(g);
     App.rakna("samling", lista().length);
     const kat = $("s-kategori");
@@ -98,16 +106,31 @@
     kat.value = finns.includes(st.kategori) ? st.kategori : "";
   }
 
+  // ── Lägg till (ark med tre val) ───────────────────────────────────
+  function laggTillMeny() {
+    App.sheet("Lägg till föremål", [
+      { ikon: "📷", text: "Fota med kameran", under: "Claude föreslår namn, tillverkare och värde", label: true, capture: "environment", primar: true, onchange: e => { const f = [...e.target.files]; if (f.length) nyttForemal(f); } },
+      { ikon: "🖼", text: "Välj från galleriet", under: "en eller flera bilder av samma föremål", label: true, multiple: true, onchange: e => { const f = [...e.target.files]; if (f.length) nyttForemal(f); } },
+      { ikon: "✎", text: "Skriv in utan bild", under: "bilder kan läggas till senare", onclick: () => nyttForemal([]) },
+    ]);
+  }
+  function merMeny() {
+    App.sheet("Samlingen", [
+      { ikon: "⬇", text: "Exportera som CSV", under: `${synliga().length} föremål i aktuell vy`, onclick: exportCsv },
+      { ikon: "?", text: "Hjälp om Samling", onclick: () => App.hjalp("samling") },
+    ]);
+  }
+
   // ── Detaljpanel ───────────────────────────────────────────────────
-  const FALT = [
-    ["namn", "Namn", "text", "bred"], ["kategori", "Kategori", "select"], ["tillverkare", "Tillverkare", "text"], ["serie", "Serie", "text"],
-    ["antal", "Antal", "number"], ["period", "Period", "text"], ["stampel", "Stämpel", "text"], ["skick", "Skick", "text"],
-    ["inkopspris", "Inköpspris (kr)", "number"], ["inkopt", "Inköpt", "date"], ["inkopsstalle", "Inköpsställe", "text"],
-    ["uppskattat_min", "Min bedömning, lägst (kr)", "number"], ["uppskattat_max", "Min bedömning, högst (kr)", "number"], ["saker", "Hur säker", "text"],
-    ["marknad_min", "Marknad lägst (kr)", "number"], ["marknad_max", "Marknad högst (kr)", "number"], ["marknad_sakerhet", "Marknad säkerhet", "text"],
-    ["auk_median", "Auktion median (kr)", "number"], ["jfr", "Jämförelse", "text"], ["jfr_url", "Jämförelse-länk", "text"], ["pris_uppdaterad", "Pris uppdaterat", "date"],
-    ["sokord", "Sökord", "text", "bred"], ["anteckning", "Anteckning", "textarea", "bred"],
-  ];
+  const GRUNDFAKTA = [["namn", "Namn", "text", "bred"], ["kategori", "Kategori", "select"], ["tillverkare", "Tillverkare", "text"], ["serie", "Serie", "text"],
+    ["antal", "Antal", "number"], ["period", "Period", "text"], ["stampel", "Stämpel", "text"], ["skick", "Skick", "text"]];
+  const KOP = [["inkopspris", "Inköpspris (kr)", "number"], ["inkopt", "Inköpt", "date"], ["inkopsstalle", "Inköpsställe", "text"]];
+  const VARDE = [["uppskattat_min", "Min bedömning, lägst (kr)", "number"], ["uppskattat_max", "Min bedömning, högst (kr)", "number"],
+    ["auk_median", "Auktion median (kr)", "number"], ["marknad_min", "Marknad lägst (kr)", "number"], ["marknad_max", "Marknad högst (kr)", "number"]];
+  const MER = [["saker", "Hur säker", "text"], ["marknad_sakerhet", "Marknad säkerhet", "text"], ["jfr", "Jämförelse", "text"], ["jfr_url", "Jämförelse-länk", "text"],
+    ["pris_uppdaterad", "Pris uppdaterat", "date"], ["sokord", "Sökord", "text", "bred"]];
+  const ANTECKNING = [["anteckning", "Anteckning", "textarea", "bred"]];
+  const FALT = [...GRUNDFAKTA, ...KOP, ...VARDE, ...MER, ...ANTECKNING];
   const SALJ = [["tradera_pris", "Utgångspris (kr)", "number"], ["tradera_lagsta", "Lägsta pris (kr)", "number"], ["upplagd", "Upplagd", "datetime-local"], ["steg_satt", "Steg satt (0 = första)", "number"]];
   const SALT = [["salt_for", "Såld för (kr)", "number"], ["salt_datum", "Såld datum", "date"], ["salt_kanal", "Kanal", "text"]];
 
@@ -143,76 +166,92 @@
     App.sand("samling-andrad");
     return data;
   }
+  const grupp = (titel, it, falten, oppen, small) => {
+    const d = el("details", { class: "grupp" }, el("summary", {}, titel, small ? el("small", {}, small) : null), el("div", { class: "falt-grid" }, ...falten.map(f => falt(it, f))));
+    if (oppen) d.open = true;
+    return d;
+  };
 
-  function oppnaDetalj(id) {
+  function oppnaDetalj(id, lage = "visa") {
     const it = lista().find(x => x.id === id); if (!it) return;
-    const form = el("form", { class: "detalj" });
-    form.noValidate = true;
-    const huvud = el("div", { class: "huvud" }, el("h2", {}, it.namn), el("button", { class: "knapp liten", type: "button", onclick: () => p.stang() }, "Stäng"));
-    form.append(huvud);
-    form.append(el("div", { class: "muted", style: "margin:-8px 0 12px" }, `${LADNAMN[it.lada]} · ${under(it) || it.kategori || ""}${it.skapad ? " · tillagd " + App.datum(it.skapad) : ""}`));
+    const p = App.panel(el("div"));
+    const byt = l => { p.el.replaceChildren(l === "redigera" ? redigeraVy(it, p) : visaVy(it, p)); p.el.scrollTop = 0; };
+    p.byt = byt;
+    byt(lage);
+  }
 
-    // Bilder
-    form.append(el("h3", {}, "Bilder"));
-    const galleri = el("div", { class: "galleri" });
-    form.append(galleri);
-    const bildrad = el("div", { class: "rad", style: "margin-top:8px" });
-    const kam = el("label", { class: "knapp" }, "📷 Fota");
-    const kamIn = el("input", { type: "file", accept: "image/*", capture: "environment", class: "dold" }); kam.append(kamIn);
-    const gal = el("label", { class: "knapp" }, "🖼 Galleri");
-    const galIn = el("input", { type: "file", accept: "image/*", multiple: "", class: "dold" }); gal.append(galIn);
-    bildrad.append(kam, gal);
-    form.append(bildrad);
-    const bildStatus = el("div", { class: "status" }); form.append(bildStatus);
-    kamIn.onchange = galIn.onchange = async e => { const filer = [...e.target.files]; e.target.value = ""; if (filer.length) await laggTillBilder(it, filer, bildStatus, () => renderGalleri(it, galleri)); };
-    renderGalleri(it, galleri);
+  // Visa-läget: bild, det viktigaste, fyra stora knappar – inga formulär.
+  function visaVy(it, p) {
+    const v = el("div");
+    v.append(el("div", { class: "huvud" }, el("h2", {}, it.namn), el("button", { class: "knapp liten", type: "button", onclick: () => p.stang() }, "Stäng")));
+    v.append(el("div", { class: "muted", style: "margin:-8px 0 12px" }, `${LADNAMN[it.lada]} · ${under(it) || ""}${it.kategori ? " · " + it.kategori : ""}`));
+    const galleri = el("div", { class: "galleri" }); v.append(galleri); renderGalleri(it, galleri, p);
+    const knappar = el("div", { class: "knapprad-stor" },
+      el("button", { class: "knapp primar", type: "button", onclick: () => p.byt("redigera") }, "✎ Redigera"),
+      el("button", { class: "knapp", type: "button", onclick: () => bildMeny(it, () => p.byt("visa")) }, "📷 Lägg till bild"),
+      el("button", { class: "knapp", type: "button", onclick: () => flytta(it, p) }, "📦 Flytta"),
+      it.lada !== "salt" ? el("button", { class: "knapp", type: "button", onclick: () => markeraSald(it, p) }, "✓ Såld") : null);
+    v.append(knappar);
+    const fakta = el("div", { class: "visa-fakta" });
+    const f = (b, s, cls) => { if (s == null || s === "" || s === "–") return; fakta.append(el("div", { class: cls || "" }, el("b", {}, b), el("span", { class: cls === "stor" && /Köp|Sål/.test(b) ? "kop" : "" }, s))); };
+    if (it.lada === "salt") { f("Såld för", kr(it.salt_for), "stor"); f("Inköpt för", it.inkopspris != null ? kr(it.inkopspris) : null, "stor"); f("Vinst", it.salt_for != null && it.inkopspris != null ? kr(it.salt_for - it.inkopspris) : null, "stor"); f("Såld", [it.salt_datum ? App.datum(it.salt_datum) : "", it.salt_kanal].filter(Boolean).join(" via ")); }
+    else {
+      f("Auktion ca", it.auk_median ? kr(it.auk_median) : null, "stor");
+      f("Min bedömning", it.uppskattat_min != null || it.uppskattat_max != null ? spann(it.uppskattat_min, it.uppskattat_max) : null, "stor");
+      f("Marknad", it.marknad_min != null || it.marknad_max != null ? spann(it.marknad_min, it.marknad_max) + (it.marknad_sakerhet ? " (" + it.marknad_sakerhet + ")" : "") : null);
+      f("Inköpt för", it.inkopspris != null ? kr(it.inkopspris) : null, "stor");
+    }
+    f("Inköpt", [it.inkopt ? App.datum(it.inkopt) : "", it.inkopsstalle].filter(Boolean).join(" på "));
+    f("Antal", (+it.antal || 1) > 1 ? it.antal + " st" : null); f("Period", it.period); f("Stämpel", it.stampel); f("Skick", it.skick);
+    f("Säkerhet", it.saker); f("Sökord", it.sokord);
+    if (it.jfr) fakta.append(el("div", {}, el("b", {}, "Jämförelse"), it.jfr_url ? el("a", { href: it.jfr_url, target: "_blank", rel: "noopener" }, it.jfr) : el("span", {}, it.jfr)));
+    v.append(fakta);
+    if (it.anteckning) v.append(el("div", { class: "ruta", style: "margin-top:12px;white-space:pre-wrap" }, it.anteckning));
+    const saljRuta = el("div"); v.append(saljRuta); renderSalj(it, saljRuta, p);
+    const hist = el("div"); v.append(el("h3", {}, "Prishistorik")); v.append(hist); laddaHistorik(it, hist);
+    v.append(el("p", { class: "muted", style: "margin-top:16px;font-size:13px" }, `Tillagd ${it.skapad ? App.datum(it.skapad) : "–"} · ändrad ${it.uppdaterad ? App.datum(it.uppdaterad) : "–"}`));
+    return v;
+  }
 
-    // Fält
-    form.append(el("h3", {}, "Uppgifter"));
-    form.append(el("div", { class: "falt-grid" }, ...FALT.map(f => falt(it, f))));
-
-    // Sälj-fält
-    const saljRuta = el("div");
-    form.append(saljRuta);
-    renderSalj(it, saljRuta);
-
-    // Prishistorik
-    const hist = el("div"); form.append(el("h3", {}, "Prishistorik")); form.append(hist);
-    laddaHistorik(it, hist);
-
-    // Knappar
+  // Redigera-läget: fälten i grupper, de ovanliga hopfällda.
+  function redigeraVy(it, p) {
+    const form = el("form", { class: "detalj" }); form.noValidate = true;
+    form.append(el("div", { class: "huvud" }, el("h2", {}, "Redigera"), el("button", { class: "knapp liten", type: "button", onclick: () => p.byt("visa") }, "Avbryt")));
+    const lada = el("select", { name: "lada" }, ...LADOR.map(([v, t]) => el("option", { value: v }, t))); lada.value = it.lada;
+    form.append(el("div", { class: "falt-grid" }, el("label", {}, "Låda", lada)));
+    form.append(grupp("Grundfakta", it, GRUNDFAKTA, true));
+    form.append(grupp("Köp", it, KOP, true, [it.inkopspris != null ? kr(it.inkopspris) : "", it.inkopsstalle].filter(Boolean).join(" · ")));
+    form.append(grupp("Värde", it, VARDE, it.lada !== "salt", it.auk_median ? "auktion ca " + kr(it.auk_median) : ""));
+    if (it.lada === "salj") form.append(grupp("Till salu", it, SALJ, true, "pris, upplagd, steg"));
+    if (it.lada === "salt") form.append(grupp("Såld", it, SALT, true));
+    form.append(grupp("Mer", it, MER, false, "säkerhet, jämförelse, sökord"));
+    form.append(el("div", { class: "falt-grid", style: "margin-top:10px" }, ...ANTECKNING.map(f => falt(it, f))));
     const status = el("div", { class: "status" });
-    const knappar = el("div", { class: "rad", style: "margin-top:16px" },
+    form.append(el("div", { class: "rad", style: "margin-top:16px" },
       el("button", { class: "knapp primar", type: "submit" }, "Spara"),
-      el("button", { class: "knapp", type: "button", onclick: () => flytta(it, p) }, "📦 Flytta till låda"),
-      it.lada !== "salt" ? el("button", { class: "knapp", type: "button", onclick: () => markeraSald(it, p) }, "✓ Markera som såld") : null,
-      el("button", { class: "knapp fara hoger", type: "button", onclick: e => taBort(it, e.target, p) }, "Ta bort"));
-    form.append(knappar, status);
+      el("button", { class: "knapp", type: "button", onclick: () => p.byt("visa") }, "Avbryt"),
+      el("button", { class: "knapp fara hoger", type: "button", onclick: e => taBort(it, e.target, p) }, "Ta bort")), status);
     form.onsubmit = async e => {
       e.preventDefault(); status.textContent = "Sparar …";
       try {
-        const andring = { ...lasFalt(form, FALT), ...lasFalt(form, SALJ), ...lasFalt(form, SALT) };
+        const andring = { ...lasFalt(form, FALT), ...lasFalt(form, SALJ), ...lasFalt(form, SALT), lada: lada.value };
         andring.antal = Math.max(1, andring.antal || 1);
-        const ny = await spara(it.id, andring);
-        Object.assign(it, ny); status.textContent = "Sparat."; huvud.querySelector("h2").textContent = it.namn; render();
+        Object.assign(it, await spara(it.id, andring)); render(); toast("Sparat"); p.byt("visa");
       } catch (x) { status.textContent = x.message; }
     };
-    const p = App.panel(form);
+    return form;
   }
 
-  function renderSalj(it, ruta) {
+  function renderSalj(it, ruta, p) {
     ruta.replaceChildren();
-    if (it.lada === "salt") {
-      ruta.append(el("h3", {}, "Såld"), el("div", { class: "falt-grid" }, ...SALT.map(f => falt(it, f))));
-      return;
-    }
     if (it.lada !== "salj") return;
-    ruta.append(el("h3", {}, "Till salu"), el("div", { class: "falt-grid" }, ...SALJ.map(f => falt(it, f))));
     const e = Logik.forvantat(it);
     const plan = Logik.saljplan(e, { upplagd: it.upplagd, steg_satt: it.steg_satt });
-    const r = el("div", { class: "ruta", style: "margin-top:10px" });
-    r.append(el("div", { class: "etik" }, "Säljplan" + (e ? " · förväntat " + kr(e) : "")));
-    r.append(el("p", { style: "margin:6px 0" }, plan.text));
+    const r = el("div", { class: "ruta", style: "margin-top:14px" });
+    r.append(el("div", { class: "etik" }, "Till salu" + (e ? " · förväntat " + kr(e) : "")));
+    if (!e) r.append(el("p", { style: "margin:6px 0" }, "Sätt ett utgångspris (Redigera → Till salu) eller ett värde, så räknas säljplanen ut."));
+    else r.append(el("p", { style: "margin:6px 0" }, plan.text));
+    if (it.upplagd) r.append(el("p", { class: "muted", style: "margin:0 0 6px" }, `Upplagd ${App.datum(it.upplagd)}${it.tradera_lagsta ? " · lägsta pris " + kr(it.tradera_lagsta) : ""}`));
     if (plan.typ === "stege") {
       const steg = el("div", { class: "stege" });
       plan.steg.forEach((pris, i) => {
@@ -222,13 +261,17 @@
         steg.append(s);
       });
       r.append(steg);
-      if (plan.lage) {
+      if (!it.upplagd) {
+        const b = el("button", { class: "knapp liten", type: "button", style: "margin-top:8px" }, "Jag har lagt upp den nu");
+        b.onclick = async () => { try { Object.assign(it, await spara(it.id, { upplagd: new Date().toISOString(), steg_satt: 0, tradera_pris: it.tradera_pris ?? plan.start })); renderSalj(it, ruta, p); toast("Prisstegen startad"); } catch (x) { toast(x.message); } };
+        r.append(b);
+      } else if (plan.lage) {
         const l = plan.lage;
         r.append(el("p", { class: "muted", style: "margin:8px 0 0" }, l.sank != null ? `Dag ${l.dagar} – dags att sänka till ${kr(l.sank)}. `
           : l.slut ? "Stegen är slut – auktion med reservationspris, eller paketera. " : `Dag ${l.dagar} – ligger ute på ${kr(l.pris)}${l.nasta != null ? ", nästa sänkning om " + l.nasta + " dagar" : ""}. `));
         if (l.sank != null) {
           const b = el("button", { class: "knapp liten", type: "button" }, "Jag har sänkt till " + kr(l.sank));
-          b.onclick = async () => { try { Object.assign(it, await spara(it.id, { steg_satt: l.bor, tradera_pris: it.tradera_pris })); renderSalj(it, ruta); toast("Steget sparat"); } catch (x) { toast(x.message); } };
+          b.onclick = async () => { try { Object.assign(it, await spara(it.id, { steg_satt: l.bor })); renderSalj(it, ruta, p); toast("Steget sparat"); } catch (x) { toast(x.message); } };
           r.append(b);
         }
       }
@@ -238,10 +281,11 @@
   }
 
   async function flytta(it, p) {
-    const svar = await App.fraga("Flytta till låda", { ok: "Flytta", falt: [{ id: "lada", etikett: "Låda", val: LADOR, varde: it.lada }] });
-    if (!svar || svar.lada === it.lada) return;
-    try { Object.assign(it, await spara(it.id, { lada: svar.lada })); p.stang(); render(); toast("Flyttad till " + LADNAMN[svar.lada]); }
-    catch (x) { toast(x.message); }
+    App.sheet("Flytta till låda", LADOR.filter(([v]) => v !== it.lada).map(([v, t]) => ({ ikon: { egen: "🏠", pappas: "👴", oklart: "❓", salj: "🏷", salt: "✓" }[v], text: t,
+      onclick: async () => {
+        if (v === "salt") return markeraSald(it, p);
+        try { Object.assign(it, await spara(it.id, { lada: v })); render(); toast("Flyttad till " + t); p.byt("visa"); } catch (x) { toast(x.message); }
+      } })));
   }
   async function markeraSald(it, p) {
     const svar = await App.fraga("Markera som såld", { ok: "Såld!", falt: [
@@ -251,7 +295,7 @@
     if (!svar) return;
     try {
       Object.assign(it, await spara(it.id, { lada: "salt", salt_for: svar.salt_for === "" ? null : Math.round(+svar.salt_for), salt_datum: svar.salt_datum || App.idag(), salt_kanal: svar.salt_kanal }));
-      p.stang(); render(); toast("Markerad som såld");
+      render(); toast("Markerad som såld"); p.byt("visa");
     } catch (x) { toast(x.message); }
   }
   async function taBort(it, knapp, p) {
@@ -263,45 +307,51 @@
     p.stang(); render(); toast("Borttagen");
   }
 
-  async function renderGalleri(it, galleri) {
+  function bildMeny(it, klar) {
+    App.sheet("Lägg till bild", [
+      { ikon: "📷", text: "Fota med kameran", label: true, capture: "environment", primar: true, onchange: e => { const f = [...e.target.files]; if (f.length) laggTillBilder(it, f, klar); } },
+      { ikon: "🖼", text: "Välj från galleriet", label: true, multiple: true, onchange: e => { const f = [...e.target.files]; if (f.length) laggTillBilder(it, f, klar); } },
+    ]);
+  }
+  async function renderGalleri(it, galleri, p) {
     galleri.replaceChildren();
     const bilder = it.bilder || [];
-    if (!bilder.length) { galleri.append(el("div", { class: "muted" }, "Inga bilder än.")); return; }
+    if (!bilder.length) { galleri.append(el("div", { class: "muted" }, "Ingen bild än – tryck Lägg till bild.")); return; }
     const urls = await App.bildUrlar(bilder.map(b => b.path));
-    for (const b of bilder) {
-      const d = el("div", { class: "b" + (bilder.length === 1 ? " stor" : "") });
-      const i = el("img", { src: urls[b.path] || "", alt: "" }); i.onclick = () => App.lightbox(urls[b.path]);
+    bilder.forEach((b, i) => {
+      const d = el("div", { class: "b" + (i === 0 ? " stor" : "") });
+      const img = el("img", { src: urls[b.path] || "", alt: "" }); img.onclick = () => App.lightbox(urls[b.path]);
       const x = el("button", { type: "button", "aria-label": "Ta bort bild" }, "✕");
       x.onclick = async () => {
         if (x.dataset.saker !== "1") { x.dataset.saker = "1"; x.textContent = "?"; setTimeout(() => { x.dataset.saker = ""; x.textContent = "✕"; }, 2500); return; }
-        try { await App.taBortBild(b.path); Object.assign(it, await spara(it.id, { bilder: bilder.filter(y => y.path !== b.path) })); renderGalleri(it, galleri); render(); }
+        try { await App.taBortBild(b.path); Object.assign(it, await spara(it.id, { bilder: bilder.filter(y => y.path !== b.path) })); renderGalleri(it, galleri, p); render(); }
         catch (e) { toast(e.message); }
       };
-      d.append(i, x); galleri.append(d);
-    }
+      d.append(img, x); galleri.append(d);
+    });
   }
   // Nya bilder: nedskalade till 1600 px, numrerade efter de som finns.
-  async function laggTillBilder(it, filer, status, klar) {
+  async function laggTillBilder(it, filer, klar) {
     let n = Math.max(0, ...(it.bilder || []).map(b => +b.n || 0));
     const nya = [...(it.bilder || [])];
+    toast("Laddar upp …");
     for (const f of filer.slice(0, 6)) {
       n += 1;
-      status.textContent = `Laddar upp bild ${n} …`;
       try {
         const { blob } = await App.skalaNer(f, 1600);
         const path = `${konto.uid}/${it.id}/${n}.jpg`;
         await App.laddaUppBild(path, blob);
         nya.push({ n, path });
-      } catch (e) { status.textContent = e.message; return; }
+      } catch (e) { toast(e.message); return; }
     }
-    try { Object.assign(it, await spara(it.id, { bilder: nya })); status.textContent = ""; klar(); render(); }
-    catch (e) { status.textContent = e.message; }
+    try { Object.assign(it, await spara(it.id, { bilder: nya })); toast(filer.length > 1 ? "Bilderna är sparade" : "Bilden är sparad"); klar(); render(); }
+    catch (e) { toast(e.message); }
   }
 
   async function laddaHistorik(it, ruta) {
     const { data } = await konto.sb.from("samling_prishistorik").select("datum,median,lag,hog,antal,kalla").eq("foremal_id", it.id).order("datum");
     const rader = data || [];
-    if (!rader.length) { ruta.append(el("div", { class: "muted" }, "Ingen prishistorik än.")); return; }
+    if (!rader.length) { ruta.append(el("div", { class: "muted" }, "Ingen prishistorik än – den fylls på när priser hämtas.")); return; }
     ruta.append(spark(rader.map(r => ({ d: r.datum, v: r.median })), 600, 60));
     const t = el("table", {}, el("tr", {}, el("th", {}, "Datum"), el("th", {}, "Median"), el("th", {}, "Lägst–högst"), el("th", {}, "Antal"), el("th", {}, "Källa")));
     for (const r of rader.slice(-8).reverse()) t.append(el("tr", {}, el("td", {}, App.datum(r.datum)), el("td", {}, kr(r.median)), el("td", {}, spann(r.lag, r.hog)), el("td", {}, String(r.antal ?? "")), el("td", {}, r.kalla || "")));
@@ -312,35 +362,34 @@
     const vs = pts.map(p => p.v), mn = Math.min(...vs), mx = Math.max(...vs), rng = mx - mn || 1;
     const xy = pts.map((p, i) => [4 + i * (w - 8) / (pts.length - 1), h - 4 - (p.v - mn) / rng * (h - 8)]);
     const d = xy.map((c, i) => (i ? "L" : "M") + c[0].toFixed(1) + " " + c[1].toFixed(1)).join(" ");
-    const s = el("div", { class: "spark", html: `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" preserveAspectRatio="none" role="img" aria-label="Värde ${vs[0]} till ${vs[vs.length - 1]} kr">
+    return el("div", { class: "spark", html: `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" preserveAspectRatio="none" role="img" aria-label="Värde ${vs[0]} till ${vs[vs.length - 1]} kr">
       <path d="${d} L${xy[xy.length - 1][0].toFixed(1)} ${h} L${xy[0][0].toFixed(1)} ${h} Z" fill="#c9a35b" opacity=".15"/>
       <path d="${d}" fill="none" stroke="#c9a35b" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg>` });
-    return s;
   }
 
   // ── Nytt föremål ──────────────────────────────────────────────────
   async function nyttForemal(filer) {
     const status = el("div", { class: "status" });
     const bilder = el("div", { class: "galleri" });
-    const form = el("form", { class: "detalj" });
-    form.noValidate = true;
-    form.append(el("div", { class: "huvud" }, el("h2", {}, "Nytt föremål"), el("button", { class: "knapp liten", type: "button", onclick: () => p.stang() }, "Stäng")));
+    const form = el("form", { class: "detalj" }); form.noValidate = true;
+    form.append(el("div", { class: "huvud" }, el("h2", {}, "Nytt föremål"), el("button", { class: "knapp liten", type: "button", onclick: () => p.stang() }, "Avbryt")));
     form.append(bilder, status);
     const tom = { lada: "egen", kategori: "Keramik & porslin", antal: 1, tillverkare: "", serie: "", inkopt: App.idag() };
-    const grid = el("div", { class: "falt-grid" }, ...FALT.slice(0, 11).map(f => falt(tom, f)));
     const lada = el("select", { name: "lada" }, ...LADOR.map(([v, t]) => el("option", { value: v }, t)));
-    grid.prepend(el("label", {}, "Låda", lada));
-    form.append(grid);
-    const forslag = el("div", { class: "ruta", hidden: true, style: "margin-top:10px" });
+    form.append(el("div", { class: "falt-grid" }, el("label", {}, "Låda", lada)));
+    const forslag = el("div", { class: "ruta tips", hidden: true, style: "margin-top:10px" });
     form.append(forslag);
+    form.append(grupp("Grundfakta", tom, GRUNDFAKTA, true));
+    form.append(grupp("Köp", tom, KOP, true, "pris, datum, ställe"));
+    form.append(grupp("Värde", tom, VARDE, false, "fylls i av Claude om du fotat"));
     form.append(el("div", { class: "rad", style: "margin-top:16px" }, el("button", { class: "knapp primar", type: "submit" }, "Spara i samlingen")));
     const p = App.panel(form);
+    if (!filer.length) form.elements.namn.focus();
 
-    // Visa bilderna, fråga Claude och fyll i förslag.
     const skalade = [];
     for (const f of filer.slice(0, 4)) { const s = await App.skalaNer(f, 1600); skalade.push(s); bilder.append(el("div", { class: "b" }, el("img", { src: s.dataUrl, alt: "" }))); }
     if (skalade.length) {
-      status.textContent = "Claude tittar på bilden …";
+      status.textContent = "Claude tittar på bilden – fyll gärna i låda och pris så länge …";
       try {
         const r = await App.kannIgen({ typ: "butik", bilder: skalade.map(s => App.dataUrlTillBase64(s.dataUrl)), mediatyp: "image/jpeg",
                                        smak: konto.installningar.smak || "", har_redan: harRedanText() });
@@ -348,23 +397,22 @@
         satt("namn", r.namn); satt("tillverkare", r.tillverkare); satt("serie", r.serie); satt("period", r.period); satt("stampel", r.stampel_last);
         satt("skick", r.skick); satt("antal", r.antal); if (KATEGORIER.includes(r.kategori)) form.elements.kategori.value = r.kategori;
         satt("sokord", r.sokord); satt("marknad_min", r.marknad_min); satt("marknad_max", r.marknad_max);
-        form.dataset.marknadMin = r.marknad_min ?? ""; form.dataset.marknadMax = r.marknad_max ?? ""; form.dataset.sokord = r.sokord || "";
+        form.dataset.sokord = r.sokord || "";
         forslag.hidden = false;
-        forslag.replaceChildren(el("div", { class: "etik" }, "Claudes förslag – ändra fritt"),
-          el("p", { style: "margin:6px 0" }, `${r.namn} · ${[r.tillverkare, r.formgivare, r.serie, r.period].filter(Boolean).join(" · ")} · säkerhet ${Math.round(r.sakerhet * 100)} %`),
-          el("p", { class: "muted", style: "margin:0" }, `Marknad ${spann(r.marknad_min, r.marknad_max)}${r.nyproduktion ? " · ⚠ nyproduktion" : ""}${r.varning ? " · " + r.varning : ""}`),
-          ...(r.resonemang ? [el("p", { class: "muted", style: "margin:6px 0 0" }, r.resonemang)] : []));
+        forslag.replaceChildren(el("b", {}, "Claudes förslag – ändra fritt. "),
+          `${r.namn} · ${[r.tillverkare, r.formgivare, r.serie, r.period].filter(Boolean).join(" · ")} · säkerhet ${Math.round(r.sakerhet * 100)} %. `,
+          `Marknad ${spann(r.marknad_min, r.marknad_max)}${r.nyproduktion ? " · ⚠ nyproduktion" : ""}${r.varning ? " · " + r.varning : ""}. `,
+          r.resonemang || "");
         status.textContent = "";
-      } catch (e) { status.textContent = e.message; }
+      } catch (e) { status.textContent = e.message + " Fyll i själv så länge."; }
     }
     form.onsubmit = async e => {
       e.preventDefault();
-      const v = lasFalt(form, FALT.slice(0, 11));
-      if (!v.namn) { status.textContent = "Ge föremålet ett namn."; return; }
+      const v = { ...lasFalt(form, GRUNDFAKTA), ...lasFalt(form, KOP), ...lasFalt(form, VARDE) };
+      if (!v.namn) { status.textContent = "Ge föremålet ett namn."; form.elements.namn.focus(); return; }
       status.textContent = "Sparar …";
       const id = App.nyttId(v.namn);
       const rad = { id, user_id: konto.uid, lada: lada.value, ...v, antal: Math.max(1, v.antal || 1), tillverkare: v.tillverkare || "Okänd",
-        marknad_min: form.dataset.marknadMin ? +form.dataset.marknadMin : null, marknad_max: form.dataset.marknadMax ? +form.dataset.marknadMax : null,
         sokord: form.dataset.sokord || "", anteckning: "", bilder: [] };
       try {
         const { data, error } = await konto.sb.from("samling_foremal").insert(rad).select().single();
@@ -401,27 +449,24 @@
   App.del("samling", { namn: "Samling", ikon: "🏺",
     montera(sek) {
       rot = sek;
-      sek.innerHTML = `
-        <div class="vy-huvud"><h2>Samling</h2><span class="sub" id="s-antal"></span>
-          <span class="hoger rad"><label class="knapp primar" id="s-ny-kam">📷 Fota nytt<input type="file" accept="image/*" capture="environment" class="dold"></label>
-          <label class="knapp" id="s-ny-gal">🖼 Från galleri<input type="file" accept="image/*" multiple class="dold"></label>
-          <button class="knapp" type="button" id="s-ny-tom">＋ Utan bild</button>
-          <button class="knapp" type="button" id="s-csv">⬇ CSV</button></span></div>
-        <div class="lador" id="s-lador"></div>
-        <div class="sammanstallning" id="s-sammanstallning"></div>
-        <div class="verktyg"><div class="rad">
-          <input id="s-q" type="search" placeholder="Sök namn, tillverkare, serie, sökord …" aria-label="Sök i samlingen">
-          <select id="s-kategori" aria-label="Kategori"></select>
-          <select id="s-sort" aria-label="Sortera"><option value="andrad">Senast ändrad</option><option value="namn">Namn A–Ö</option><option value="varde">Mest värt först</option><option value="kategori">Kategori</option></select>
-        </div></div>
-        <div class="s-rutnat" id="s-rutnat"></div>`;
+      sek.replaceChildren();
+      const h = App.huvud("samling", "Samling", "");
+      h.querySelector(".sub").id = "s-antal";
+      h.insertBefore(el("span", { class: "rad hoger" },
+        el("button", { class: "knapp primar", type: "button", id: "s-ny", onclick: laggTillMeny }, "＋ Lägg till"),
+        el("button", { class: "knapp", type: "button", "aria-label": "Mer", onclick: merMeny }, "⋯")), h.querySelector(".hjalp"));
+      sek.append(h,
+        el("div", { class: "lador", id: "s-lador" }), el("div", { class: "sammanstallning", id: "s-sammanstallning" }),
+        el("div", { class: "verktyg" }, el("div", { class: "rad" },
+          el("input", { id: "s-q", type: "search", placeholder: "Sök namn, tillverkare, serie …", "aria-label": "Sök i samlingen" }),
+          el("select", { id: "s-kategori", "aria-label": "Kategori" }),
+          el("select", { id: "s-sort", "aria-label": "Sortera" }, new Option("Senast ändrad", "andrad"), new Option("Namn A–Ö", "namn"), new Option("Mest värt först", "varde"), new Option("Kategori", "kategori")))),
+        el("div", { class: "s-rutnat", id: "s-rutnat" }),
+        el("button", { class: "fab", type: "button", "aria-label": "Lägg till föremål", onclick: laggTillMeny }, "＋"));
       $("s-q").value = st.q; $("s-sort").value = st.sort;
       $("s-q").oninput = e => { st.q = e.target.value.trim(); render(); };
       $("s-sort").onchange = e => { st.sort = e.target.value; render(); };
       $("s-kategori").onchange = e => { st.kategori = e.target.value; render(); };
-      $("s-csv").onclick = exportCsv;
-      $("s-ny-tom").onclick = () => nyttForemal([]);
-      for (const id of ["s-ny-kam", "s-ny-gal"]) $(id).querySelector("input").onchange = e => { const f = [...e.target.files]; e.target.value = ""; if (f.length) nyttForemal(f); };
       render();
     },
     visa() { if (rot) render(); },
