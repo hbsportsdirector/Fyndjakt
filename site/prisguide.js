@@ -11,12 +11,14 @@
   }
 
   // ── Prisguide ─────────────────────────────────────────────────────
-  const pg = { q: "", kategori: "", fabrik: "", rad: "" };
+  const pg = { q: "", kategori: "", rad: "" };
   function fabrikAv(i) { return (i.fabrik || "").split("·")[0].trim(); }
   function renderPrisguide(lista) {
     const q = App.norm(pg.q);
-    const rader = lista.filter(i => (!pg.kategori || i.kategori === pg.kategori) && (!pg.fabrik || fabrikAv(i) === pg.fabrik) && (!pg.rad || i.rad === pg.rad)
+    const rader = lista.filter(i => (!pg.kategori || i.kategori === pg.kategori) && (!pg.rad || i.rad === pg.rad)
       && (!q || App.norm([i.namn, i.fabrik, i.anteckning, i.kategori].join(" ")).includes(q)));
+    $("pg-rad").querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", String(c.dataset.v === pg.rad)));
+    $("pg-kat").querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", String(c.dataset.v === pg.kategori)));
     const ordning = { "köp": 0, "kolla": 1, "undvik": 2 };
     rader.sort((a, b) => ordning[a.rad] - ordning[b.rad] || b.salj_max - a.salj_max);
     $("pg-antal").textContent = `${rader.length} objekt · ${rader.filter(r => r.rad === "köp").length} köp`;
@@ -38,28 +40,25 @@
         el("a", { href: "https://www.barnebys.se/search?q=" + enc(i.namn.split(",")[0]), target: "_blank", rel: "noopener" }, "Slutpriser")));
       return k;
     }));
-    if (!rader.length) $("pg-lista").append(el("div", { class: "tom" }, "Inget träffar. Prova formgivare eller fabrik."));
+    if (!rader.length) $("pg-lista").append(el("div", { class: "tom" }, el("div", { class: "stor" }, "Inget träffar"), el("p", {}, "Prova fabrik eller formgivare, t.ex. ”Lisa Larson” eller ”Rörstrand”."),
+      el("div", { class: "rad" }, el("button", { class: "knapp", type: "button", onclick: () => { pg.q = ""; pg.kategori = ""; pg.rad = ""; $("pg-q").value = ""; renderPrisguide(lista); } }, "Visa allt"))));
   }
+  const chip = (v, t, pa) => { const b = el("button", { class: "chip", type: "button", "data-v": v, "aria-pressed": "false" }, t); b.onclick = () => pa(v); return b; };
   App.del("prisguide", { namn: "Prisguide", ikon: "📖",
     async montera(sek) {
-      sek.innerHTML = `
-        <div class="vy-huvud"><h2>Prisguide</h2><span class="sub" id="pg-antal"></span></div>
-        <div class="verktyg"><div class="rad">
-          <input id="pg-q" type="search" placeholder="Sök objekt, fabrik, formgivare …" aria-label="Sök">
-          <select id="pg-kategori" aria-label="Kategori"></select>
-          <select id="pg-fabrik" aria-label="Tillverkare"></select>
-          <select id="pg-rad" aria-label="Råd"><option value="">Alla råd</option><option value="köp">Köp</option><option value="kolla">Kolla</option><option value="undvik">Undvik</option></select>
-        </div></div>
-        <div class="pg-lista" id="pg-lista"></div>`;
+      sek.replaceChildren(App.huvud("prisguide", "Prisguide", ""),
+        el("div", { class: "verktyg" },
+          el("div", { class: "rad" }, el("input", { id: "pg-q", type: "search", placeholder: "Sök objekt, fabrik, formgivare …", "aria-label": "Sök" }), el("span", { class: "muted hoger", id: "pg-antal" })),
+          el("div", { class: "chips", id: "pg-rad", style: "margin-top:6px" }),
+          el("div", { class: "chips", id: "pg-kat" })),
+        el("div", { class: "pg-lista", id: "pg-lista" }));
+      sek.querySelector(".vy-huvud .sub").remove();
+      $("pg-lista").append(el("div", { class: "laddar" }, "Hämtar prisguiden"));
       const lista = await hamta("prisguide");
       const kat = [...new Set(lista.map(i => i.kategori))];
-      const fab = [...new Set(lista.map(fabrikAv))].sort((a, b) => a.localeCompare(b, "sv"));
-      $("pg-kategori").replaceChildren(new Option("Alla kategorier", ""), ...kat.map(k => new Option(k, k)));
-      $("pg-fabrik").replaceChildren(new Option("Alla tillverkare", ""), ...fab.map(f => new Option(f, f)));
+      $("pg-rad").replaceChildren(...[["", "Alla råd"], ["köp", "✓ Köp"], ["kolla", "? Kolla"], ["undvik", "✕ Undvik"]].map(([v, t]) => chip(v, t, x => { pg.rad = x; renderPrisguide(lista); })));
+      $("pg-kat").replaceChildren(...[["", "Alla kategorier"], ...kat.map(k => [k, k])].map(([v, t]) => chip(v, t, x => { pg.kategori = x; renderPrisguide(lista); })));
       $("pg-q").oninput = e => { pg.q = e.target.value; renderPrisguide(lista); };
-      $("pg-kategori").onchange = e => { pg.kategori = e.target.value; renderPrisguide(lista); };
-      $("pg-fabrik").onchange = e => { pg.fabrik = e.target.value; renderPrisguide(lista); };
-      $("pg-rad").onchange = e => { pg.rad = e.target.value; renderPrisguide(lista); };
       renderPrisguide(lista);
     },
   });
@@ -67,10 +66,9 @@
   // ── Stämplar ──────────────────────────────────────────────────────
   App.del("stamplar", { namn: "Stämplar", ikon: "🔍",
     async montera(sek) {
-      sek.innerHTML = `
-        <div class="vy-huvud"><h2>Stämplar</h2><span class="sub" id="st-antal"></span></div>
-        <div class="verktyg"><div class="rad"><input id="st-q" type="search" placeholder="Sök stämpel: tre kronor, hand, vågor, krona, rits, HAK …" aria-label="Sök stämpel"></div></div>
-        <div id="st-lista"></div>`;
+      sek.replaceChildren(App.huvud("stamplar", "Stämplar", "Vad betyder märket under föremålet?"),
+        el("div", { class: "verktyg" }, el("div", { class: "rad" }, el("input", { id: "st-q", type: "search", placeholder: "Sök: tre kronor, hand, vågor, krona, rits, HAK …", "aria-label": "Sök stämpel" }), el("span", { class: "muted hoger", id: "st-antal" }))),
+        el("div", { id: "st-lista" }, el("div", { class: "laddar" }, "Hämtar stämpelguiden")));
       const grupper = await hamta("stamplar");
       const render = () => {
         const q = App.norm($("st-q").value);
@@ -92,7 +90,7 @@
     montera(sek) {
       const kanaler = Object.entries(Logik.KANALER).map(([k, v]) => `<option value="${k}">${v.namn}</option>`).join("");
       sek.innerHTML = `
-        <div class="vy-huvud"><h2>Kalkyl</h2><span class="sub">Vad får jag betala – och vad blir kvar?</span></div>
+        <div class="vy-huvud" id="k-huvud"></div>
         <div class="kalkyl">
           <div class="ruta">
             <label>Inköp (kr)<input id="k-inkop" type="number" inputmode="numeric" value="100" min="0"></label>
@@ -116,6 +114,7 @@
         $("k-kanaler").replaceChildren(el("tr", {}, el("th", {}, "Kanal"), el("th", {}, "Avgift"), el("th", {}, "Netto"), el("th", {}, "Vinst")),
           ...Logik.bestChannel(pris, inkop).map(k => el("tr", {}, el("td", {}, k.namn), el("td", {}, kr(Logik.avgift(k.kanal, pris))), el("td", {}, kr(k.netto)), el("td", {}, kr(k.vinst)))));
       };
+      $("k-huvud").replaceWith(App.huvud("kalkyl", "Kalkyl", "Vad får jag betala – och vad blir kvar?"));
       ["k-inkop", "k-pris", "k-kanal", "k-timmar", "k-regel"].forEach(id => $(id).addEventListener("input", r));
       r();
     },
@@ -125,7 +124,7 @@
   App.del("saljplan", { namn: "Säljplan", ikon: "📈",
     async montera(sek) {
       sek.innerHTML = `
-        <div class="vy-huvud"><h2>Säljplan</h2><span class="sub">Rätt kanal och rätt pris per prisklass</span></div>
+        <div class="vy-huvud" id="sp-huvud"></div>
         <div class="saljplan-klass">
           <div class="ruta"><b class="pris">&lt; 300 kr</b>Tradera-auktion 7 dagar, utrop 1 kr (eller 49 kr), samfrakt. Marketplace/Blocket för avhämtning. Ingen prisstege.</div>
           <div class="ruta"><b class="pris">300–2 000 kr</b>Prisstege på Tradera: start +15 % över förväntat pris med ”ta emot bud”, sänk 10 % var ${Logik.STEG_DAGAR}:e dag ner till golvet 85 %. Därefter auktion med reservationspris eller paketera.</div>
@@ -146,6 +145,7 @@
         }
         if (plan.typ === "auktionshus") ut.append(el("p", { class: "muted" }, `Netto via Bukowskis ca ${kr(plan.netto)}, via Catawiki ${kr(Logik.channelNet("catawiki", plan.e))}.`));
       };
+      $("sp-huvud").replaceWith(App.huvud("saljplan", "Säljplan", "Rätt kanal och rätt pris per prisklass"));
       $("sp-pris").oninput = r; r();
       const c = await hamta("checklista");
       $("sp-checklista").replaceChildren(...c.filter(x => x.rubrik !== "På loppisen").map(x => {

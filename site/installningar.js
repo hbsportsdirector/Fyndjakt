@@ -12,7 +12,7 @@
   // ── Smak och kanal för samlingen ──────────────────────────────────
   function renderSamling(sek) {
     const d = sek.querySelector("#in-samling");
-    d.innerHTML = `<h3>Samlingen</h3>
+    d.innerHTML = `
       <p class="muted">Smaken styr köptaket i butiken: passar föremålet profilen räknas det som samling (60 % av typiskt slutpris), annars som flipp (33 %).</p>
       <label>Min smak och mina lärdomar<textarea id="in-smak" rows="8" placeholder="Vad du samlar, vad som passar hemmet, vad du lärt dig om priser …"></textarea></label>
       <div class="rad" style="margin-top:8px"><label class="rad-etikett">Standardkanal vid försäljning <select id="in-kanal">
@@ -257,30 +257,34 @@
   App.del("installningar", { namn: "Inställningar", ikon: "⚙️",
     montera(sek) {
       rot = sek;
+      // Hopfällbara avsnitt – det man använder oftast (samlingen) är öppet, resten en rad var.
       sek.innerHTML = `
         <div class="installningar">
-          <div class="vy-huvud"><h2>Inställningar</h2></div>
-          <div class="ruta" id="in-samling"></div>
-          <div class="ruta"><h3>Fyndjakt-bevakningar</h3>
+          <div class="vy-huvud" id="in-huvud"></div>
+          <details class="grupp" open><summary>🏺 Samlingen<small>smak och säljkanal</small></summary><div id="in-samling" style="padding-bottom:14px"></div></details>
+          <details class="grupp"><summary>🔎 Fyndjakt-bevakningar<small>vad appen letar efter varje natt</small></summary><div style="padding-bottom:14px">
             <p class="muted">En bevakning är något du letar efter – appen letar åt dig varje natt. Dina fynd syns bara för dig.</p>
             <div class="profilval"><label for="prof-val">Välj bevakning</label><select id="prof-val"></select></div>
-            <div id="prof-lista"></div></div>
-          <div class="ruta"><h3>🔔 Morgonnotis</h3><p class="muted">En notis på telefonen när natten gett nya toppfynd (9–10/10).</p>
-            <div class="rad"><button class="knapp primar" type="button" id="b-notis">Slå på notiser</button></div><div class="status" id="notis-status"></div></div>
-          <div class="ruta"><h3>🧠 Det här har appen lärt sig</h3><div id="l-lardomar"></div>
+            <div id="prof-lista"></div></div></details>
+          <details class="grupp"><summary>🔔 Morgonnotis<small>på telefonen när natten gett toppfynd</small></summary><div style="padding-bottom:14px">
+            <p class="muted">En notis på telefonen när natten gett nya toppfynd (9–10/10).</p>
+            <div class="rad"><button class="knapp primar" type="button" id="b-notis">Slå på notiser</button></div><div class="status" id="notis-status"></div></div></details>
+          <details class="grupp"><summary>🧠 Min smak<small>det appen lärt sig av 👍 och 👎</small></summary><div style="padding-bottom:14px">
+            <div id="l-lardomar"></div>
             <h3>Säg det med egna ord</h3>
             <form class="rad" id="f-anteckning"><select id="a-typ"><option value="gillar">Jag gillar</option><option value="ogillar">Jag vill inte ha</option><option value="har">Jag har redan</option></select>
               <input type="text" id="a-text" maxlength="300" required placeholder="t.ex. gamla sjökort i ram" style="flex:1 1 200px"><select id="a-spar"></select><button class="knapp primar" type="submit">Lägg till</button></form>
             <h3>Mina anteckningar</h3><ul class="lista" id="l-anteckningar"></ul>
             <h3>👍 Gillade fynd</h3><ul class="lista" id="l-gillar"></ul>
             <h3>🛒 Köpt</h3><ul class="lista" id="l-kopt"></ul>
-            <h3>👎 Inte min stil</h3><ul class="lista" id="l-ogillar"></ul></div>
-          <div class="ruta" id="in-bjud" hidden><h3>Bjud in</h3>
+            <h3>👎 Inte min stil</h3><ul class="lista" id="l-ogillar"></ul></div></details>
+          <details class="grupp" id="in-bjud" hidden><summary>✉️ Bjud in<small>fler som ska komma in</small></summary><div style="padding-bottom:14px">
             <p class="muted">Skriv in en e-postadress. Personen loggar sedan in med samma adress – eller med Google.</p>
             <form class="rad" id="f-bjud"><input type="email" id="bjud-epost" required placeholder="namn@epost.se" style="flex:1 1 220px"><button class="knapp primar" type="submit">Bjud in</button></form>
-            <div class="status" id="bjud-status"></div><h3>Inbjudna</h3><ul class="lista" id="l-medlemmar"></ul></div>
-          <div class="rad" style="margin-top:16px"><button class="knapp" type="button" id="in-logga-ut">Logga ut</button></div>
+            <div class="status" id="bjud-status"></div><h3>Inbjudna</h3><ul class="lista" id="l-medlemmar"></ul></div></details>
+          <div class="rad" style="margin-top:16px"><button class="knapp" type="button" id="in-logga-ut">Logga ut</button><span class="muted" style="font-size:13px">Inloggad som ${App.esc(konto.namn)}</span></div>
         </div>`;
+      $("in-huvud").replaceWith(App.huvud("installningar", "Inställningar", ""));
       renderSamling(sek);
       $("prof-val").onchange = e => { konto.vald = e.target.value; renderProfiler(); };
       renderProfiler();

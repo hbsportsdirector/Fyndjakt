@@ -19,7 +19,8 @@
   function pris() { const v = $("bk-pris").value; return v === "" ? null : Math.max(0, +v); }
   function visaBesked() {
     const box = $("bk-besked");
-    if (!bk.res) { box.className = "bk-besked vanta"; box.replaceChildren(el("div", { class: "stort" }, "Fota föremålet"), el("div", { class: "under" }, "Skriv priset och tryck Bedöm.")); return; }
+    if (!bk.res) { box.className = "bk-besked vanta"; box.replaceChildren(el("div", { class: "stort" }, bk.obj ? "Skriv priset" : "Fota föremålet"),
+      el("div", { class: "under" }, bk.obj ? "Beskedet kommer av sig självt. Fota gärna stämpeln också – det ger säkrare svar." : "Tryck på den stora knappen – stämpeln (undersidan) är frivillig men hjälper.")); return; }
     const r = bk.res;
     const b = Logik.butikBesked(r, pris(), !!bk.stampel);
     const namn = [r.tillverkare !== "Okänd" ? r.tillverkare : "", r.serie, r.namn].filter(Boolean).join(" · ") || "Okänt föremål";
@@ -56,6 +57,17 @@
     $("bk-lagg").textContent = b.besked === "KÖP" ? "🏺 Lägg i samlingen (Till salu)" : "🏺 Lägg i samlingen (Oklart)";
   }
 
+  // Stegraden överst: 1 Fota · 2 Pris · 3 Besked. Beskedet kommer av sig självt när bild och pris finns.
+  function visaSteg() {
+    const s = $("bk-steg"); if (!s) return;
+    const har = [!!bk.obj, pris() != null, !!bk.res];
+    const nu = har[0] ? (har[1] ? 2 : 1) : 0;
+    [...s.children].forEach((e, i) => { e.className = har[i] ? "klar" : i === nu ? "nu" : ""; });
+    $("bk-go").disabled = !bk.obj;
+    $("bk-go").textContent = bk.res ? "Bedöm igen" : bk.obj ? (pris() == null ? "Bedöm (utan pris)" : "Bedöm") : "Fota föremålet först";
+  }
+  let autoT = null;
+  function kanskeBedom() { clearTimeout(autoT); if (bk.obj && !bk.res && pris() != null) autoT = setTimeout(bedom, 700); }
   async function valjBild(vad, fil) {
     if (!fil) return;
     const s = await App.skalaNer(fil, 1600);
@@ -64,8 +76,9 @@
     lab.classList.add("har");
     lab.querySelector("img").src = s.dataUrl; lab.querySelector("img").hidden = false;
     lab.querySelector(".txt").textContent = vad === "obj" ? "Byt bild på föremålet" : "Byt bild på stämpeln";
-    $("bk-go").disabled = !bk.obj;
-    if (bk.res && vad === "stampel") bedom();
+    visaSteg();
+    if (bk.res && vad === "stampel") bedom(); else kanskeBedom();
+    if (vad === "obj" && !bk.res && pris() == null) $("bk-pris").focus();
   }
   async function bedom() {
     if (!bk.obj) return;
@@ -75,14 +88,15 @@
       const bilder = [bk.obj, bk.stampel].filter(Boolean).map(s => App.dataUrlTillBase64(s.dataUrl));
       bk.res = await App.kannIgen({ typ: "butik", bilder, mediatyp: "image/jpeg", stampel: !!bk.stampel, smak: konto.installningar.smak || "", har_redan: harRedanText() });
       visaBesked();
-    } catch (e) { bk.res = null; box.className = "bk-besked vanta"; box.replaceChildren(el("div", { class: "stort" }, "Gick inte"), el("div", { class: "under" }, e.message)); }
-    finally { $("bk-go").disabled = !bk.obj; }
+      box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    } catch (e) { bk.res = null; box.className = "bk-besked vanta"; box.replaceChildren(el("div", { class: "stort" }, "Gick inte"), el("div", { class: "under" }, e.message + " Tryck Bedöm för att försöka igen.")); }
+    finally { visaSteg(); }
   }
   function nasta() {
     bk.obj = bk.stampel = bk.res = null;
     for (const vad of ["obj", "stampel"]) { const lab = $("bk-" + vad); lab.classList.remove("har"); lab.querySelector("img").hidden = true; lab.querySelector(".txt").textContent = vad === "obj" ? "Fota föremålet" : "Fota stämpeln"; }
-    $("bk-pris").value = ""; $("bk-knappar").hidden = true; $("bk-detalj").hidden = true; $("bk-go").disabled = true;
-    visaBesked(); window.scrollTo(0, 0);
+    $("bk-pris").value = ""; $("bk-knappar").hidden = true; $("bk-detalj").hidden = true;
+    visaBesked(); visaSteg(); window.scrollTo(0, 0);
   }
   async function laggISamlingen(knapp) {
     if (!bk.res) return;
@@ -120,7 +134,8 @@
       rot = sek;
       sek.innerHTML = `
         <div class="butik">
-          <div class="vy-huvud"><h2>Butik</h2><span class="sub">Ska jag köpa?</span></div>
+          <div class="vy-huvud" id="bk-huvud"></div>
+          <div class="steg-rad" id="bk-steg"><span>1 · Fota föremålet</span><span>2 · Skriv priset</span><span>3 · Besked</span></div>
           <div class="bk-rad">
             <label class="bk-knapp" id="bk-obj"><img alt="" hidden><span class="ikon">📷</span><span class="txt">Fota föremålet</span><input type="file" accept="image/*" capture="environment" class="dold"></label>
             <label class="bk-knapp" id="bk-stampel"><img alt="" hidden><span class="ikon">🔍</span><span class="txt">Fota stämpeln</span><input type="file" accept="image/*" capture="environment" class="dold"></label>
@@ -145,11 +160,13 @@
       $("bk-stampel").querySelector("input").onchange = e => { valjBild("stampel", e.target.files[0]); e.target.value = ""; };
       $("bk-obj-gal").onchange = e => { valjBild("obj", e.target.files[0]); e.target.value = ""; };
       $("bk-stampel-gal").onchange = e => { valjBild("stampel", e.target.files[0]); e.target.value = ""; };
-      $("bk-pris").oninput = () => { if (bk.res) visaBesked(); };
+      $("bk-huvud").replaceWith(App.huvud("butik", "Butik", "Ska jag köpa?"));
+      $("bk-pris").oninput = () => { visaSteg(); if (bk.res) visaBesked(); else kanskeBedom(); };
+      $("bk-pris").onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); $("bk-pris").blur(); if (bk.obj) bedom(); } };
       $("bk-go").onclick = bedom;
       $("bk-nasta").onclick = nasta;
       $("bk-lagg").onclick = e => laggISamlingen(e.currentTarget);
-      visaBesked();
+      visaBesked(); visaSteg();
       fetch("data/fototips.json").then(r => r.json()).then(t => { tips = t; $("bk-tips").replaceChildren(...t.map(x => el("li", {}, x))); }).catch(() => {});
       fetch("data/checklista.json").then(r => r.json()).then(c => { const l = (c.find(x => x.rubrik === "På loppisen") || {}).punkter || []; $("bk-checklista").replaceChildren(...l.map(x => el("li", {}, x))); }).catch(() => {});
     },
