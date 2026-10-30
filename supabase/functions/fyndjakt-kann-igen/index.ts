@@ -1,5 +1,9 @@
 // Fyndjakt: känner igen ett fotograferat föremål med Claude, och föreslår sökord för en ny profil (typ: "profil").
-// Kräver inloggad Fyndjakt-medlem. Anthropic-nyckeln ligger som hemlighet ANTHROPIC_API_KEY i Supabase.
+// typ "butik": strukturerad bedömning i butiken (tillverkare, serie, marknadsvärde, äkthet) för Samlingen-sajten.
+// typ "akta": original eller nyproduktion, utifrån annonsens bilder (hämtas här – webbläsaren får inte läsa dem).
+// typ "kopiera_bilder": kopierar annonsens bilder till den inloggades mapp i bucketen samling.
+// typ "importera_bilder": engångsimport av samlingens bilder med bot-nyckeln (ingen inloggning).
+// Kräver inloggad Fyndjakt-medlem (utom importen). Anthropic-nyckeln ligger som hemlighet ANTHROPIC_API_KEY i Supabase.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
@@ -129,6 +133,107 @@ async function liknande(sokord: string) {
   return { sokord, till_salu, antal: traff.length, salt };
 }
 
+// ── Butik, äkthet och bildkopiering ──────────────────────────────────
+const NYPROD = `KÄNNETECKEN PÅ NYPRODUKTION/REPLIKA: Rörstrand krönt R-logo (2000+) i stället för tre kronor; "Made in Sri Lanka/Thailand/Indonesia/Portugal"; Picknick i vit, blank, tunn benporslin med skarpt tryck, runda muggar eller underlägg med kork; Berså med ankarstämpel utan bladlogotyp eller tryckt "Gustafsberg"; Paratiisi med runda tallrikar; Lisa Larson "K-Studion" eller japansk märkning utan krackelering; Mon Amie 0,33 l-mugg; Muminmugg "By Arabia" eller Made in Thailand; glas/porslin med streckkodsetikett eller nypris; "ny", "oanvänd", "i kartong", "nyutgåva". Original: tre kronor/ankare med blad/krona Arabia Finland, mjukare färger, glasyrkrackelering på fajans/flintgods, stödmärken, slitage på botten.`;
+const STAMPLAR = `STÄMPELGUIDE (datera och avslöja nyproduktion):
+Gustavsberg: "Gustafsberg" med f präglat=före 1920; "Gustafsberg" tryckt + fyrsiffrigt årtal=nyproduktion 1995–2015; ankare rep bakom(höger)=före 1945; rep framför(vänster)=1940–70; utan rep=1970+; seriestämpel med Berså-blad=original Berså 1961–74, ankare på Berså=nytt; studiohand (hand över G)=Gustavsbergs Studio handgjort 1944+; årsbokstav vid studiohand R=48 S=49 T=50 U=51 V=52 X=53 Y=54 Z=55 Å=56 Ä=57 Ö=58 a=59 b=60 c=61 d=62 e=63 f=64 G=65 H=66 I=67 J=68 K=69 L=70 M=71 N=72 O=73 P=74, från 1975 helt årtal; "Selecta" etikett=fabriksgjord Friberg; Lisa Larson "Gustavsberg"=fabrik 1954–79 (värdefull), "K-Studion"=1992+ (nära nypris).
+Rörstrand: tre kronor=1884–2000; tresiffrig kod från 1937 (två första=år); "Sweden"=1940-tal, längre engelsk text 1951+; krönt R=2000+ (Mon Amie-nyutgåva 2008); "R SWEDEN CHS"=Stålhane; "R GN Sweden"=Nylund.
+Arabia: krönt A=1928–49; ARABIA FINLAND=1949+; Kilta 1953–75 fajans, Teema 1981+ alltid stämplad Teema; Paratiisi viol-logo 1969–71, bladlogo 1971–74, krona 1988+, ny logo dec 2014 Thailand; Mumin: krona+årtal (1996–2001)=2–10× värde, "Made in Finland"-etikett bäst.
+Royal Copenhagen: tre vågor; 1935–49 punkt ovanför bokstav; 1950–84 punkt under bokstav; 1985–2014 två bokstäver RO/RY/RA/RL/RC; rits genom vågorna=andrasortering; B&G vågrät rits över tornen=2:a.
+Danskt studio: Saxbo-stämpel, PLS=Palshus, HAK=Kähler/Hammershøi, SALTO+vågor=Axel Salto.
+Meissen: äkta svärd handmålade koboltblå under glasyr, rits=fabriks-2:a; kopior: Samson, Dresden-krona, Wolfsohn AR.
+Glas: Kosta "LH"=Vicke Lindstrand hyttsigill, Boda "H"/"Höglund"=Erik Höglund, Orrefors-gravyr med formgivarsignatur och nummer.
+Skadeavdrag: fabriks-2:a –20–30 %, nagg –30–50 %, hårspricka –50–70 %, lagning –70–90 %.`;
+
+function butikInstruktion(smak: string, harRedan: string) {
+  return `Du är expert på nordisk keramik, porslin, glas, konst och design (Gustavsberg, Rörstrand, Upsala-Ekeby, Arabia, Royal
+Copenhagen, Boda, Kosta, Orrefors, svensk och dansk studiokeramik) och hjälper en loppishandlare och samlare i Stockholm att
+bedöma ett fynd i butiken. Bilderna visar föremålet och ibland dess botten/stämpel. Läs stämplar, signaturer, modellnummer och
+årskoder noggrant. Bedöm form, glasyr, dekor, godstyp, stödmärken, krackelering och skador. Skilj original från nyproduktion.
+
+${NYPROD}
+
+${STAMPLAR}
+${smak ? `\nÄGARENS SMAK (avgör passar_smak – bara det som uttryckligen passar profilen räknas):\n${smak.slice(0, 6000)}\n` : ""}
+${harRedan ? `\nÄGAREN HAR REDAN (id | namn | tillverkare | serie):\n${harRedan.slice(0, 12000)}\n` : ""}
+Svara ENBART med ett JSON-objekt:
+{"namn": "<kort namn på föremålet, t.ex. 'Vas, Berså'>",
+ "tillverkare": "<fabrik eller 'Okänd'>", "formgivare": "<formgivare eller tom sträng>", "serie": "<serie/modell/figur eller tom sträng>",
+ "period": "<t.ex. 1961–74 eller tom sträng>", "material": "<godstyp/material>",
+ "kategori": "<en av: Keramik & porslin, Glas, Konst, Möbler, Belysning, Skulptur, Böcker, Övrigt>",
+ "antal": <heltal – antal separata föremål som hör ihop>,
+ "stampel_last": "<vad du faktiskt kan läsa av stämpeln, ordagrant, eller 'ingen stämpel synlig'>",
+ "nyproduktion": <true|false>, "varning": "<kort om nyproduktion/kopia/skada, annars tom sträng>",
+ "skick": "<skador du ser eller 'inga synliga'>",
+ "marknad_min": <lågt realistiskt slutpris i kr i Sverige för alla föremålen>, "marknad_max": <högt realistiskt slutpris i kr>,
+ "sakerhet": <0–1 hur säker du är på identifieringen>,
+ "passar_smak": <true|false – passar föremålet ägarens smak enligt profilen ovan (false om ingen profil)>,
+ "har_redan": "<id ur ägarens lista om hen tydligt redan har exakt detta, annars null>",
+ "kompletterar": "<en mening om det kompletterar något hen har, annars tom sträng>",
+ "sokord": "<2–5 ord som hittar liknande sålda på Tradera/Auctionet>",
+ "nasta_kontroll": ["<konkreta saker att kontrollera på plats, max 4>"],
+ "resonemang": "<2–3 meningar på svenska om varför>"}
+Var ärlig om osäkerhet: sänk sakerhet och säg vad som saknas (t.ex. 'fota botten'). Gissa aldrig en signatur eller tillverkare
+du inte kan belägga – skriv "Okänd".`;
+}
+
+const AKTA_INSTRUKTION = `Du är expert på nordisk keramik, porslin och glas. Avgör om föremålet i annonsen är ORIGINAL från
+produktionsperioden eller NYPRODUKTION/REPLIKA. Titta på alla bilder (stämpel, baksida, etiketter) innan du avgör.
+${NYPROD}
+${STAMPLAR}
+Svara ENBART med JSON: {"bedomning": "original|nyproduktion|osäkert", "sakerhet": <0–1>, "tecken": ["<konkreta tecken du ser, max 4>"],
+ "behover": "<vad som skulle avgöra det, t.ex. 'foto på stämpeln', eller tom sträng>", "svar": "<1–2 meningar på svenska>"}`;
+
+async function claude(nyckel: string, system: string, innehall: unknown[], max_tokens = 900) {
+  const r = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "x-api-key": nyckel, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+    body: JSON.stringify({ model: MODELL, max_tokens, system, messages: [{ role: "user", content: innehall }] }),
+  });
+  if (!r.ok) { console.error("Anthropic", r.status, await r.text()); return null; }
+  const data = await r.json();
+  const text: string = (data?.content ?? []).filter((b: { type: string }) => b.type === "text").map((b: { text: string }) => b.text).join("\n");
+  const m = text.match(/\{[\s\S]*\}/);
+  try { return JSON.parse(m ? m[0] : "{}"); } catch { console.error("Otolkbart svar:", text.slice(0, 400)); return null; }
+}
+const tal = (v: unknown) => { const n = Number(v); return Number.isFinite(n) ? Math.round(n) : null; };
+const bool = (v: unknown) => v === true || String(v).toLowerCase() === "true";
+const bildblock = (data: string, mediatyp: string) => ({ type: "image", source: { type: "base64", media_type: mediatyp, data } });
+
+// Hämtar en bild från nätet (annonsens bild) som base64. Null om den inte går att läsa eller är för stor.
+const MAX_BYTES = 4_000_000;
+async function hamtaBild(url: string): Promise<{ data: string; mediatyp: string; bytes: Uint8Array } | null> {
+  try {
+    const r = await fetch(url, { headers: { "User-Agent": "Fyndjakt/1.0 (privat bevakning)" } });
+    if (!r.ok) return null;
+    const typ = (r.headers.get("content-type") ?? "image/jpeg").split(";")[0].trim();
+    const mediatyp = ["image/jpeg", "image/png", "image/webp", "image/gif"].includes(typ) ? typ : "image/jpeg";
+    const bytes = new Uint8Array(await r.arrayBuffer());
+    if (!bytes.length || bytes.length > MAX_BYTES) return null;
+    let bin = "";
+    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    return { data: btoa(bin), mediatyp, bytes };
+  } catch { return null; }
+}
+
+function adminKlient() {
+  return createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+}
+// Laddar upp bilder till bucketen samling som <user_id>/<id>/<n>.jpg med servicenyckeln. Returnerar [{n, path}].
+async function laddaUppBilder(user_id: string, id: string, bilder: { n: number; url: string }[]) {
+  const admin = adminKlient();
+  const ut: { n: number; path: string }[] = [];
+  for (const b of bilder) {
+    const h = await hamtaBild(b.url);
+    if (!h) { console.error("Kunde inte hämta", b.url); continue; }
+    const path = `${user_id}/${id}/${b.n}.jpg`;
+    const { error } = await admin.storage.from("samling").upload(path, h.bytes, { contentType: h.mediatyp, upsert: true, cacheControl: "3600" });
+    if (error) { console.error("Uppladdning", path, error.message); continue; }
+    ut.push({ n: b.n, path });
+  }
+  return ut;
+}
+
 // Första frågan med bilden, sedan växelvis Claudes tidigare svar och användarens kommentarer.
 function bygg_meddelanden(bilder: string[], mediatyp: string, samtal: { roll: string; text: string }[]) {
   const meddelanden: unknown[] = [{ role: "user", content: [
@@ -158,8 +263,52 @@ Deno.serve(async (req) => {
   const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
     global: { headers: { Authorization: auth } },
   });
+
+  let kropp: { typ?: string; bild?: string; bilder?: string[]; mediatyp?: string; samtal?: { roll: string; text: string }[];
+               beskrivning?: string; har_redan?: string; namn?: string; token?: string; anvandare?: string;
+               stampel?: boolean; smak?: string; id?: string; urlar?: string[]; titel?: string; pris_text?: string;
+               kalla?: string; identifierat?: string; extra?: string; poster?: { id: string; n: number; url: string }[] };
+  try { kropp = await req.json(); } catch { return svar({ fel: "Ogiltig förfrågan" }, 400, origin); }
+
+  // Engångsimport av samlingens bilder: skyddad med bot-nyckeln (samma som nattkörningen), inte med inloggning.
+  if (kropp.typ === "importera_bilder") {
+    const admin = adminKlient();
+    const { error: nyckelfel } = await admin.rpc("fyndjakt_kolla_nyckel", { token: String(kropp.token ?? "") });
+    if (nyckelfel) return svar({ fel: "Ogiltig nyckel" }, 403, origin);
+    const { data: anv } = await admin.from("fyndjakt_anvandare").select("user_id").eq("namn", String(kropp.anvandare ?? "Per"));
+    if (!anv || anv.length !== 1) return svar({ fel: "Hittade inte användaren" }, 400, origin);
+    const user_id = anv[0].user_id as string;
+    const { data: finns } = await admin.from("samling_foremal").select("id").eq("user_id", user_id);
+    const ids = new Set((finns ?? []).map((r: { id: string }) => r.id));
+    const perId: Record<string, { n: number; url: string }[]> = {};
+    for (const p of (kropp.poster ?? []).slice(0, 500)) (perId[String(p.id)] ??= []).push({ n: Number(p.n) || 1, url: String(p.url) });
+    const resultat: Record<string, number> = {}, saknade: string[] = [];
+    for (const [id, lista] of Object.entries(perId)) {
+      if (!ids.has(id)) { saknade.push(id); continue; }
+      const bilder = await laddaUppBilder(user_id, id, lista.sort((a, b) => a.n - b.n));
+      if (bilder.length) {
+        const { error } = await admin.from("samling_foremal").update({ bilder }).eq("id", id);
+        if (error) console.error("Uppdatering", id, error.message);
+      }
+      resultat[id] = bilder.length;
+    }
+    return svar({ user_id, foremal: Object.keys(resultat).length, bilder: Object.values(resultat).reduce((a, b) => a + b, 0),
+                  resultat, saknade }, 200, origin);
+  }
+
   const { data: medlem, error: medlemsfel } = await supabase.rpc("fyndjakt_ar_medlem");
   if (medlemsfel || !medlem) return svar({ fel: "Inte inloggad som Fyndjakt-användare" }, 403, origin);
+
+  // Kopiera annonsens bilder till den inloggades mapp i bucketen (webbläsaren får inte läsa bilderna själv).
+  if (kropp.typ === "kopiera_bilder") {
+    const { data: anv } = await supabase.auth.getUser();
+    const uid = anv?.user?.id;
+    const id = String(kropp.id ?? "").replace(/[^a-z0-9-]/g, "").slice(0, 80);
+    if (!uid || !id) return svar({ fel: "Saknar användare eller id" }, 400, origin);
+    const urlar = (kropp.urlar ?? []).map(String).filter((u) => /^https?:\/\//.test(u)).slice(0, 4);
+    const bilder = await laddaUppBilder(uid, id, urlar.map((url, i) => ({ n: i + 1, url })));
+    return svar({ bilder }, 200, origin);
+  }
 
   // Godta vanliga namnvarianter; trimma bort mellanslag som lätt följer med vid inklistring.
   const NAMN = ["ANTHROPIC_API_KEY", "ANTHROPIC_KEY", "CLAUDE_API_KEY", "CLAUDE_KEY", "ANTHROPIC_APIKEY"];
@@ -170,10 +319,6 @@ Deno.serve(async (req) => {
     return svar({ fel: "Fotofunktionen hittar ingen Anthropic-nyckel. Lägg in den som ANTHROPIC_API_KEY under Edge Functions → Secrets i projektet WORK." +
       (liknande.length ? " Hittade bara: " + liknande.join(", ") : "") }, 503, origin);
   }
-
-  let kropp: { typ?: string; bild?: string; bilder?: string[]; mediatyp?: string; samtal?: { roll: string; text: string }[];
-               beskrivning?: string; har_redan?: string; namn?: string };
-  try { kropp = await req.json(); } catch { return svar({ fel: "Ogiltig förfrågan" }, 400, origin); }
 
   if (kropp.typ === "liknande") {
     const sokord = String((kropp as { sokord?: string }).sokord ?? "").trim().slice(0, 60);
@@ -186,10 +331,53 @@ Deno.serve(async (req) => {
     const res = await profilforslag(nyckel, kropp);
     return res ? svar(res, 200, origin) : svar({ fel: "Kunde inte ta fram sökord just nu" }, 502, origin);
   }
+  // Äkta? – annonsens bilder hämtas här, plus eventuellt en egen skärmbild (base64).
+  if (kropp.typ === "akta") {
+    const innehall: unknown[] = [];
+    const extra = String(kropp.extra ?? "").replace(/^data:image\/\w+;base64,/, "");
+    if (extra && extra.length <= MAX_BILD) innehall.push(bildblock(extra, "image/jpeg"));
+    for (const u of (kropp.urlar ?? []).map(String).filter((u) => /^https?:\/\//.test(u)).slice(0, 3)) {
+      const h = await hamtaBild(u);
+      if (h) innehall.push(bildblock(h.data, h.mediatyp));
+    }
+    innehall.push({ type: "text", text: `${innehall.length ? `Bilderna (${innehall.length} st) är från annonsen${extra ? ", den första en skärmbild i full upplösning" : ""}.` : "Inga bilder gick att hämta – bedöm bara utifrån texten och säg att bild behövs."}
+ANNONS: "${String(kropp.titel ?? "").slice(0, 300)}" · ${String(kropp.pris_text ?? "").slice(0, 60)} · ${String(kropp.kalla ?? "").slice(0, 30)}
+Fyndjakts identifiering: ${String(kropp.identifierat ?? "-").slice(0, 200)}` });
+    const res = await claude(nyckel, AKTA_INSTRUKTION, innehall, 500);
+    if (!res) return svar({ fel: "Kunde inte granska just nu" }, 502, origin);
+    const b = String(res.bedomning ?? "osäkert").toLowerCase();
+    return svar({ bedomning: ["original", "nyproduktion"].includes(b) ? b : "osäkert", sakerhet: Math.max(0, Math.min(1, Number(res.sakerhet) || 0)),
+                  tecken: (Array.isArray(res.tecken) ? res.tecken : []).map((t: unknown) => String(t).slice(0, 200)).slice(0, 4),
+                  behover: String(res.behover ?? "").slice(0, 200), svar: String(res.svar ?? "").slice(0, 400), bilder: innehall.length - 1 }, 200, origin);
+  }
+
   const bilder = (kropp.bilder?.length ? kropp.bilder : [kropp.bild ?? ""])
     .map((b) => String(b ?? "").replace(/^data:image\/\w+;base64,/, "")).filter((b) => b).slice(0, 4);
   const mediatyp = ["image/jpeg", "image/png", "image/webp"].includes(kropp.mediatyp ?? "") ? kropp.mediatyp! : "image/jpeg";
   if (!bilder.length || bilder.some((b) => b.length > MAX_BILD)) return svar({ fel: "Bilden saknas eller är för stor" }, 400, origin);
+
+  // Butiken: strukturerat svar med marknadsvärde och äkthet. Smaken och "har redan"-listan skickas från sajten.
+  if (kropp.typ === "butik") {
+    const innehall: unknown[] = bilder.map((b) => bildblock(b, mediatyp));
+    innehall.push({ type: "text", text: kropp.stampel
+      ? `Bild 1 är föremålet, bild ${bilder.length} är stämpeln/botten. Vad är det, och vad är det värt?`
+      : `${bilder.length > 1 ? bilder.length + " bilder av samma föremål" : "Bara en bild på föremålet"} – be om stämpelbild i nasta_kontroll om det behövs. Vad är det, och vad är det värt?` });
+    const res = await claude(nyckel, butikInstruktion(String(kropp.smak ?? ""), String(kropp.har_redan ?? "")), innehall, 1000);
+    if (!res) return svar({ fel: "Kunde inte bedöma just nu" }, 502, origin);
+    const min = tal(res.marknad_min), max = tal(res.marknad_max);
+    const str = (v: unknown, n: number) => String(v ?? "").slice(0, n);
+    return svar({
+      namn: str(res.namn, 120), tillverkare: str(res.tillverkare, 80) || "Okänd", formgivare: str(res.formgivare, 80), serie: str(res.serie, 80),
+      period: str(res.period, 40), material: str(res.material, 60), kategori: str(res.kategori, 40) || "Keramik & porslin",
+      antal: Math.max(1, tal(res.antal) ?? 1), stampel_last: str(res.stampel_last, 200), skick: str(res.skick, 200),
+      nyproduktion: bool(res.nyproduktion), varning: str(res.varning, 200),
+      marknad_min: min, marknad_max: max, median: min != null && max != null ? Math.round((min + max) / 2) : (min ?? max),
+      sakerhet: Math.max(0, Math.min(1, Number(res.sakerhet) || 0)), passar_smak: bool(res.passar_smak),
+      har_redan: res.har_redan ? str(res.har_redan, 80) : null, kompletterar: str(res.kompletterar, 300), sokord: str(res.sokord, 60),
+      nasta_kontroll: (Array.isArray(res.nasta_kontroll) ? res.nasta_kontroll : []).map((t: unknown) => String(t).slice(0, 160)).slice(0, 4),
+      resonemang: str(res.resonemang, 600),
+    }, 200, origin);
+  }
 
   const r = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
