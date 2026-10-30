@@ -144,8 +144,8 @@
   // annars mitten av den egna värderingen.
   function mitt(a, b) { return a != null || b != null ? Math.round(((a ?? b) + (b ?? a)) / 2) : null; }
   function varde(it) {
-    const v = it.auk_median ?? mitt(it.marknad_min, it.marknad_max) ?? mitt(it.uppskattat_min, it.uppskattat_max);
-    return v == null ? null : v * Math.max(1, +it.antal || 1);
+    // Värdet gäller hela posten – ett parti om 60 delar har ett värde för alla 60, inte per del.
+    return it.auk_median ?? mitt(it.marknad_min, it.marknad_max) ?? mitt(it.uppskattat_min, it.uppskattat_max);
   }
   // Det pris man väntar sig få vid försäljning: Tradera-priset om satt, annars värdet per styck.
   function forvantat(it) {

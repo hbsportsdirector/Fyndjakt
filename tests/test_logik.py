@@ -143,7 +143,7 @@ def test_bradskande_banner():
 
 def test_samlingens_varde():
     it = {"auk_median": 500, "uppskattat_min": 100, "uppskattat_max": 300, "antal": 2}
-    assert L(f"L.varde({json.dumps(it)})") == 1000          # auktionsmedianen först, gånger antal
+    assert L(f"L.varde({json.dumps(it)})") == 500           # auktionsmedianen först – den gäller hela posten
     assert L("L.varde({uppskattat_min: 100, uppskattat_max: 300})") == 200
     assert L("L.varde({marknad_min: 100})") == 100
     assert L("L.varde({marknad_min: 300, marknad_max: 500, uppskattat_min: 2000, uppskattat_max: 9000})") == 400  # uppskattning före egen
