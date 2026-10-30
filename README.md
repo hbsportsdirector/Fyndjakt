@@ -140,5 +140,30 @@ Använd deras egna sparade sökningar med notiser – gärna med samma sökord s
 pip install -r requirements.txt pytest
 python -m pytest tests          # offline-tester
 python main.py --torr           # hämtar riktiga annonser, utan AI och notiser
-python main.py                  # full körning; sidan hamnar i site/index.html
+python main.py                  # full körning; fynddata hamnar i site/data/fynd.json
+cd site && python -m http.server 8000   # öppna http://localhost:8000 – sajten läser Supabase direkt efter inloggning
 ```
+
+## Sajten – Samlingen & loppisen
+
+`site/` är en egen statisk app (vanilla JS + Supabase JS, ingen byggkedja) som publiceras via GitHub Pages:
+`index.html`, `app.js` (inloggning, meny, bilder via signerade adresser), `stil.css`, `logik.js` (prisstege,
+kanaler, köptak, "slutar snart" – testas med node i `tests/test_logik.py`) och en fil per del:
+
+- **Fynd** (`fynd.js`) – Fyndjakts nattliga fynd: "slutar snart" överst, röd banner på hela sajten när något
+  med betyg ≥ 8 eller kvot ≤ 0,5 slutar inom 6 h, Gilla/Ogilla, **Äkta?** (Claude granskar annonsens bilder) och
+  **Köpte den** (ny rad i samlingen, låda *Till salu*, annonsens bilder kopieras till bucketen).
+- **Samling** (`samling.js`) – lådorna Egen · Pappas · Oklart · Till salu · Sålt, rutnät, detaljpanel med alla
+  fält, bildgalleri (kamera/galleri → bucket `samling/<user_id>/<id>/<n>.jpg`, max 1600 px), prishistorik,
+  sälj-fält med prisstegen från Säljplanen, Markera som såld, CSV.
+- **Butik** (`butik.js`, startflik på mobil) – fota föremålet och stämpeln, skriv priset → KÖP / KÖP INTE /
+  FOTA STÄMPELN FÖRST. Köptak = typiskt slutpris × 0,33 (flipp) eller × 0,6 när föremålet passar smaken i
+  Inställningar. Netto per kanal, "har jag redan?" mot samlingen, Lägg i samlingen.
+- **Prisguide, Stämplar, Kalkyl, Säljplan** (`prisguide.js`, data i `site/data/*.json`) – från gamla Loppiskollen.
+- **Inställningar** (`installningar.js`) – smak och kanal (`samling_installningar`), Fyndjakt-bevakningar, Min smak,
+  notiser och inbjudningar.
+
+Edge-funktionen `fyndjakt-kann-igen` har fått typerna `butik` (strukturerad bedömning med marknadsvärde, säkerhet
+och nyproduktion), `akta`, `kopiera_bilder` och `importera_bilder` (engångsimport, `tools/importera_samlingsbilder.py`).
+Nattkörningen läser samlingen som "har redan" via `samling_har_redan_export` (undantag per spår i
+`har_redan_undantag`), så Fyndjakt slutar tipsa om det du redan äger.
