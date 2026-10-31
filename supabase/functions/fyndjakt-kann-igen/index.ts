@@ -128,10 +128,14 @@ async function liknande(sokord: string) {
       relevant(String(p.title ?? ""), sokord))
     .map((p) => p.highest_bid || Math.max(0, ...((p.bids ?? []) as { amount: number }[]).map((b) => b.amount || 0)))
     .filter((x) => x > 0).sort((x, y) => x - y);
+  const salda = [...s1, ...s2].filter((p) => p.state === "sold" && p.currency === "SEK" && (p.ends_at ?? 0) >= grans &&
+      relevant(String(p.title ?? "") + " " + String(p.description ?? "").replace(/<[^>]+>/g, " "), sokord))
+    .slice(0, 20).map((p) => ({ titel: String(p.title ?? "").trim().slice(0, 140), url: String(p.url ?? "").replace("auctionet.com/en/", "auctionet.com/sv/"),
+      pris: p.highest_bid || Math.max(0, ...((p.bids ?? []) as { amount: number }[]).map((b) => b.amount || 0)), slutade: p.ends_at ?? null }));
   const kvantil = (k: number) => { const i = (priser.length - 1) * k, l = Math.floor(i); return priser[l] + (priser[Math.ceil(i)] - priser[l]) * (i - l); };
   const salt = priser.length >= 3 ? { median: Math.round(kvantil(0.5)), lag: Math.round(kvantil(0.25)),
                                       hog: Math.round(kvantil(0.75)), antal: priser.length } : null;
-  return { sokord, till_salu, antal: traff.length, salt };
+  return { sokord, till_salu, antal: traff.length, salt, salda };
 }
 
 // ── Butik, äkthet och bildkopiering ──────────────────────────────────
@@ -349,7 +353,7 @@ Deno.serve(async (req) => {
   // Köpt-flödet: katalogtext + säljannons. Bilderna läses ur bucketen med den inloggades behörighet.
   if (kropp.typ === "beskriv") {
     const f = (kropp as { foremal?: Record<string, unknown> }).foremal ?? {};
-    const falt = ["nummer", "namn", "kategori", "tillverkare", "serie", "antal", "period", "stampel", "skick", "anteckning", "jfr",
+    const falt = ["nummer", "namn", "kategori", "tillverkare", "formgivare", "serie", "antal", "period", "stampel", "skick", "anteckning", "jfr",
                   "inkopsstalle", "lada"].reduce((o, k) => (f[k] != null && f[k] !== "" ? { ...o, [k]: String(f[k]).slice(0, 800) } : o), {});
     const innehall: unknown[] = [];
     for (const path of ((kropp as { paths?: string[] }).paths ?? []).map(String).filter((p) => /^[\w-]+\/[\w-]+\/\d+\.jpg$/.test(p)).slice(0, 3)) {
@@ -396,9 +400,11 @@ Fyndjakts identifiering: ${String(kropp.identifierat ?? "-").slice(0, 200)}` });
   // Butiken: strukturerat svar med marknadsvärde och äkthet. Smaken och "har redan"-listan skickas från sajten.
   if (kropp.typ === "butik") {
     const innehall: unknown[] = bilder.map((b) => bildblock(b, mediatyp));
-    innehall.push({ type: "text", text: kropp.stampel
-      ? `Bild 1 är föremålet, bild ${bilder.length} är stämpeln/botten. Vad är det, och vad är det värt?`
-      : `${bilder.length > 1 ? bilder.length + " bilder av samma föremål" : "Bara en bild på föremålet"} – be om stämpelbild i nasta_kontroll om det behövs. Vad är det, och vad är det värt?` });
+    const kommentar = String((kropp as { kommentar?: string }).kommentar ?? "").trim().slice(0, 600);
+    innehall.push({ type: "text", text: (kropp.stampel
+      ? `Bild 1 är föremålet, bild 2 är stämpeln/botten${bilder.length > 2 ? `, bild 3–${bilder.length} är detaljer du bett om` : ""}. Läs stämpeln tecken för tecken innan du bestämmer tillverkare, formgivare och modell. Vad är det, och vad är det värt?`
+      : `${bilder.length > 1 ? bilder.length + " bilder av samma föremål" : "Bara en bild på föremålet"} – be om stämpelbild i nasta_kontroll om det behövs. Vad är det, och vad är det värt?`) +
+      (kommentar ? `\n\nÄgaren rättar/kompletterar: "${kommentar}". Väg in det – det ägaren läser på föremålet går före din tolkning av en suddig bild.` : "") });
     const res = await claude(nyckel, butikInstruktion(String(kropp.smak ?? ""), String(kropp.har_redan ?? "")), innehall, 1000);
     if (!res) return svar({ fel: "Kunde inte bedöma just nu" }, 502, origin);
     const min = tal(res.marknad_min), max = tal(res.marknad_max);

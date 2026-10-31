@@ -108,7 +108,7 @@ main { min-width: 0; padding: 22px 28px 60px; }
 @media (max-width: 720px) { .verktyg { position: static; backdrop-filter: none; } }
 label { color: var(--muted); font-size: 14px; }
 label.rad-etikett { display: flex; align-items: center; gap: 8px; }
-select, input[type=text], input[type=search], input[type=number], input[type=email], input[type=date], input[type=datetime-local], textarea {
+select, input:not([type]), input[type=text], input[type=search], input[type=number], input[type=email], input[type=date], input[type=datetime-local], textarea {
   background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 8px 11px; font-size: 15px; min-width: 0;
 }
 input[type=search] { flex: 1 1 200px; max-width: 360px; }
@@ -329,7 +329,7 @@ details.sec li { margin-bottom: 4px; }
 .mer-lista .knapp { justify-content: flex-start; font-size: 17px; padding: 14px 16px; border-radius: 12px; }
 
 /* ── UX-genomgång: tryckytor, bottenark, hjälp, tomma lägen ─────────── */
-.knapp, .chip, select, input[type=text], input[type=search], input[type=number], input[type=email], input[type=date], input[type=datetime-local] { min-height: 44px; }
+.knapp, .chip, select, input:not([type]), input[type=text], input[type=search], input[type=number], input[type=email], input[type=date], input[type=datetime-local] { min-height: 44px; }
 .knapp.liten { min-height: 36px; }
 @media (max-width: 720px) {
   input, select, textarea { font-size: 16px; }   /* iOS zoomar annars in vid fokus */
@@ -581,3 +581,30 @@ a.salda-alla { display: inline-block; color: var(--brass); padding: 8px 0 2px; m
   border: 1px dashed var(--line); background: transparent; color: var(--brass); cursor: pointer; border-radius: 8px; font: inherit; }
 .galleri .b.plus span { font-size: 26px; line-height: 1; }
 .galleri .b.plus { width: 84px; height: 84px; min-height: 0; min-width: 0; }
+/* Guidad identifiering: föremål → stämpel → Claude → Auctionet */
+.ident .steg-rad { margin: 4px 0 12px; }
+.id-slot { display: flex; gap: 12px; align-items: center; padding: 10px; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 10px; background: var(--panel); }
+.id-slot.har { border-color: var(--gron); }
+.id-slot.ingen { opacity: .7; }
+.id-bild { flex: 0 0 84px; height: 84px; border-radius: 10px; overflow: hidden; background: var(--panel-2); display: flex; align-items: center; justify-content: center; }
+.id-bild img { width: 100%; height: 100%; object-fit: cover; }
+.id-ikon { font-size: 30px; opacity: .7; }
+.id-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.id-txt small { font-size: 12px; }
+.id-txt .rad { flex-wrap: wrap; gap: 6px; }
+.id-extra { margin-bottom: 8px; }
+.id-extra .b { width: 64px; height: 64px; }
+.id-res .falt-grid { margin-top: 8px; }
+.id-sak b { text-transform: uppercase; letter-spacing: .04em; }
+.id-sak.hog b { color: var(--gron-ljus); } .id-sak.medel b { color: var(--brass); } .id-sak.lag b { color: var(--rod-ljus); }
+.id-vill { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 10px; }
+.id-vill b { width: 100%; font-size: 13px; }
+.id-vill .knapp { white-space: normal; text-align: left; }
+.id-auk { margin-top: 10px; padding-top: 10px; border-top: 1px dotted var(--line); font-size: 14px; }
+.id-auk .ok { color: var(--gron-ljus); }
+.id-auk .varning { color: var(--brass); }
+.id-auk .knapp { margin-left: 4px; }
+.id-kop { margin-top: 14px; }
+.id-kop h3 { margin: 0 0 6px; }
+.spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--line); border-top-color: var(--brass); border-radius: 50%; animation: snurra .8s linear infinite; vertical-align: -2px; }
+@keyframes snurra { to { transform: rotate(360deg); } }

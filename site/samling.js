@@ -11,7 +11,7 @@
   try { Object.assign(st, JSON.parse(localStorage.getItem("samling-vy") || "{}")); } catch (e) {}
   let rot;
   const lista = () => konto.samling;
-  const under = it => [it.tillverkare && it.tillverkare !== "Okänd" ? it.tillverkare : "", it.serie || ""].filter(Boolean).join(" · ");
+  const under = it => [it.tillverkare && it.tillverkare !== "Okänd" ? it.tillverkare : "", it.formgivare || "", it.serie || ""].filter(Boolean).join(" · ");
   const forstaBild = it => ((it.bilder || [])[0] || {}).path || null;
   const spann = (a, b) => a == null && b == null ? "–" : a == null ? "upp till " + kr(b) : b == null || a === b ? kr(a) : Math.round(a).toLocaleString("sv-SE") + "–" + kr(b);
 
@@ -19,7 +19,7 @@
     const q = App.norm(st.q);
     return lista().filter(it => (!st.lada || it.lada === st.lada) && (!st.kategori || it.kategori === st.kategori)
       && (st.lada !== "salj" || !st.saljsteg || Logik.saljKlar(it).steg === st.saljsteg)
-      && (!q || App.norm([App.fjNr(it), it.namn, it.tillverkare, it.serie, it.sokord, it.anteckning, it.beskrivning].join(" ")).includes(q)))
+      && (!q || App.norm([App.fjNr(it), it.namn, it.tillverkare, it.formgivare, it.serie, it.sokord, it.anteckning, it.beskrivning].join(" ")).includes(q)))
       .sort({
         namn: (a, b) => (a.namn || "").localeCompare(b.namn || "", "sv"),
         varde: (a, b) => (Logik.varde(b) || 0) - (Logik.varde(a) || 0),
@@ -204,11 +204,177 @@
     kat.value = finns.includes(st.kategori) ? st.kategori : "";
   }
 
+  // ── Guidad identifiering: föremål → stämpel → Claude → Auctionet → bekräfta → köp ──
+  // Målet är rätt formgivare/serie varje gång: stämpeln är ett eget steg, Claude får be om fler bilder och
+  // ta emot rättelser, och svaret prövas mot vilka namn som står på sålda exemplar på Auctionet.
+  function identifiera() {
+    const st_ = { obj: null, stampel: null, ingenStampel: false, extra: [], res: null, kommentar: "", auk: null, kor: 0 };
+    const v = el("div", { class: "ident" });
+    const p = App.panel(v);
+    const steg = el("div", { class: "steg-rad" }, el("span", {}, "1 · Föremål"), el("span", {}, "2 · Stämpel"), el("span", {}, "3 · Claude"), el("span", {}, "4 · Spara"));
+    const slot = (vad, rubrik, tips) => {
+      const ruta = el("div", { class: "id-slot", "data-vad": vad });
+      const bild = el("div", { class: "id-bild" }, el("span", { class: "id-ikon" }, vad === "obj" ? "📷" : "🔍"));
+      const kam = el("label", { class: "knapp" + (vad === "obj" ? " primar" : "") }, "📷 Fota", el("input", { type: "file", accept: "image/*", capture: "environment", class: "dold" }));
+      const gal = el("label", { class: "knapp liten" }, "🖼 Galleri", el("input", { type: "file", accept: "image/*", class: "dold" }));
+      for (const l of [kam, gal]) l.querySelector("input").onchange = async e => { const f = e.target.files[0]; e.target.value = ""; if (f) { st_[vad] = await App.skalaNer(f, 1600); if (vad === "stampel") st_.ingenStampel = false; uppdatera(); } };
+      ruta.append(bild, el("div", { class: "id-txt" }, el("b", {}, rubrik), el("small", { class: "muted" }, tips), el("div", { class: "rad" }, kam, gal)));
+      return ruta;
+    };
+    const objSlot = slot("obj", "1. Föremålet", "hela föremålet, rakt framifrån, gärna mot ljus bakgrund");
+    const stSlot = slot("stampel", "2. Stämpeln eller botten", "nära, skarpt, i bra ljus – signatur, modellnummer och etikett avgör formgivare och serie");
+    const ingen = el("button", { class: "knapp liten", type: "button" }, "Ingen stämpel finns");
+    ingen.onclick = () => { st_.ingenStampel = true; st_.stampel = null; uppdatera(); };
+    stSlot.querySelector(".rad").append(ingen);
+    const extraRad = el("div", { class: "galleri id-extra" });
+    const analys = el("div", { class: "id-analys" });
+    const kop = el("div", { class: "id-kop", hidden: true });
+    v.append(el("div", { class: "huvud" }, el("h2", {}, "Nytt köp"), el("button", { class: "knapp liten", type: "button", onclick: () => p.stang() }, "Avbryt")),
+      steg, objSlot, stSlot, extraRad, analys, kop);
+
+    function visaBild(ruta, s_) {
+      const b = ruta.querySelector(".id-bild"); b.replaceChildren(s_ ? el("img", { src: s_.dataUrl, alt: "" }) : el("span", { class: "id-ikon" }, ruta.dataset.vad === "obj" ? "📷" : "🔍"));
+      ruta.classList.toggle("har", !!s_);
+    }
+    function uppdatera() {
+      visaBild(objSlot, st_.obj); visaBild(stSlot, st_.stampel);
+      stSlot.classList.toggle("ingen", st_.ingenStampel);
+      ingen.textContent = st_.ingenStampel ? "✓ Ingen stämpel" : "Ingen stämpel finns";
+      extraRad.replaceChildren(...st_.extra.map(x => el("div", { class: "b" }, el("img", { src: x.dataUrl, alt: "" }))));
+      const [s1, s2, s3, s4] = steg.children;
+      s1.className = st_.obj ? "klar" : "nu"; s2.className = st_.stampel || st_.ingenStampel ? "klar" : st_.obj ? "nu" : "";
+      s3.className = st_.res ? "klar" : (st_.obj && (st_.stampel || st_.ingenStampel)) ? "nu" : ""; s4.className = st_.res ? "nu" : "";
+      if (st_.obj && (st_.stampel || st_.ingenStampel) && !st_.res && !st_.kor) fraga_();
+      else if (st_.obj && !st_.stampel && !st_.ingenStampel) analys.replaceChildren(el("div", { class: "ruta tips" }, "Fota stämpeln eller botten nu – det är den som avgör formgivare och serie. Finns ingen, tryck ”Ingen stämpel finns”."));
+    }
+    async function fraga_() {
+      st_.kor += 1;
+      analys.replaceChildren(el("div", { class: "ruta" }, el("div", { class: "spinner" }), " Claude läser stämpeln och tittar på föremålet …"));
+      kop.hidden = true;
+      try {
+        const bilder = [st_.obj, st_.stampel, ...st_.extra].filter(Boolean);
+        const r = await App.kannIgen({ typ: "butik", bilder: bilder.map(s_ => App.dataUrlTillBase64(s_.dataUrl)), mediatyp: "image/jpeg", stampel: !!st_.stampel,
+          kommentar: st_.kommentar, smak: konto.installningar.smak || "", har_redan: harRedanText() });
+        st_.res = r; st_.auk = null;
+        visaResultat();
+        kontrolleraAuctionet();
+      } catch (e) { analys.replaceChildren(el("div", { class: "ruta" }, e.message, " ", el("button", { class: "knapp liten", type: "button", onclick: fraga_ }, "Försök igen"))); }
+      uppdatera();
+    }
+    const falt_ = {};
+    function visaResultat() {
+      const r = st_.res;
+      const sak = Math.round((r.sakerhet || 0) * 100);
+      const inp = (id, etikett, varde) => { const i = el("input", { name: id, value: varde || "" }); falt_[id] = i; return el("label", {}, etikett, i); };
+      const ruta = el("div", { class: "ruta id-res" });
+      ruta.append(el("div", { class: "id-sak " + (sak >= 80 ? "hog" : sak >= 55 ? "medel" : "lag") },
+        el("b", {}, sak >= 80 ? "Säker" : sak >= 55 ? "Ganska säker" : "Osäker"), ` · ${sak} %`, r.stampel_last ? el("span", { class: "muted" }, ` · läste: ”${r.stampel_last}”`) : null));
+      if (r.nyproduktion || r.varning) ruta.append(el("p", { class: "varning" }, "⚠ " + (r.varning || "Troligen nyproduktion")));
+      ruta.append(el("div", { class: "falt-grid" }, inp("namn", "Namn", r.namn), inp("tillverkare", "Tillverkare", r.tillverkare), inp("formgivare", "Formgivare", r.formgivare),
+        inp("serie", "Serie/modell", r.serie), inp("period", "Period", r.period), inp("stampel", "Stämpel", r.stampel_last)));
+      if (r.resonemang) ruta.append(el("p", { class: "muted", style: "font-size:13px" }, r.resonemang));
+      // Claude vill se mer → en knapp per bild den ber om.
+      const vill = (r.nasta_kontroll || []).filter(Boolean);
+      if (vill.length && sak < 90) {
+        const l = el("div", { class: "id-vill" }, el("b", {}, "Claude vill se:"));
+        for (const t of vill) {
+          const kam = el("label", { class: "knapp liten" }, "📷 " + t, el("input", { type: "file", accept: "image/*", capture: "environment", class: "dold" }));
+          kam.querySelector("input").onchange = async e => { const f = e.target.files[0]; e.target.value = ""; if (!f) return; st_.extra.push(await App.skalaNer(f, 1600)); st_.extra = st_.extra.slice(-2); fraga_(); };
+          l.append(kam);
+        }
+        ruta.append(l);
+      }
+      const kom = el("input", { placeholder: "t.ex. Det står UE, inte LE · Signerad Mari", value: st_.kommentar });
+      const igen = el("button", { class: "knapp liten", type: "button" }, "Fråga Claude igen");
+      igen.onclick = () => { st_.kommentar = kom.value.trim(); fraga_(); };
+      ruta.append(el("label", { style: "display:block;margin-top:8px" }, "Rätta eller berätta mer", el("div", { class: "rad" }, kom, igen)));
+      ruta.append(el("div", { class: "id-auk", id: "id-auk" }, el("span", { class: "muted" }, "Kollar Auctionet …")));
+      analys.replaceChildren(ruta);
+      visaKop();
+    }
+    // Vilka namn står först i titlarna på sålda exemplar? ("MARI SIMMULSON. Vas …") – en oberoende kontroll av formgivaren.
+    async function kontrolleraAuctionet() {
+      const r = st_.res, ruta = analys.querySelector("#id-auk"); if (!ruta) return;
+      const fraser = [...new Set([[r.tillverkare !== "Okänd" ? r.tillverkare : "", r.serie].filter(Boolean).join(" "), r.sokord].filter(x => x && x.trim().length > 2))];
+      for (const fras of fraser) {
+        try {
+          const a = await App.kannIgen({ typ: "liknande", sokord: fras });
+          const salda = a.salda || [];
+          if (!salda.length) continue;
+          const namn = {};
+          for (const x of salda) { const m = /^([A-ZÅÄÖÉÜ][A-ZÅÄÖÉÜ'\- ]{3,40}?)\./.exec(x.titel || ""); if (m && /\s/.test(m[1].trim()) && !(r.tillverkare && App.norm(m[1]).includes(App.norm(r.tillverkare).slice(0, 6)))) { const n = m[1].trim().toLowerCase().replace(/(^|[\s-])\S/g, c => c.toUpperCase()); namn[n] = (namn[n] || 0) + 1; } }
+          const topp = Object.entries(namn).sort((a_, b_) => b_[1] - a_[1]);
+          st_.auk = { fras, salda, topp, salt: a.salt };
+          const valt = (falt_.formgivare && falt_.formgivare.value || "").toLowerCase();
+          const rad = el("div", {}, el("b", {}, "Auctionet: "), `${salda.length} sålda för ”${fras}”` + (a.salt ? `, median ${kr(a.salt.median)}` : "") + ". ");
+          if (topp.length) {
+            const [n1, c1] = topp[0];
+            const stammer = valt && (valt.includes(n1.toLowerCase().split(" ").pop()) || n1.toLowerCase().includes(valt.split(" ").pop()));
+            rad.append(stammer ? el("span", { class: "ok" }, `✓ ${n1} står på ${c1} av dem – stämmer med Claude.`)
+              : el("span", { class: "varning" }, `${n1} står på ${c1} av dem${valt ? " – Claude sa " + falt_.formgivare.value : ""}. `));
+            if (!stammer) rad.append(el("button", { class: "knapp liten", type: "button", onclick: e => { falt_.formgivare.value = n1; e.currentTarget.textContent = "✓ " + n1; } }, "Använd " + n1));
+          }
+          rad.append(el("div", { class: "muted", style: "font-size:13px;margin-top:4px" }, ...salda.slice(0, 3).map(x => el("div", {}, el("a", { href: x.url, target: "_blank", rel: "noopener" }, x.titel), ` – ${kr(x.pris)}`))));
+          ruta.replaceChildren(rad);
+          return;
+        } catch (e) { console.error(e); }
+      }
+      ruta.replaceChildren(el("span", { class: "muted" }, "Inga sålda exemplar på Auctionet att jämföra med – lita på stämpeln."));
+    }
+    function visaKop() {
+      kop.hidden = false;
+      const pris = el("input", { type: "number", inputmode: "numeric", placeholder: "kr" });
+      const stalle = el("input", { placeholder: "t.ex. Myrorna Hornstull" });
+      const datum = el("input", { type: "date", value: App.idag() });
+      const lada = el("select", {}, ...[...VART, ["salt", "✓ Redan såld"]].map(([v_, t]) => el("option", { value: v_ }, t))); lada.value = st_.res && st_.res.passar_smak ? "egen" : "oklart";
+      const spar = el("button", { class: "knapp primar", type: "button" }, "Spara i samlingen");
+      const status = el("div", { class: "status" });
+      kop.replaceChildren(el("h3", {}, "Köpet"), el("div", { class: "falt-grid" },
+        el("label", {}, "Pris (kr)", pris), el("label", {}, "Var", stalle), el("label", {}, "Datum", datum), el("label", {}, "Vad ska du göra med den?", lada)), el("div", { class: "rad", style: "margin-top:12px" }, spar), status);
+      spar.onclick = async () => {
+        const r = st_.res, f = id => (falt_[id] && falt_[id].value.trim()) || "";
+        if (!f("namn")) { status.textContent = "Ge föremålet ett namn."; falt_.namn.focus(); return; }
+        spar.disabled = true; status.textContent = "Sparar …";
+        const pr = pris.value === "" ? null : Math.round(+pris.value);
+        const auk = st_.auk;
+        const proveniens = [`Köpt ${App.datum(datum.value || App.idag())}${stalle.value.trim() ? " på " + stalle.value.trim() : ""}${pr != null ? " för " + kr(pr) : ""}.`,
+          `Identifierad av Claude (säkerhet ${Math.round((r.sakerhet || 0) * 100)} %)${r.stampel_last ? `, stämpel: ”${r.stampel_last}”` : st_.ingenStampel ? ", ingen stämpel" : ""}.`,
+          st_.kommentar ? "Rättelse: " + st_.kommentar : "",
+          auk && auk.topp.length ? `Auctionet: ${auk.topp[0][0]} på ${auk.topp[0][1]} av ${auk.salda.length} sålda för ”${auk.fras}”.` : ""].filter(Boolean).join("\n");
+        const id = App.nyttId(f("namn"));
+        const rad = { id, user_id: konto.uid, lada: lada.value, namn: f("namn").slice(0, 120), kategori: KATEGORIER.includes(r.kategori) ? r.kategori : "Keramik & porslin",
+          tillverkare: f("tillverkare") || "Okänd", formgivare: f("formgivare") || null, serie: f("serie"), period: f("period") || null, stampel: f("stampel") || null,
+          skick: r.skick || null, antal: r.antal || 1, sokord: r.sokord || "", inkopspris: pr, inkopt: datum.value || App.idag(), inkopsstalle: stalle.value.trim() || null,
+          marknad_min: r.marknad_min, marknad_max: r.marknad_max, marknad_sakerhet: Math.round((r.sakerhet || 0) * 100) + " %",
+          auk_median: auk && auk.salt ? auk.salt.median : null, pris_uppdaterad: auk && auk.salt ? App.idag() : null,
+          jfr: auk && auk.salt ? `Auctionet: ${auk.salt.antal} sålda för ”${auk.fras}”, median ${kr(auk.salt.median)} (${kr(auk.salt.lag)}–${kr(auk.salt.hog)}).` : null,
+          jfr_url: auk ? "https://auctionet.com/sv/search?is=ended&q=" + encodeURIComponent(auk.fras) : null,
+          anteckning: r.resonemang || "", proveniens, bilder: [] };
+        try {
+          const { data, error } = await konto.sb.from("samling_foremal").insert(rad).select().single();
+          if (error) throw new Error("Kunde inte spara: " + error.message);
+          konto.samling.unshift(data);
+          const bilder = [];
+          let n = 0;
+          for (const s_ of [st_.obj, st_.stampel, ...st_.extra].filter(Boolean)) {
+            n += 1; status.textContent = `Laddar upp bild ${n} …`;
+            const path = `${konto.uid}/${id}/${n}.jpg`; await App.laddaUppBild(path, s_.blob); bilder.push({ n, path });
+          }
+          if (bilder.length) Object.assign(data, await spara(id, { bilder }));
+          p.stang(); render();
+          const ark = App.sheet("", el("div", { class: "kopt-ark" }));
+          koptKlar(data, ark.el.querySelector(".kopt-ark"), ark, pr);
+        } catch (e) { status.textContent = e.message; spar.disabled = false; }
+      };
+    }
+    uppdatera();
+  }
+
   // ── Lägg till (ark med tre val) ───────────────────────────────────
   function laggTillMeny() {
     App.sheet("Nytt köp eller föremål", [
-      { ikon: "📷", text: "Fota med kameran", under: "Claude föreslår namn, tillverkare och värde", label: true, capture: "environment", primar: true, onchange: e => { const f = [...e.target.files]; if (f.length) nyttForemal(f); } },
-      { ikon: "🖼", text: "Välj från galleriet", under: "en eller flera bilder av samma föremål", label: true, multiple: true, onchange: e => { const f = [...e.target.files]; if (f.length) nyttForemal(f); } },
+      { ikon: "📷", text: "Fota och identifiera", under: "föremålet, sedan stämpeln – Claude och Auctionet tar fram formgivare och serie", primar: true, onclick: () => identifiera() },
+      { ikon: "🖼", text: "Snabbt från galleriet", under: "utan stämpelsteg – Claude gissar på bilderna", label: true, multiple: true, onchange: e => { const f = [...e.target.files]; if (f.length) nyttForemal(f); } },
       { ikon: "✎", text: "Skriv in utan bild", under: "bilder kan läggas till senare", onclick: () => nyttForemal([]) },
     ]);
   }
@@ -220,7 +386,7 @@
   }
 
   // ── Detaljpanel ───────────────────────────────────────────────────
-  const GRUNDFAKTA = [["namn", "Namn", "text", "bred"], ["kategori", "Kategori", "select"], ["tillverkare", "Tillverkare", "text"], ["serie", "Serie", "text"],
+  const GRUNDFAKTA = [["namn", "Namn", "text", "bred"], ["kategori", "Kategori", "select"], ["tillverkare", "Tillverkare", "text"], ["formgivare", "Formgivare", "text"], ["serie", "Serie/modell", "text"],
     ["antal", "Antal", "number"], ["period", "Period", "text"], ["stampel", "Stämpel", "text"], ["skick", "Skick", "text"]];
   const KOP = [["inkopspris", "Inköpspris (kr)", "number"], ["inkopt", "Inköpt", "date"], ["inkopsstalle", "Inköpsställe", "text"]];
   const VARDE = [["auk_median", "Värde – auktionsmedian (kr)", "number"], ["marknad_min", "Uppskattat lägst (kr)", "number"], ["marknad_max", "Uppskattat högst (kr)", "number"]];
@@ -514,7 +680,7 @@
         const r = await App.kannIgen({ typ: "butik", bilder: skalade.map(s => App.dataUrlTillBase64(s.dataUrl)), mediatyp: "image/jpeg",
                                        smak: konto.installningar.smak || "", har_redan: harRedanText() });
         const satt = (id, v) => { const e = form.elements[id]; if (e && v != null && v !== "" && !e.value) e.value = v; };
-        satt("namn", r.namn); satt("tillverkare", r.tillverkare); satt("serie", r.serie); satt("period", r.period); satt("stampel", r.stampel_last);
+        satt("namn", r.namn); satt("tillverkare", r.tillverkare); satt("formgivare", r.formgivare); satt("serie", r.serie); satt("period", r.period); satt("stampel", r.stampel_last);
         satt("skick", r.skick); satt("antal", r.antal); if (KATEGORIER.includes(r.kategori)) form.elements.kategori.value = r.kategori;
         satt("sokord", r.sokord); satt("marknad_min", r.marknad_min); satt("marknad_max", r.marknad_max);
         form.dataset.sokord = r.sokord || ""; claude = r;
@@ -535,7 +701,7 @@
       const proveniens = v.inkopspris != null || v.inkopsstalle ? [`Köpt ${v.inkopt ? App.datum(v.inkopt) : ""}${v.inkopsstalle ? " på " + v.inkopsstalle : ""}${v.inkopspris != null ? " för " + kr(v.inkopspris) : ""}.`.replace("Köpt  ", "Köpt "),
         claude ? `Claude: ${[claude.tillverkare, claude.formgivare, claude.serie, claude.period].filter(Boolean).join(" · ")}${claude.marknad_min != null ? `, marknad ${spann(claude.marknad_min, claude.marknad_max)}` : ""} (säkerhet ${Math.round(claude.sakerhet * 100)} %).` : ""].filter(Boolean).join("\n") : null;
       const rad = { id, user_id: konto.uid, lada: lada.value, ...v, antal: Math.max(1, v.antal || 1), tillverkare: v.tillverkare || "Okänd",
-        sokord: form.dataset.sokord || "", anteckning: claude && claude.formgivare ? "Formgivare: " + claude.formgivare + "." : "", proveniens, bilder: [] };
+        sokord: form.dataset.sokord || "", anteckning: "", proveniens, bilder: [] };
       try {
         const { data, error } = await konto.sb.from("samling_foremal").insert(rad).select().single();
         if (error) throw new Error("Kunde inte spara: " + error.message);

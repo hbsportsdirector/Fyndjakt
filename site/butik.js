@@ -109,12 +109,12 @@
     const r = bk.res, b = Logik.butikBesked(r, pris(), !!bk.stampel);
     const namn = r.namn || [r.tillverkare, r.serie].filter(Boolean).join(" ") || "Föremål";
     const rad = { namn: namn.slice(0, 120), lada: r.passar_smak ? "egen" : b.besked === "KÖP" ? "salj" : "oklart",
-      kategori: r.kategori || "Keramik & porslin", tillverkare: r.tillverkare || "Okänd", serie: r.serie || "", antal: r.antal || 1,
+      kategori: r.kategori || "Keramik & porslin", tillverkare: r.tillverkare || "Okänd", formgivare: r.formgivare || null, serie: r.serie || "", antal: r.antal || 1,
       period: r.period || null, stampel: r.stampel_last || null, skick: r.skick || null, sokord: r.sokord || "",
       inkopspris: pris() != null ? Math.round(pris()) : null, inkopsstalle: "",
       marknad_min: r.marknad_min, marknad_max: r.marknad_max, marknad_sakerhet: Math.round(r.sakerhet * 100) + " %",
       tradera_pris: b.besked === "KÖP" ? b.median : null, saker: r.sakerhet >= 0.7 ? "säker" : "trolig",
-      anteckning: [r.formgivare ? "Formgivare: " + r.formgivare + "." : "", `Bedömd i butiken ${App.idag()}: ${b.besked}. ${r.resonemang || ""}`.trim()].filter(Boolean).join("\n") };
+      anteckning: `Bedömd i butiken ${App.idag()}: ${b.besked}. ${r.resonemang || ""}`.trim() };
     const kalla = [`Bedömd i butiken: ${b.besked}${r.marknad_min != null ? `, marknad ${kr(r.marknad_min)}–${kr(r.marknad_max)}` : ""} (säkerhet ${Math.round(r.sakerhet * 100)} %).`,
       r.stampel_last ? "Stämpel: " + r.stampel_last : ""];
     const it = await App.kopt({ rad, blobs: [bk.obj, bk.stampel].filter(Boolean).map(s => s.blob), kalla });
