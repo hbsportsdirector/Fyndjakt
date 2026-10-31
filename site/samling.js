@@ -184,7 +184,7 @@
 
   // ── Lägg till (ark med tre val) ───────────────────────────────────
   function laggTillMeny() {
-    App.sheet("Lägg till föremål", [
+    App.sheet("Nytt köp eller föremål", [
       { ikon: "📷", text: "Fota med kameran", under: "Claude föreslår namn, tillverkare och värde", label: true, capture: "environment", primar: true, onchange: e => { const f = [...e.target.files]; if (f.length) nyttForemal(f); } },
       { ikon: "🖼", text: "Välj från galleriet", under: "en eller flera bilder av samma föremål", label: true, multiple: true, onchange: e => { const f = [...e.target.files]; if (f.length) nyttForemal(f); } },
       { ikon: "✎", text: "Skriv in utan bild", under: "bilder kan läggas till senare", onclick: () => nyttForemal([]) },
@@ -468,21 +468,22 @@
     const status = el("div", { class: "status" });
     const bilder = el("div", { class: "galleri" });
     const form = el("form", { class: "detalj" }); form.noValidate = true;
-    form.append(el("div", { class: "huvud" }, el("h2", {}, "Nytt föremål"), el("button", { class: "knapp liten", type: "button", onclick: () => p.stang() }, "Avbryt")));
+    form.append(el("div", { class: "huvud" }, el("h2", {}, "Nytt köp"), el("button", { class: "knapp liten", type: "button", onclick: () => p.stang() }, "Avbryt")));
     form.append(bilder, status);
-    const tom = { lada: "egen", kategori: "Keramik & porslin", antal: 1, tillverkare: "", serie: "", inkopt: App.idag() };
-    const lada = el("select", { name: "lada" }, ...LADOR.map(([v, t]) => el("option", { value: v }, t)));
-    form.append(el("div", { class: "falt-grid" }, el("label", {}, "Låda", lada)));
+    const tom = { lada: "oklart", kategori: "Keramik & porslin", antal: 1, tillverkare: "", serie: "", inkopt: App.idag() };
+    const lada = el("select", { name: "lada" }, ...[...VART, ["salt", "✓ Redan såld"]].map(([v, t]) => el("option", { value: v }, t))); lada.value = tom.lada;
+    form.append(el("div", { class: "falt-grid" }, el("label", { class: "bred" }, "Vad ska du göra med den?", lada)));
+    form.append(grupp("Köp", tom, KOP, true, "pris, datum, ställe"));
     const forslag = el("div", { class: "ruta tips", hidden: true, style: "margin-top:10px" });
     form.append(forslag);
     form.append(grupp("Grundfakta", tom, GRUNDFAKTA, true));
-    form.append(grupp("Köp", tom, KOP, true, "pris, datum, ställe"));
     form.append(grupp("Värde", tom, VARDE, false, "fylls i av Claude om du fotat"));
     form.append(el("div", { class: "rad", style: "margin-top:16px" }, el("button", { class: "knapp primar", type: "submit" }, "Spara i samlingen")));
     const p = App.panel(form);
     if (!filer.length) form.elements.namn.focus();
 
     const skalade = [];
+    let claude = null;
     for (const f of filer.slice(0, 4)) { const s = await App.skalaNer(f, 1600); skalade.push(s); bilder.append(el("div", { class: "b" }, el("img", { src: s.dataUrl, alt: "" }))); }
     if (skalade.length) {
       status.textContent = "Claude tittar på bilden – fyll gärna i låda och pris så länge …";
@@ -493,7 +494,7 @@
         satt("namn", r.namn); satt("tillverkare", r.tillverkare); satt("serie", r.serie); satt("period", r.period); satt("stampel", r.stampel_last);
         satt("skick", r.skick); satt("antal", r.antal); if (KATEGORIER.includes(r.kategori)) form.elements.kategori.value = r.kategori;
         satt("sokord", r.sokord); satt("marknad_min", r.marknad_min); satt("marknad_max", r.marknad_max);
-        form.dataset.sokord = r.sokord || "";
+        form.dataset.sokord = r.sokord || ""; claude = r;
         forslag.hidden = false;
         forslag.replaceChildren(el("b", {}, "Claudes förslag – ändra fritt. "),
           `${r.namn} · ${[r.tillverkare, r.formgivare, r.serie, r.period].filter(Boolean).join(" · ")} · säkerhet ${Math.round(r.sakerhet * 100)} %. `,
@@ -508,8 +509,10 @@
       if (!v.namn) { status.textContent = "Ge föremålet ett namn."; form.elements.namn.focus(); return; }
       status.textContent = "Sparar …";
       const id = App.nyttId(v.namn);
+      const proveniens = v.inkopspris != null || v.inkopsstalle ? [`Köpt ${v.inkopt ? App.datum(v.inkopt) : ""}${v.inkopsstalle ? " på " + v.inkopsstalle : ""}${v.inkopspris != null ? " för " + kr(v.inkopspris) : ""}.`.replace("Köpt  ", "Köpt "),
+        claude ? `Claude: ${[claude.tillverkare, claude.formgivare, claude.serie, claude.period].filter(Boolean).join(" · ")}${claude.marknad_min != null ? `, marknad ${spann(claude.marknad_min, claude.marknad_max)}` : ""} (säkerhet ${Math.round(claude.sakerhet * 100)} %).` : ""].filter(Boolean).join("\n") : null;
       const rad = { id, user_id: konto.uid, lada: lada.value, ...v, antal: Math.max(1, v.antal || 1), tillverkare: v.tillverkare || "Okänd",
-        sokord: form.dataset.sokord || "", anteckning: "", bilder: [] };
+        sokord: form.dataset.sokord || "", anteckning: claude && claude.formgivare ? "Formgivare: " + claude.formgivare + "." : "", proveniens, bilder: [] };
       try {
         const { data, error } = await konto.sb.from("samling_foremal").insert(rad).select().single();
         if (error) throw new Error("Kunde inte spara: " + error.message);
@@ -522,7 +525,10 @@
         }
         if (nya.length) Object.assign(data, await spara(id, { bilder: nya }));
         App.sand("samling-andrad");
-        p.stang(); render(); toast("Sparat i " + LADNAMN[lada.value]);
+        p.stang(); render();
+        // Samma avslutning som Köpt i Butik/Fynd: FJ-numret stort och Claudes texter.
+        const ark = App.sheet("", el("div", { class: "kopt-ark" }));
+        koptKlar(data, ark.el.querySelector(".kopt-ark"), ark, data.inkopspris);
       } catch (x) { status.textContent = x.message; }
     };
   }
@@ -603,12 +609,8 @@
       const { data, error } = await konto.sb.from("samling_foremal").insert(ny).select().single();
       if (error) throw new Error("Kunde inte spara: " + error.message);
       const it = data; konto.samling.unshift(it);
-      const steg = el("div", { class: "muted" }, "Sparar bilderna …");
-      vis.replaceChildren(
-        el("div", { class: "kopt-nr" }, App.fjNr(it)),
-        el("p", {}, "Skriv numret på en lapp eller maskeringstejp under föremålet – då hittar du det i appen."),
-        el("div", { class: "muted" }, it.namn + " · " + (LADNAMN[it.lada] || it.lada) + (pris != null ? " · " + kr(pris) : "")),
-        steg);
+      const steg = koptHuvud(it, vis, pris);
+      steg.textContent = "Sparar bilderna …";
       let bilder = [];
       if (blobs.length) {
         let n = 0;
@@ -617,21 +619,35 @@
         try { bilder = (await App.kannIgen({ typ: "kopiera_bilder", id: it.id, urlar: urlar.slice(0, 4) })).bilder || []; } catch (e) { console.error(e); }
       }
       if (bilder.length) Object.assign(it, await spara(it.id, { bilder }));
-      steg.textContent = "Claude skriver beskrivning och annons …";
-      try {
-        await skrivTexter(it);
-        steg.replaceChildren(...[
-          it.lada === "salj" && it.annons_text ? textBlock("Säljannons", [it.annons_rubrik, it.annons_text].filter(Boolean).join("\n\n")) : null,
-          it.beskrivning ? textBlock("Beskrivning", it.beskrivning) : null].filter(Boolean));
-      } catch (e) { steg.textContent = "Texterna kunde inte skrivas nu (" + e.message + "). Tryck ”Skriv beskrivning” i föremålet senare."; }
-      vis.append(el("div", { class: "rad", style: "margin-top:12px" },
-        el("button", { class: "knapp primar", type: "button", onclick: () => { ark.stang(); App.visa("samling"); oppnaDetalj(it.id); } }, "Öppna i samlingen"),
-        el("button", { class: "knapp", type: "button", onclick: () => ark.stang() }, "Klar")));
-      App.sand("samling-andrad"); render();
+      await koptKlar(it, vis, ark, pris, steg);
       return it;
     } catch (e) { vis.replaceChildren(el("p", {}, e.message), el("button", { class: "knapp", type: "button", onclick: () => ark.stang() }, "Stäng")); return null; }
   }
   App.kopt = kopt;
+  function koptHuvud(it, vis, pris) {
+    const steg = el("div", { class: "muted" });
+    vis.replaceChildren(
+      el("div", { class: "kopt-nr" }, App.fjNr(it)),
+      el("p", {}, "Skriv numret på en lapp eller maskeringstejp under föremålet – då hittar du det i appen."),
+      el("div", { class: "muted" }, it.namn + " · " + (LADNAMN[it.lada] || it.lada) + (pris != null ? " · " + kr(pris) : "")),
+      steg);
+    return steg;
+  }
+  // FJ-numret, Claudes texter och knapparna – sista steget för alla sätt att registrera ett köp.
+  async function koptKlar(it, vis, ark, pris, steg) {
+    steg = steg || koptHuvud(it, vis, pris);
+    steg.textContent = "Claude skriver beskrivning och annons …";
+    try {
+      await skrivTexter(it);
+      steg.replaceChildren(...[
+        it.lada === "salj" && it.annons_text ? textBlock("Säljannons", [it.annons_rubrik, it.annons_text].filter(Boolean).join("\n\n")) : null,
+        it.beskrivning ? textBlock("Beskrivning", it.beskrivning) : null].filter(Boolean));
+    } catch (e) { steg.textContent = "Texterna kunde inte skrivas nu (" + e.message + "). Tryck ”Skriv beskrivning” i föremålet senare."; }
+    vis.append(el("div", { class: "rad", style: "margin-top:12px" },
+      el("button", { class: "knapp primar", type: "button", onclick: () => { ark.stang(); App.visa("samling"); oppnaDetalj(it.id); } }, "Öppna i samlingen"),
+      el("button", { class: "knapp", type: "button", onclick: () => ark.stang() }, "Klar")));
+    App.sand("samling-andrad"); render();
+  }
 
   App.del("samling", { namn: "Samling", ikon: "🏺",
     montera(sek) {
@@ -640,7 +656,7 @@
       const h = App.huvud("samling", "Samling", "");
       h.querySelector(".sub").id = "s-antal";
       h.insertBefore(el("span", { class: "rad hoger" },
-        el("button", { class: "knapp primar", type: "button", id: "s-ny", onclick: laggTillMeny }, "＋ Lägg till"),
+        el("button", { class: "knapp primar", type: "button", id: "s-ny", onclick: laggTillMeny }, "＋ Nytt köp"),
         el("button", { class: "knapp", type: "button", "aria-label": "Mer", onclick: merMeny }, "⋯")), h.querySelector(".hjalp"));
       sek.append(h,
         el("div", { id: "s-forslag" }),
@@ -650,7 +666,7 @@
           el("select", { id: "s-kategori", "aria-label": "Kategori" }),
           el("select", { id: "s-sort", "aria-label": "Sortera" }, new Option("Senast ändrad", "andrad"), new Option("Namn A–Ö", "namn"), new Option("Mest värt först", "varde"), new Option("Kategori", "kategori")))),
         el("div", { class: "s-rutnat", id: "s-rutnat" }),
-        el("button", { class: "fab", type: "button", "aria-label": "Lägg till föremål", onclick: laggTillMeny }, "＋"));
+        el("button", { class: "fab", type: "button", "aria-label": "Nytt köp", onclick: laggTillMeny }, "＋"));
       $("s-q").value = st.q; $("s-sort").value = st.sort;
       $("s-q").oninput = e => { st.q = e.target.value.trim(); render(); };
       $("s-sort").onchange = e => { st.sort = e.target.value; render(); };
