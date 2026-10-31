@@ -39,12 +39,13 @@ def hamta(fras: str) -> list[dict]:
         r.raise_for_status()
         data = r.json()
         for p in data.get("items", []):
-            if p.get("currency") != "SEK" or not prisjamforelse.relevant((p.get("title") or "").lower(), fras):
+            beskr = re.sub(r"<[^>]+>", " ", p.get("description") or "")
+            # Orden får stå i titeln eller beskrivningen – modellnummer ("1034") står sällan i titeln.
+            if p.get("currency") != "SEK" or not prisjamforelse.relevant(((p.get("title") or "") + " " + beskr).lower(), fras):
                 continue
             sald = p.get("state") == "sold"
             pris = (p.get("highest_bid") or max((b.get("amount", 0) for b in p.get("bids") or []), default=0)) if sald else 0
             titel = (p.get("title") or "").strip()
-            beskr = re.sub(r"<[^>]+>", " ", p.get("description") or "")
             ut.append({"datum": datetime.fromtimestamp(p.get("ends_at") or 0, timezone.utc).date(), "sald": sald,
                        "pris": int(pris), "utrop": p.get("estimate"), "delar": delar(titel, beskr), "titel": titel,
                        "url": str(p.get("url") or "").replace("auctionet.com/en/", "auctionet.com/sv/")})
