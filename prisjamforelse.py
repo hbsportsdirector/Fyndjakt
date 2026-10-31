@@ -21,6 +21,7 @@ def _ord(fras: str) -> list[str]:
 STORLEK_TOLERANS = 0.25      # jämför bara med föremål inom ±25 % av höjden …
 STORLEK_MIN_CM = 3           # … men minst ±3 cm
 MIN_SAMMA_STORLEK = 3        # färre sålda i samma storlek: jämför med alla (och säg det)
+STORLEK_SPRIDNING = 1.6      # okänd storlek är "osäker" när de sålda skiljer mer än så i höjd (högsta ÷ lägsta)
 
 
 def hojd(text: str) -> float | None:
@@ -51,12 +52,21 @@ def storleksurval(poster: list[dict], storlek: float | None) -> tuple[list[dict]
     return poster, False, None
 
 
-def storlek_text(storlek: float | None, filtrerat: bool, spann: tuple | None, antal: int) -> str:
+def spridning(poster: list[dict]) -> tuple | None:
+    """(lägsta, högsta) höjd bland de sålda – om minst tre anger höjd och de skiljer mer än STORLEK_SPRIDNING."""
+    h = sorted(x for p in poster if (x := hojd(p.get("text", ""))) is not None)
+    return (h[0], h[-1]) if len(h) >= 3 and h[-1] / h[0] >= STORLEK_SPRIDNING else None
+
+
+def storlek_text(storlek: float | None, filtrerat: bool, spann: tuple | None, antal: int, sprid: tuple | None = None) -> str:
+    """Raden på fyndkortet. Börjar med "Osäker:" när jämförelsen kan blanda små och stora (sajten visar en stämpel)."""
+    if storlek is None and sprid:
+        return f"Osäker: annonsen anger ingen höjd och de sålda är {sprid[0]:g}–{sprid[1]:g} cm höga"
     if not storlek:
         return ""
     if filtrerat and spann:
         return f"{storlek:g} cm – jämfört med {antal} sålda {spann[0]}–{spann[1]} cm höga"
-    return f"{storlek:g} cm – för få sålda i samma storlek, jämfört med alla storlekar"
+    return f"Osäker: {storlek:g} cm – för få sålda i samma storlek, jämfört med alla storlekar"
 
 
 def relevant(titel: str, fras: str) -> bool:
@@ -190,10 +200,12 @@ def jamfor(fras: str, uteslut: tuple = (), per_styck: bool = False, storlek: flo
     return sammanfatta_poster(salda_poster(fras, uteslut=uteslut, per_styck=per_styck), storlek)
 
 
-def sammanfatta_poster(poster: list[dict], storlek: float | None = None) -> dict | None:
+def sammanfatta_poster(poster: list[dict], storlek: float | bool | None = None) -> dict | None:
+    """storlek: höjd i cm, None = okänd (då kollas om de sålda spretar i storlek), False = storleken spelar ingen roll."""
     urval, filtrerat, spann = storleksurval(poster, storlek)
     res = sammanfatta([x["pris"] for x in urval])
     if not res:
         return None
-    return {**res, "exempel": exempel(urval), "storlek": storlek, "storleksfiltrerat": filtrerat,
-            "storlek_text": storlek_text(storlek, filtrerat, spann, res["antal"])}
+    sprid = spridning(urval) if storlek is None else None
+    return {**res, "exempel": exempel(urval), "storlek": storlek or None, "storleksfiltrerat": filtrerat,
+            "storlek_text": storlek_text(storlek or None, filtrerat, spann, res["antal"], sprid)}

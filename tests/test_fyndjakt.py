@@ -1407,7 +1407,14 @@ def test_jamforelse_samma_storlek(monkeypatch):
     # För få i samma storlek: alla storlekar, och det sägs ut.
     stor = flipp.jamfor_typat("Gunnar Nylund vas", "vas", storlek=60)
     assert not stor["storleksfiltrerat"] and "för få sålda i samma storlek" in stor["storlek_text"]
+    assert stor["storlek_text"].startswith("Osäker:")
+    # Okänd höjd och sålda från 10 till 40 cm: osäker. Lika stora sålda, eller platta föremål: ingen stämpel.
+    assert flipp.jamfor_typat("Gunnar Nylund vas", "vas")["storlek_text"] == "Osäker: annonsen anger ingen höjd och de sålda är 10–40 cm höga"
+    assert flipp.jamfor_typat("Gunnar Nylund vas", "vas", storlek=False)["storlek_text"] == ""
+    monkeypatch.setattr(prisjamforelse, "salda_poster", lambda *a, **k: [p(300, 10), p(400, 12), p(350, 11)])
+    assert flipp.jamfor_typat("Gunnar Nylund vas", "vas")["storlek_text"] == ""
     a = Annons(kalla="tradera", id="1", titel="Vas i chamotterat stengods Gunnar Nylund", url="u", beskrivning="Höjd 11 cm. Fint skick.")
     assert flipp.storlek_for(a, {"typ": "vas", "styck": 1}) == 11
-    assert flipp.storlek_for(a, {"typ": "vas", "styck": 3}) is None
-    assert flipp.storlek_for(a, {"typ": "tallrik", "styck": 1}) is None
+    assert flipp.storlek_for(a, {"typ": "vas", "styck": 3}) is False
+    assert flipp.storlek_for(a, {"typ": "tallrik", "styck": 1}) is False
+    assert flipp.storlek_for(Annons(kalla="tradera", id="2", titel="Vas Nylund", url="u"), {"typ": "vas"}) is None

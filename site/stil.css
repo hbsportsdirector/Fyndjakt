@@ -634,3 +634,6 @@ a.salda-alla { display: inline-block; color: var(--brass); padding: 8px 0 2px; m
 .bild-knapp { cursor: pointer; margin-bottom: 0; }
 .bild-knapp.primar-slot { border-color: var(--brass); }
 .bild-knapp .id-ikon { flex: 0 0 44px; text-align: center; font-size: 26px; }
+.osaker-stampel { display: inline-block; margin-left: 6px; font-size: 10px; font-family: var(--sans); letter-spacing: .06em; text-transform: uppercase;
+  color: var(--brass); border: 1px solid var(--brass); border-radius: 4px; padding: 0 4px; vertical-align: middle; }
+.tal .osaker-stampel { font: 600 9px/1.5 var(--sans); font-style: normal; display: inline-block; margin-left: 6px; padding: 0 4px; }

@@ -389,13 +389,14 @@ def jamfor_typat(fras: str, typ: str, storlek: float | None = None) -> dict | No
 UTAN_STORLEK_TYPER = ("tallrik", "fat", "assiett", "servis", "bricka", "tavla", "matta")   # där mått ≠ höjd
 
 
-def storlek_for(a, info: dict | None = None) -> float | None:
-    """Höjden i cm om annonsen anger den (titel eller beskrivning). Inte för partier eller platta föremål."""
+def storlek_for(a, info: dict | None = None) -> float | bool | None:
+    """Höjden i cm om annonsen anger den (titel eller beskrivning), None om den inte gör det.
+    False för partier och platta föremål – där spelar höjden ingen roll (och då blir det ingen osäker-stämpel)."""
     info = info or {}
     if (info.get("styck") or 1) > 1 or info.get("blandat"):
-        return None
+        return False
     if any(t in (info.get("typ") or "").lower() for t in UTAN_STORLEK_TYPER):
-        return None
+        return False
     return prisjamforelse.hojd(f"{a.titel} {getattr(a, 'beskrivning', '') or ''}")
 
 
