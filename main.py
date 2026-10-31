@@ -215,9 +215,11 @@ def prisjamfor(db: Databas, cfg: dict) -> None:
             if not fras:
                 klient = klient or bedomning._klient()
                 fras = bedomning.foresla_jamforsok(r["titel"], cfg["modell"], klient)
-            if fras.lower() not in cache:
-                cache[fras.lower()] = prisjamforelse.jamfor(fras)
-            res = cache[fras.lower()]
+            storlek = prisjamforelse.hojd(r.get("titel") or "")   # en liten vas jämförs inte med stora
+            k = (fras.lower(), storlek)
+            if k not in cache:
+                cache[k] = prisjamforelse.jamfor(fras, storlek=storlek)
+            res = cache[k]
             db.spara_jamforelse(r["nyckel"], fras, res)
             if res:
                 print(f"  {fras:28} median {res['median']} kr ({res['antal']} sålda)")

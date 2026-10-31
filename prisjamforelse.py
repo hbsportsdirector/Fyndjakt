@@ -18,6 +18,47 @@ def _ord(fras: str) -> list[str]:
     return [o for o in re.findall(r"[\wåäöéü]+", fras.lower()) if o not in SMAORD and len(o) > 1]
 
 
+STORLEK_TOLERANS = 0.25      # jämför bara med föremål inom ±25 % av höjden …
+STORLEK_MIN_CM = 3           # … men minst ±3 cm
+MIN_SAMMA_STORLEK = 3        # färre sålda i samma storlek: jämför med alla (och säg det)
+
+
+def hojd(text: str) -> float | None:
+    """Höjden i cm ur en text: "höjd 25 cm", "H 25,5 cm", "25 cm hög", eller ett ensamt "Vas, 25 cm".
+    Mått som "100×60 cm" och "Ø 20 cm" räknas inte som höjd."""
+    t = (text or "").lower().replace(",", ".")
+    m = re.search(r"(?:höjd|hojd|\bh)\s*[:.]?\s*(?:ca\.?|cirka)?\s*(\d{1,3}(?:\.\d)?)\s*cm", t) or \
+        re.search(r"(\d{1,3}(?:\.\d)?)\s*cm\s+hög", t)
+    if not m:
+        ensamma = [x for x in re.finditer(r"(?<![×x*\d.])(\d{1,3}(?:\.\d)?)\s*cm", t)
+                   if not re.search(r"(ø|diam|bredd|längd|djup|[×x*]\s*)$", t[max(0, x.start() - 8):x.start()].strip())]
+        if len(ensamma) != 1 or re.search(r"\d\s*[×x*]\s*\d", t):
+            return None
+        m = ensamma[0]
+    v = float(m.group(1))
+    return v if 3 <= v <= 150 else None
+
+
+def storleksurval(poster: list[dict], storlek: float | None) -> tuple[list[dict], bool, tuple | None]:
+    """(urval, filtrerat, (lägst, högst) cm). Med känd höjd: bara sålda i ungefär samma storlek – om det finns
+    minst MIN_SAMMA_STORLEK sådana. Annars alla (blandade storlekar) och filtrerat=False."""
+    if not storlek:
+        return poster, False, None
+    marg = max(storlek * STORLEK_TOLERANS, STORLEK_MIN_CM)
+    lika = [p for p in poster if (h := hojd(p.get("text", ""))) is not None and abs(h - storlek) <= marg]
+    if len(lika) >= MIN_SAMMA_STORLEK:
+        return lika, True, (round(storlek - marg), round(storlek + marg))
+    return poster, False, None
+
+
+def storlek_text(storlek: float | None, filtrerat: bool, spann: tuple | None, antal: int) -> str:
+    if not storlek:
+        return ""
+    if filtrerat and spann:
+        return f"{storlek:g} cm – jämfört med {antal} sålda {spann[0]}–{spann[1]} cm höga"
+    return f"{storlek:g} cm – för få sålda i samma storlek, jämfört med alla storlekar"
+
+
 def relevant(titel: str, fras: str) -> bool:
     """Alla meningsfulla ord i sökfrasen måste finnas i titeln (ordstam räcker, t.ex. 'vas' ~ 'vaser')."""
     t = titel.lower()
@@ -82,13 +123,15 @@ def tolka_poster(poster: list[dict], fras: str, gräns: float = 0, uteslut: tupl
         if relevant(titel, fras) and not any(o in titel for o in uteslut):
             st = styck_i(titel) if per_styck else 1
             ut.append({"pris": round(pris / st) if st > 1 else int(pris), "klubbat": int(pris), "styck": st,
-                       "titel": (p.get("title") or "").strip(), "url": item_url(p), "slutade": p.get("ends_at")})
+                       "titel": (p.get("title") or "").strip(), "url": item_url(p), "slutade": p.get("ends_at"),
+                       "text": (p.get("title") or "") + " " + _ren_text(p.get("description", ""))})
     return ut
 
 
 def exempel(poster: list[dict], antal: int = 6) -> list[dict]:
     """De senast sålda – för länkar på sajten, så att man kan se vad jämförelsen bygger på."""
-    return [{**x, "titel": x["titel"][:90]} for x in sorted(poster, key=lambda x: -(x.get("slutade") or 0))[:antal]]
+    return [{**{k: v for k, v in x.items() if k != "text"}, "titel": x["titel"][:90]}
+            for x in sorted(poster, key=lambda x: -(x.get("slutade") or 0))[:antal]]
 
 
 def _ren_text(html: str) -> str:
@@ -140,9 +183,17 @@ def sammanfatta(priser: list[int]) -> dict | None:
     return {"median": round(statistics.median(s)), "lag": round(kvart[0]), "hog": round(kvart[2]), "antal": len(s)}
 
 
-def jamfor(fras: str, uteslut: tuple = (), per_styck: bool = False) -> dict | None:
+def jamfor(fras: str, uteslut: tuple = (), per_styck: bool = False, storlek: float | None = None) -> dict | None:
+    """Median m.m. för sålda som matchar frasen. storlek (cm): jämför bara med sålda i ungefär samma höjd."""
     if not fras or not _ord(fras):
         return None
-    poster = salda_poster(fras, uteslut=uteslut, per_styck=per_styck)
-    res = sammanfatta([x["pris"] for x in poster])
-    return res and {**res, "exempel": exempel(poster)}
+    return sammanfatta_poster(salda_poster(fras, uteslut=uteslut, per_styck=per_styck), storlek)
+
+
+def sammanfatta_poster(poster: list[dict], storlek: float | None = None) -> dict | None:
+    urval, filtrerat, spann = storleksurval(poster, storlek)
+    res = sammanfatta([x["pris"] for x in urval])
+    if not res:
+        return None
+    return {**res, "exempel": exempel(urval), "storlek": storlek, "storleksfiltrerat": filtrerat,
+            "storlek_text": storlek_text(storlek, filtrerat, spann, res["antal"])}

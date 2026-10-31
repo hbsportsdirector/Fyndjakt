@@ -20,20 +20,7 @@ UTAN_STORLEK = {"Konst", "Böcker", "Möbler"}   # mått där betyder annat (bre
 MANADER = ["jan", "feb", "mar", "apr", "maj", "jun", "jul", "aug", "sep", "okt", "nov", "dec"]
 
 
-def hojd(text: str) -> float | None:
-    """Höjden i cm ur en text: "höjd 25 cm", "H 25,5 cm", "25 cm hög", eller ett ensamt "Vas, 25 cm".
-    Mått som "100×60 cm" och "Ø 20 cm" räknas inte som höjd."""
-    t = (text or "").lower().replace(",", ".")
-    m = re.search(r"(?:höjd|hojd|\bh)\s*[:.]?\s*(?:ca\.?|cirka)?\s*(\d{1,3}(?:\.\d)?)\s*cm", t) or \
-        re.search(r"(\d{1,3}(?:\.\d)?)\s*cm\s+hög", t)
-    if not m:
-        ensamma = [x for x in re.finditer(r"(?<![×x*\d.])(\d{1,3}(?:\.\d)?)\s*cm", t)
-                   if not re.search(r"(ø|diam|bredd|längd|djup|[×x*]\s*)$", t[max(0, x.start() - 8):x.start()].strip())]
-        if len(ensamma) != 1 or re.search(r"\d\s*[×x*]\s*\d", t):
-            return None
-        m = ensamma[0]
-    v = float(m.group(1))
-    return v if 3 <= v <= 150 else None
+hojd = prisjamforelse.hojd   # samma höjdläsning som fyndens prisjämförelse
 
 
 def jamforbara(poster: list[dict], storlek: float | None) -> tuple[list[dict], bool]:

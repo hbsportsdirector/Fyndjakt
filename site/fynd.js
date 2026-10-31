@@ -78,6 +78,9 @@
     tal.append(cell("Köp max", p.kop_max ? kr(p.kop_max) : p.jmf_median ? kr(Math.round(p.jmf_median * Logik.KOPTAK_FLIPP)) : "–", "kop"));
     tal.append(cell("Säljs för", slutpris ? kr(slutpris) : "–"));
     kropp.append(tal);
+    // Storleken: en liten vas jämförs bara med sålda i samma höjd. Står det "för få" är jämförelsen osäkrare.
+    if (p.jmf_storlek) kropp.append(el("p", { class: /för få/.test(p.jmf_storlek) ? "varning" : "muted", style: "font-size:13px;margin:4px 0 0" },
+      (/för få/.test(p.jmf_storlek) ? "⚠ " : "📏 ") + p.jmf_storlek + "."));
     // Hur köp max räknas – annars ser glappet mellan köp max och slutpris obegripligt ut.
     if (slutpris) kropp.append(el("details", { class: "rakning" }, el("summary", {}, "Hur räknas köp max?"), rakning(p, slutpris)));
     const sald = saldaLista(p);
@@ -109,7 +112,7 @@
     if (r.frakt) ut.append(rad(`− frakt ${kr(r.frakt)} från ${KALLNAMN[p.kalla] || p.kalla}`, kr(r.efterFrakt)));
     if (r.prov) ut.append(rad(`÷ köparprovision ${Math.round(r.prov * 100)} % på ${KALLNAMN[p.kalla] || p.kalla}`, ""));
     ut.append(rad("Köp max", kr(r.kopMax), "summa"));
-    return el("div", {}, el("p", { class: "muted" }, `Räknat på att du säljer vidare via ett auktionshus på Auctionet${salda}. Halva nettot är marginalen för risk, arbete och att priset kan bli lägre.`), ut);
+    return el("div", {}, el("p", { class: "muted" }, `Räknat på att du säljer vidare via ett auktionshus på Auctionet${salda}.${p.jmf_storlek ? " Storlek: " + p.jmf_storlek + "." : " Annonsen anger ingen höjd – jämförelsen blandar storlekar."} Halva nettot är marginalen för risk, arbete och att priset kan bli lägre.`), ut);
   }
   // Länkar till de sålda auktionerna som jämförelsen bygger på + Auctionets sökning på avslutade.
   const MAN = ["jan", "feb", "mar", "apr", "maj", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];

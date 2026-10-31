@@ -367,27 +367,42 @@ def valj(kandidater: list, cfg: dict, nu: float | None = None) -> list:
     return ut
 
 
-def jamfor_typat(fras: str, typ: str) -> dict | None:
+def jamfor_typat(fras: str, typ: str, storlek: float | None = None) -> dict | None:
     """Jämförelse på samma föremålstyp. Små föremål (underlägg, äggkoppar …) jämförs aldrig mot karotter, kannor
-    och serviser. Färre än MIN_TYPADE sålda av typen: typlös sökning, median × 0,4 och sakerhet "låg"."""
+    och serviser. Färre än MIN_TYPADE sålda av typen: typlös sökning, median × 0,4 och sakerhet "låg".
+    storlek (cm, ur annonsen): bara sålda i ungefär samma höjd räknas – en liten vas är inte en stor."""
     liten = any(t[:max(3, len(t) - 2)] in (typ or "") for t in SMA_TYPER)
     uteslut = STORA_TYPER if liten else ()
-    res = prisjamforelse.jamfor(fras, uteslut, per_styck=True)
-    if res and res["antal"] >= MIN_TYPADE:
+    poster = prisjamforelse.salda_poster(fras, uteslut=uteslut, per_styck=True) if prisjamforelse._ord(fras or "") else []
+    res = prisjamforelse.sammanfatta_poster(poster, storlek)
+    if res and len(poster) >= MIN_TYPADE:
         return {**res, "sakerhet": ""}
     typlos = utan_typ(fras, typ)
     if not typlos or typlos.lower() == fras.lower():
         return res and {**res, "sakerhet": ""}
-    bred = prisjamforelse.jamfor(typlos, uteslut, per_styck=True)
+    bred = prisjamforelse.jamfor(typlos, uteslut, per_styck=True, storlek=storlek)
     if not bred:
         return res and {**res, "sakerhet": ""}
     return {**bred, **{k: round(bred[k] * TYPLOS_ANDEL) for k in ("median", "lag", "hog")}, "sakerhet": "låg"}
 
 
-def jamfor_alla(fraser: list[tuple[str, str]], tradar: int = 4) -> dict[tuple, dict | None]:
-    """{(fras gemener, typ): jämförelse}. Fraser där hämtningen misslyckades saknas – de försöks igen nästa natt."""
+UTAN_STORLEK_TYPER = ("tallrik", "fat", "assiett", "servis", "bricka", "tavla", "matta")   # där mått ≠ höjd
+
+
+def storlek_for(a, info: dict | None = None) -> float | None:
+    """Höjden i cm om annonsen anger den (titel eller beskrivning). Inte för partier eller platta föremål."""
+    info = info or {}
+    if (info.get("styck") or 1) > 1 or info.get("blandat"):
+        return None
+    if any(t in (info.get("typ") or "").lower() for t in UTAN_STORLEK_TYPER):
+        return None
+    return prisjamforelse.hojd(f"{a.titel} {getattr(a, 'beskrivning', '') or ''}")
+
+
+def jamfor_alla(fraser: list[tuple], tradar: int = 4) -> dict[tuple, dict | None]:
+    """{(fras gemener, typ, storlek): jämförelse}. Fraser där hämtningen misslyckades saknas – de försöks igen nästa natt."""
     from concurrent.futures import ThreadPoolExecutor
-    unika = list(dict.fromkeys((f.lower(), t) for f, t in fraser if f))
+    unika = list(dict.fromkeys((f[0].lower(), f[1], f[2] if len(f) > 2 else None) for f in fraser if f[0]))
 
     def en(nyckel):
         try:
@@ -430,11 +445,12 @@ def bedom(kandidater: list, db, cfg: dict, klient, berika=None, statistik: dict 
     for sid, lista in per_spar.items():  # spårets egen modell (flipp: Sonnet), annars den vanliga
         ident.update(identifiera(lista, cfg["spar"][sid].get("modell") or cfg["modell"], klient,
                                  cfg.get("gruppstorlek", bedomning.GRUPPSTORLEK)))
-    jmf = jamfor_alla([(i["jamforsok"], i.get("typ", "")) for i in ident.values()])
+    storlek = {a.nyckel: storlek_for(a, ident.get(a.nyckel)) for a in kandidater}
+    jmf = jamfor_alla([(i["jamforsok"], i.get("typ", ""), storlek.get(k)) for k, i in ident.items()])
     tio, sparade, nypr, utan_typ_ = [], 0, 0, 0
     for a in kandidater:
         info = ident.get(a.nyckel)
-        nyckel = info and (info["jamforsok"].lower(), info.get("typ", ""))
+        nyckel = info and (info["jamforsok"].lower(), info.get("typ", ""), storlek.get(a.nyckel))
         if not info or nyckel not in jmf:
             continue  # sparas inte – försöker igen nästa natt
         res = jmf[nyckel]

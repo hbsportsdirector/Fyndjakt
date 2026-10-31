@@ -30,7 +30,8 @@ KOLUMNER = {
     "jmf_hog": "INTEGER",
     "jmf_antal": "INTEGER",
     "jmf_tid": "INTEGER",
-    "jmf_exempel": "TEXT",        # JSON: de senast sålda jämförelserna [{pris, klubbat, styck, titel, url, slutade}]
+    "jmf_exempel": "TEXT",
+    "jmf_storlek": "TEXT",        # "11 cm – jämfört med 6 sålda 8–14 cm höga" eller att storlekarna är blandade        # JSON: de senast sålda jämförelserna [{pris, klubbat, styck, titel, url, slutade}]
     "titelnorm": "TEXT",
     # Flipp-spåret (betyg på pris): aktuellt pris / typiskt slutpris, köp max och Claudes identifiering.
     "kvot": "REAL",
@@ -144,7 +145,7 @@ class Databas:
         return [dict(r) for r in self.con.execute(
             """SELECT nyckel, titel, jamforsok, spar FROM sedda
                WHERE betyg >= ? AND (slutar_ts IS NULL OR slutar_ts > ?)
-                 AND (jmf_tid IS NULL OR jmf_tid < ? OR (jmf_exempel IS NULL AND jmf_antal > 0))
+                 AND (jmf_tid IS NULL OR jmf_tid < ? OR ((jmf_exempel IS NULL OR jmf_storlek IS NULL) AND jmf_antal > 0))
                ORDER BY betyg DESC""",
             (min_betyg, nu, nu - max_alder_dagar * 86400),
         )]
@@ -152,10 +153,10 @@ class Databas:
     def spara_jamforelse(self, nyckel: str, fras: str, res: dict | None):
         res = res or {}
         self.con.execute(
-            """UPDATE sedda SET jamforsok=?, jmf_median=?, jmf_lag=?, jmf_hog=?, jmf_antal=?, jmf_tid=?, jmf_exempel=?
-               WHERE nyckel=?""",
+            """UPDATE sedda SET jamforsok=?, jmf_median=?, jmf_lag=?, jmf_hog=?, jmf_antal=?, jmf_tid=?, jmf_exempel=?,
+               jmf_storlek=? WHERE nyckel=?""",
             (fras, res.get("median"), res.get("lag"), res.get("hog"), res.get("antal", 0), int(time.time()),
-             json.dumps(res.get("exempel") or [], ensure_ascii=False), nyckel),
+             json.dumps(res.get("exempel") or [], ensure_ascii=False), res.get("storlek_text") or "", nyckel),
         )
         self.con.commit()
 

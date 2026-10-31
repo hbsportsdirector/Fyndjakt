@@ -1004,8 +1004,10 @@ def test_flipp_profil_gar_inte_via_smakinstruktionen(tmp_path, monkeypatch):
     monkeypatch.setattr(main, "tradera_orter", lambda db: 0)
     monkeypatch.setattr(bedomning, "_klient", lambda: klient)
     monkeypatch.setattr(kategoriprofil, "bygg", lambda c, k=None: {})
-    monkeypatch.setattr(prisjamforelse, "jamfor", lambda fras, uteslut=(), per_styck=False: {"median": 2000, "lag": 1500, "hog": 2500,
+    monkeypatch.setattr(prisjamforelse, "jamfor", lambda fras, uteslut=(), per_styck=False, storlek=None: {"median": 2000, "lag": 1500, "hog": 2500,
                                                                             "antal": 12})
+    monkeypatch.setattr(prisjamforelse, "salda_poster", lambda *a, **k: [{"pris": p, "titel": "Berså", "text": "", "slutade": 1}
+                                                                         for p in [1500, 1800, 2000, 2000, 2200, 2500]])
     monkeypatch.setattr(sajt, "bygg", lambda db, c: None)
     monkeypatch.setattr(notis, "aktiverad", lambda: False)
     monkeypatch.delenv("FYNDJAKT_BOT_TOKEN", raising=False)
@@ -1113,9 +1115,14 @@ def test_flipp_jamforelse_utan_typ(monkeypatch):
     import flipp, prisjamforelse
     anrop = []
 
-    def jamfor(fras, uteslut=(), per_styck=False):
+    def salda(fras, sidor=3, nu=None, uteslut=(), per_styck=False):
         anrop.append((fras, uteslut))
-        return None if "underlägg" in fras else {"median": 700, "lag": 450, "hog": 1100, "antal": 32}
+        return []
+
+    def jamfor(fras, uteslut=(), per_styck=False, storlek=None):
+        anrop.append((fras, uteslut))
+        return {"median": 700, "lag": 450, "hog": 1100, "antal": 32}
+    monkeypatch.setattr(prisjamforelse, "salda_poster", salda)
     monkeypatch.setattr(prisjamforelse, "jamfor", jamfor)
     res = flipp.jamfor_typat("Picknick underlägg", "underlägg")
     assert res == {"median": 280, "lag": 180, "hog": 440, "antal": 32, "sakerhet": "låg"}
@@ -1124,8 +1131,8 @@ def test_flipp_jamforelse_utan_typ(monkeypatch):
     assert flipp.motivering(55, "Bud 55 kr", res).startswith(
         "Bud 55 kr, klubbas typiskt för 280 kr (32 jämförelser) (jämförelse utan typ) – för lågt värde")
     # Med tillräckligt många sålda av typen används den typade jämförelsen som den är.
-    monkeypatch.setattr(prisjamforelse, "jamfor", lambda fras, uteslut=(), per_styck=False: {"median": 150, "lag": 100, "hog": 200,
-                                                                            "antal": 8})
+    monkeypatch.setattr(prisjamforelse, "salda_poster", lambda fras, sidor=3, nu=None, uteslut=(), per_styck=False:
+                        [{"pris": 150, "titel": "Picknick underlägg", "text": "", "slutade": 1} for _ in range(8)])
     assert flipp.jamfor_typat("Picknick underlägg", "underlägg")["sakerhet"] == ""
     # Prisjämförelsen sorterar bort serviser och karotter för små föremål.
     poster = [{"state": "sold", "currency": "SEK", "highest_bid": p, "ends_at": 0, "title": t} for p, t in
@@ -1382,3 +1389,25 @@ def test_kopt_flodet_hanger_ihop():
     for fil in ("butik.js", "fynd.js"):
         assert "App.kopt(" in (rot / "site" / fil).read_text(encoding="utf-8")
     assert '"FJ-" + String(it.nummer).padStart(4, "0")' in (rot / "site/app.js").read_text(encoding="utf-8")
+
+
+def test_jamforelse_samma_storlek(monkeypatch):
+    """En 11 cm vas jämförs bara med sålda vaser i ungefär samma höjd – inte med stora vaser som heter likadant."""
+    import flipp, prisjamforelse
+    from sources import Annons
+    def p(pris, h):
+        return {"pris": pris, "klubbat": pris, "styck": 1, "titel": "GUNNAR NYLUND. Vas, chamotte", "url": "u", "slutade": 1,
+                "text": f"GUNNAR NYLUND. Vas, chamotte, Rörstrand. Höjd {h} cm."}
+    poster = [p(300, 10), p(400, 12), p(350, 11), p(2500, 35), p(1800, 30), p(3000, 40), p(2200, 28), p(1500, 25)]
+    monkeypatch.setattr(prisjamforelse, "salda_poster", lambda *a, **k: poster)
+    alla = flipp.jamfor_typat("Gunnar Nylund vas", "vas")
+    liten = flipp.jamfor_typat("Gunnar Nylund vas", "vas", storlek=11)
+    assert alla["median"] > 1500 and liten["median"] == 350 and liten["antal"] == 3
+    assert liten["storleksfiltrerat"] and "11 cm – jämfört med 3 sålda 8–14 cm höga" == liten["storlek_text"]
+    # För få i samma storlek: alla storlekar, och det sägs ut.
+    stor = flipp.jamfor_typat("Gunnar Nylund vas", "vas", storlek=60)
+    assert not stor["storleksfiltrerat"] and "för få sålda i samma storlek" in stor["storlek_text"]
+    a = Annons(kalla="tradera", id="1", titel="Vas i chamotterat stengods Gunnar Nylund", url="u", beskrivning="Höjd 11 cm. Fint skick.")
+    assert flipp.storlek_for(a, {"typ": "vas", "styck": 1}) == 11
+    assert flipp.storlek_for(a, {"typ": "vas", "styck": 3}) is None
+    assert flipp.storlek_for(a, {"typ": "tallrik", "styck": 1}) is None
