@@ -39,6 +39,12 @@ def salda(fras: str, sidor: int = 3, nu: float | None = None, uteslut: tuple = (
           per_styck: bool = False) -> list[int]:
     """Slutpriser (SEK) för sålda föremål som matchar sökfrasen (och inte har något av orden i uteslut).
     per_styck: partier räknas om till pris per föremål ("vaser, 2 st" för 1 300 kr → 650 kr)."""
+    return [x["pris"] for x in salda_poster(fras, sidor, nu, uteslut, per_styck)]
+
+
+def salda_poster(fras: str, sidor: int = 3, nu: float | None = None, uteslut: tuple = (),
+                 per_styck: bool = False) -> list[dict]:
+    """Som salda(), men varje försäljning som {pris, klubbat, styck, titel, url, slutade}."""
     nu = nu or time.time()
     gräns = nu - MAX_ALDER_AR * 365 * 86400
     priser = []
@@ -47,7 +53,7 @@ def salda(fras: str, sidor: int = 3, nu: float | None = None, uteslut: tuple = (
                          headers=HEADERS, timeout=30)
         r.raise_for_status()
         data = r.json()
-        priser += tolka(data.get("items", []), fras, gräns, uteslut, per_styck)
+        priser += tolka_poster(data.get("items", []), fras, gräns, uteslut, per_styck)
         if sida >= (data.get("pagination") or {}).get("total_pages", 1):
             break
         time.sleep(1)
@@ -55,6 +61,16 @@ def salda(fras: str, sidor: int = 3, nu: float | None = None, uteslut: tuple = (
 
 
 def tolka(poster: list[dict], fras: str, gräns: float = 0, uteslut: tuple = (), per_styck: bool = False) -> list[int]:
+    return [x["pris"] for x in tolka_poster(poster, fras, gräns, uteslut, per_styck)]
+
+
+def item_url(p: dict) -> str:
+    url = (p.get("url") or "").replace("auctionet.com/en/", "auctionet.com/sv/")
+    return url or (f"https://auctionet.com/sv/{p['id']}" if p.get("id") else "")
+
+
+def tolka_poster(poster: list[dict], fras: str, gräns: float = 0, uteslut: tuple = (),
+                 per_styck: bool = False) -> list[dict]:
     ut = []
     for p in poster:
         if p.get("state") != "sold" or p.get("currency") != "SEK":
@@ -64,8 +80,15 @@ def tolka(poster: list[dict], fras: str, gräns: float = 0, uteslut: tuple = (),
             continue
         titel = (p.get("title") or "").lower()
         if relevant(titel, fras) and not any(o in titel for o in uteslut):
-            ut.append(round(pris / styck_i(titel)) if per_styck else int(pris))
+            st = styck_i(titel) if per_styck else 1
+            ut.append({"pris": round(pris / st) if st > 1 else int(pris), "klubbat": int(pris), "styck": st,
+                       "titel": (p.get("title") or "").strip(), "url": item_url(p), "slutade": p.get("ends_at")})
     return ut
+
+
+def exempel(poster: list[dict], antal: int = 6) -> list[dict]:
+    """De senast sålda – för länkar på sajten, så att man kan se vad jämförelsen bygger på."""
+    return [{**x, "titel": x["titel"][:90]} for x in sorted(poster, key=lambda x: -(x.get("slutade") or 0))[:antal]]
 
 
 def _ren_text(html: str) -> str:
@@ -120,4 +143,6 @@ def sammanfatta(priser: list[int]) -> dict | None:
 def jamfor(fras: str, uteslut: tuple = (), per_styck: bool = False) -> dict | None:
     if not fras or not _ord(fras):
         return None
-    return sammanfatta(salda(fras, uteslut=uteslut, per_styck=per_styck))
+    poster = salda_poster(fras, uteslut=uteslut, per_styck=per_styck)
+    res = sammanfatta([x["pris"] for x in poster])
+    return res and {**res, "exempel": exempel(poster)}

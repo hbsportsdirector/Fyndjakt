@@ -542,3 +542,9 @@ html { overflow-x: clip; }                       /* clip (inte hidden) – stick
 .steg-rad b { font-weight: inherit; }
 .bara-mob { display: none; }
 @media (max-width: 720px) { .bara-mob { display: inline; } }
+/* Sålda jämförelser på fyndkorten */
+.salda-lista { list-style: none; margin: 6px 0; padding: 0; }
+.salda-lista li { padding: 6px 0; border-bottom: 1px dotted var(--line); }
+.salda-lista li a { color: var(--text); display: block; }
+.salda-pris { color: var(--muted); font-size: 12px; }
+a.salda-alla { display: inline-block; color: var(--brass); padding: 8px 0 2px; min-height: 32px; }

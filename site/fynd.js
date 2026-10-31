@@ -80,6 +80,8 @@
     kropp.append(tal);
     // Hur köp max räknas – annars ser glappet mellan köp max och slutpris obegripligt ut.
     if (slutpris) kropp.append(el("details", { class: "rakning" }, el("summary", {}, "Hur räknas köp max?"), rakning(p, slutpris)));
+    const sald = saldaLista(p);
+    if (sald) kropp.append(sald);
     const meta = el("div", { class: "meta" });
     const t = Logik.tidKvar(p);
     if (t != null) { const s = el("span", { class: t < 6 * 3600 ? "het" : t < 86400 ? "snart" : "", "data-ts": p.slutar_ts }); s.textContent = tidtext(t); meta.append(s); }
@@ -108,6 +110,22 @@
     if (r.prov) ut.append(rad(`÷ köparprovision ${Math.round(r.prov * 100)} % på ${KALLNAMN[p.kalla] || p.kalla}`, ""));
     ut.append(rad("Köp max", kr(r.kopMax), "summa"));
     return el("div", {}, el("p", { class: "muted" }, `Räknat på att du säljer vidare via ett auktionshus på Auctionet${salda}. Halva nettot är marginalen för risk, arbete och att priset kan bli lägre.`), ut);
+  }
+  // Länkar till de sålda auktionerna som jämförelsen bygger på + Auctionets sökning på avslutade.
+  const MAN = ["jan", "feb", "mar", "apr", "maj", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];
+  const datum = ts => { const d = new Date(ts * 1000); return `${d.getDate()} ${MAN[d.getMonth()]} ${d.getFullYear()}`; };
+  function saldaLista(p) {
+    const ex = (p.jmf_exempel || []).filter(x => x && x.url);
+    if (!ex.length && !p.jamforsok) return null;
+    const lista = el("ul", { class: "salda-lista" }, ...ex.map(x => el("li", {},
+      el("a", { href: x.url, target: "_blank", rel: "noopener" }, x.titel || "Auktion"),
+      el("span", { class: "salda-pris" },
+        kr(x.klubbat || x.pris) + (x.styck > 1 ? ` · ${x.styck} st à ${kr(x.pris)}` : "") + (x.slutade ? ` · ${datum(x.slutade)}` : "")))));
+    const sok = p.jamforsok ? el("a", { class: "salda-alla", href: "https://auctionet.com/sv/search?is=ended&q=" + encodeURIComponent(p.jamforsok), target: "_blank", rel: "noopener" },
+      `Alla avslutade på Auctionet för ”${p.jamforsok}” →`) : null;
+    const rubrik = ex.length ? `Sålda jämförelser (${ex.length}${p.jmf_antal > ex.length ? " senaste av " + p.jmf_antal : ""})` : "Sålda jämförelser";
+    const not = p.jmf_sakerhet === "låg" ? el("p", { class: "muted" }, "Få sålda av just den typen – jämförelsen är bredare (alla typer), därför räknas bara 40 % av medianen.") : null;
+    return el("details", { class: "rakning salda" }, el("summary", {}, rubrik), ...[not, ex.length ? lista : null, sok].filter(Boolean));
   }
   const tidtext = t => t < 0 ? "Avslutad" : "Slutar om " + Logik.tidText(t);
 

@@ -309,6 +309,21 @@ def test_prisjamforelse():
     assert pj.sammanfatta([100, 200]) is None
 
 
+def test_jamforelse_exempel_med_lankar():
+    import prisjamforelse as pj
+    poster = [
+        {"id": 1, "title": "ERIK HÖGLUND, vas", "state": "sold", "currency": "SEK", "highest_bid": 200, "ends_at": 2_000_000_100,
+         "url": "https://auctionet.com/en/1-erik-hoglund-vas"},
+        {"id": 2, "title": "ERIK HÖGLUND, vaser, 2 st", "state": "sold", "currency": "SEK", "highest_bid": 600, "ends_at": 2_000_000_300},
+        {"id": 3, "title": "ERIK HÖGLUND, vas", "state": "sold", "currency": "SEK", "highest_bid": 400, "ends_at": 2_000_000_200},
+    ]
+    ut = pj.tolka_poster(poster, "Erik Höglund vas", per_styck=True)
+    assert [x["pris"] for x in ut] == [200, 300, 400]
+    assert ut[0]["url"] == "https://auctionet.com/sv/1-erik-hoglund-vas"
+    assert ut[1]["url"] == "https://auctionet.com/sv/2" and ut[1]["klubbat"] == 600 and ut[1]["styck"] == 2
+    assert [x["slutade"] for x in pj.exempel(ut, 2)] == [2_000_000_300, 2_000_000_200]  # senast sålda först
+
+
 def test_databas_jamforelse(tmp_path):
     db = Databas(tmp_path / "t.db")
     a = auctionet.tolka(AUCTIONET_POST, "Möbler")
@@ -320,6 +335,10 @@ def test_databas_jamforelse(tmp_path):
     assert db.behover_jamforelse(8) == []
     t = db.traffar(8)[0]
     assert t["jmf_median"] == 1500 and t["jmf_antal"] == 7
+    assert t["jmf_exempel"] == []
+    ex = [{"pris": 1400, "klubbat": 1400, "styck": 1, "titel": "BOKHYLLA, teak", "url": "https://auctionet.com/sv/9", "slutade": 1}]
+    db.spara_jamforelse(a.nyckel, "bokhylla teak", {"median": 1500, "lag": 1000, "hog": 2000, "antal": 7, "exempel": ex})
+    assert db.traffar(8)[0]["jmf_exempel"] == ex
 
 
 EXPORT = {

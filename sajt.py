@@ -74,7 +74,7 @@ def region_for(kalla: str, plats: str) -> tuple[str, str]:
 
 FALT = ["nyckel", "titel", "url", "betyg", "motivering", "kalla", "kategori",
         "pris", "pris_text", "plats", "slutar", "slutar_ts", "bilder", "sedd", "spar",
-        "jamforsok", "jmf_median", "jmf_lag", "jmf_hog", "jmf_antal", "sokord",
+        "jamforsok", "jmf_median", "jmf_lag", "jmf_hog", "jmf_antal", "jmf_exempel", "sokord",
         "kvot", "kop_max", "identifierat", "varning", "jmf_sakerhet", "vinst", "styck"]
 
 

@@ -30,6 +30,7 @@ KOLUMNER = {
     "jmf_hog": "INTEGER",
     "jmf_antal": "INTEGER",
     "jmf_tid": "INTEGER",
+    "jmf_exempel": "TEXT",        # JSON: de senast sålda jämförelserna [{pris, klubbat, styck, titel, url, slutade}]
     "titelnorm": "TEXT",
     # Flipp-spåret (betyg på pris): aktuellt pris / typiskt slutpris, köp max och Claudes identifiering.
     "kvot": "REAL",
@@ -133,6 +134,7 @@ class Databas:
         for r in rader:
             d = dict(r)
             d["bilder"] = json.loads(d["bilder"] or "[]")
+            d["jmf_exempel"] = json.loads(d.get("jmf_exempel") or "[]")
             ut.append(d)
         return ut
 
@@ -142,7 +144,7 @@ class Databas:
         return [dict(r) for r in self.con.execute(
             """SELECT nyckel, titel, jamforsok, spar FROM sedda
                WHERE betyg >= ? AND (slutar_ts IS NULL OR slutar_ts > ?)
-                 AND (jmf_tid IS NULL OR jmf_tid < ?)
+                 AND (jmf_tid IS NULL OR jmf_tid < ? OR (jmf_exempel IS NULL AND jmf_antal > 0))
                ORDER BY betyg DESC""",
             (min_betyg, nu, nu - max_alder_dagar * 86400),
         )]
@@ -150,9 +152,10 @@ class Databas:
     def spara_jamforelse(self, nyckel: str, fras: str, res: dict | None):
         res = res or {}
         self.con.execute(
-            """UPDATE sedda SET jamforsok=?, jmf_median=?, jmf_lag=?, jmf_hog=?, jmf_antal=?, jmf_tid=?
+            """UPDATE sedda SET jamforsok=?, jmf_median=?, jmf_lag=?, jmf_hog=?, jmf_antal=?, jmf_tid=?, jmf_exempel=?
                WHERE nyckel=?""",
-            (fras, res.get("median"), res.get("lag"), res.get("hog"), res.get("antal", 0), int(time.time()), nyckel),
+            (fras, res.get("median"), res.get("lag"), res.get("hog"), res.get("antal", 0), int(time.time()),
+             json.dumps(res.get("exempel") or [], ensure_ascii=False), nyckel),
         )
         self.con.commit()
 
