@@ -500,3 +500,45 @@ details.rakning p { margin: 6px 0; }
 .kort.borta { opacity: 0; transform: scale(.96); transition: opacity .3s, transform .3s; }
 .toast { display: flex; align-items: center; gap: 14px; }
 .toast button { background: #1b1a14; color: var(--brass); border: 0; border-radius: 999px; padding: 5px 12px; font-weight: 700; }
+
+/* ── Telefon: inget sidledsscroll, och Butik kompakt för en hand ───────────────────── */
+html { overflow-x: clip; }                       /* clip (inte hidden) – sticky fortsätter att fungera */
+.vy { min-width: 0; }
+.vy, .ruta, .kort, .panel, .ark { overflow-wrap: anywhere; }
+.bk-detalj dl { grid-template-columns: auto minmax(0, 1fr); }
+.bk-detalj dd, .bk-detalj a, .kanaler span { overflow-wrap: anywhere; }
+.kanaler span { max-width: 100%; }
+.bk-besked { scroll-margin-top: 12px; }
+.bk-redan { margin-bottom: 12px; border-color: var(--brass); font-size: 14px; }
+.bk-detalj-fall { margin-bottom: 12px; }
+.bk-detalj-fall > summary { cursor: pointer; color: var(--brass); font-weight: 600; padding: 10px 0; list-style: none; }
+.bk-detalj-fall > summary::before { content: "▸ "; }
+.bk-detalj-fall[open] > summary::before { content: "▾ "; }
+@media (max-width: 720px) {
+  body[data-vy="butik"] .banner { display: none; }          /* fyndlarmet hör inte hemma i butiken */
+  body[data-vy="butik"] .vy-huvud { margin-bottom: 8px; }
+  body[data-vy="butik"] .vy-huvud h2 { font-size: 26px; }
+  body[data-vy="butik"] .vy-huvud .sub { display: none; }
+  .steg-rad { margin-bottom: 8px; gap: 4px; }
+  .steg-rad span { font-size: 11px; padding: 4px 2px; }
+  .bk-rad { gap: 8px; }
+  .bk-knapp { min-height: 92px; padding: 10px; gap: 2px; font-size: 14px; }
+  .bk-knapp .ikon { font-size: 26px; }
+  .bk-gal { margin-top: 6px; gap: 8px; }
+  .bk-gal label { font-size: 12px; padding: 6px 4px; }
+  .bk-pris { margin: 10px 0; font-size: 22px; gap: 10px; }
+  .bk-pris input { font-size: 26px; padding: 8px 12px; min-height: 52px; }
+  #bk-go { padding: 10px 16px !important; min-height: 48px; font-size: 16px; margin-bottom: 10px !important; }
+  .bk-besked { padding: 16px 14px; margin-bottom: 10px; }
+  .bk-besked .stort { font-size: clamp(30px, 10vw, 44px); }
+  .bk-besked .under { font-size: 14px; }
+  .bk-knappar { margin: 0 0 10px; gap: 8px; }
+  .bk-knappar .knapp { font-size: 14px; padding: 8px 10px; }
+  .bk-detalj { padding: 12px; font-size: 13.5px; }
+  .bk-detalj dl { gap: 3px 10px; }
+}
+.steg-rad b.bara-desk { font-weight: inherit; }
+@media (max-width: 720px) { .bara-desk { display: none; } }
+.steg-rad b { font-weight: inherit; }
+.bara-mob { display: none; }
+@media (max-width: 720px) { .bara-mob { display: inline; } }

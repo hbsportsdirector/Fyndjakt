@@ -233,6 +233,7 @@ const App = (() => {
   function visa(id, { tyst } = {}) {
     if (!delar[id] && id !== "mer") id = mobil() ? "butik" : "fynd";
     aktiv = id;
+    document.body.dataset.vy = id;   // stilen kan anpassa sig efter vyn (t.ex. ingen fyndbanner i Butik på telefon)
     document.querySelectorAll(".vy").forEach(s => s.classList.toggle("aktiv", s.dataset.vy === id));
     document.querySelectorAll("[data-vy]").forEach(b => { if (b.tagName === "BUTTON") b.setAttribute("aria-current", b.dataset.vy === id || (b.dataset.vy === "mer" && MOBIL_MER.includes(id)) ? "page" : "false"); });
     if (!tyst) { try { history.replaceState(null, "", "#" + id); localStorage.setItem("fyndjakt-del", id); } catch (e) {} }
