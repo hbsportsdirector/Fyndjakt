@@ -1368,3 +1368,15 @@ def test_vilka_som_blir_forslag():
     assert vardering.foreslas(res, "stor ändring (×0.4) – kontrollera", 400)            # 400 → 175
     assert not vardering.foreslas({**res, "median": 24}, "osäker attribution", 400)      # Tuna-ugnsform
     assert not vardering.foreslas({**res, "median": 8500}, "stor ändring (×21.2)", 400)  # blå Gustavsberg-vas
+
+
+def test_kopt_flodet_hanger_ihop():
+    """Köpt-flödet: databasen numrerar (FJ-nummer), funktionen skriver texter, och både Butik och Fynd använder App.kopt."""
+    rot = Path(__file__).resolve().parent.parent
+    mig = (rot / "supabase/migrations/20261031100000_samling_nummer_texter.sql").read_text(encoding="utf-8")
+    assert "samling_nummer_seq" in mig and "annons_text" in mig and "proveniens" in mig
+    fn = (rot / "supabase/functions/fyndjakt-kann-igen/index.ts").read_text(encoding="utf-8")
+    assert 'kropp.typ === "beskriv"' in fn and "BESKRIV_INSTRUKTION" in fn
+    for fil in ("butik.js", "fynd.js"):
+        assert "App.kopt(" in (rot / "site" / fil).read_text(encoding="utf-8")
+    assert '"FJ-" + String(it.nummer).padStart(4, "0")' in (rot / "site/app.js").read_text(encoding="utf-8")

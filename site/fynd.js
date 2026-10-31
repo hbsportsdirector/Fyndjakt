@@ -197,38 +197,21 @@
     finally { knapp.disabled = false; }
   }
 
-  // Köpte den → rad i samlingen (låda salj) med inköpspris = slutpris, och annonsens bilder kopieras till bucketen.
+  // Köpte den → samma Köpt-flöde som i Butik (pris, ställe, behålla/sälja, FJ-nummer, texter). Annonsens bilder kopieras.
   async function kopteDen(p, knapp) {
-    const svar = await App.fraga("Köpte den – vad betalade du?", { ok: "Lägg i samlingen", falt: [
-      { id: "pris", etikett: "Slutpris (kr)", typ: "number", varde: p.pris || "" }] });
-    if (!svar) return;
-    knapp.disabled = true; knapp.textContent = "Sparar …";
-    const pris = svar.pris === "" ? null : Math.round(+svar.pris);
-    const id = App.nyttId(p.titel);
-    const rad = { id, user_id: konto.uid, lada: "salj", namn: String(p.titel || "Fynd").slice(0, 120), kategori: kategoriFor(p.kategori),
-      tillverkare: (p.identifierat || "").split(",")[0].trim() || "Okänd", serie: "", antal: p.styck > 1 ? p.styck : 1,
-      sokord: p.jamforsok || "", inkopspris: pris, inkopt: App.idag(), inkopsstalle: KALLNAMN[p.kalla] || p.kalla,
-      anteckning: `Köpt via Fyndjakt ${App.idag()}${pris ? " för " + kr(pris) : ""}. ${p.url || ""}` + (p.identifierat ? `\nClaude: ${p.identifierat}` : ""),
-      auk_median: p.jmf_median || null, tradera_pris: p.jmf_median || null,
-      jfr: p.jmf_median ? `Fyndjakt: ${p.jmf_antal || "?"} sålda på Auctionet, median ${kr(p.jmf_median)}${p.jmf_lag ? ` (${kr(p.jmf_lag)}–${kr(p.jmf_hog)})` : ""}.` : "",
-      bilder: [] };
-    try {
-      const { error } = await konto.sb.from("samling_foremal").insert(rad);
-      if (error) throw new Error("Kunde inte spara i samlingen: " + error.message);
-      konto.samling.unshift(rad);
-      try { await sparaReaktion(p, "kopt"); } catch (e) {}
-      knapp.textContent = "Kopierar bilder …";
-      try {
-        const r = await App.kannIgen({ typ: "kopiera_bilder", id, urlar: (p.bilder || []).slice(0, 4) });
-        if (r.bilder && r.bilder.length) {
-          await konto.sb.from("samling_foremal").update({ bilder: r.bilder }).eq("id", id);
-          rad.bilder = r.bilder;
-        }
-      } catch (e) { console.error(e); toast("Sparad, men bilderna kunde inte kopieras."); }
-      knapp.textContent = "✓ I samlingen (Till salu)";
-      App.sand("samling-andrad");
-      toast("Ligger nu i samlingen under Till salu");
-    } catch (e) { toast(e.message); knapp.disabled = false; knapp.textContent = "🛒 Köpte den"; }
+    const rad = { namn: String(p.titel || "Fynd").slice(0, 120), lada: "salj", kategori: kategoriFor(p.kategori),
+      tillverkare: (p.identifierat || "").split(",")[0].trim() || "Okänd", serie: "",
+      antal: p.styck > 1 ? p.styck : 1, sokord: p.jamforsok || "", inkopspris: p.pris || null, inkopsstalle: KALLNAMN[p.kalla] || p.kalla,
+      anteckning: p.identifierat ? "Claude: " + p.identifierat : "",
+      auk_median: p.jmf_median ? p.jmf_median * (p.styck > 1 ? p.styck : 1) : null, tradera_pris: p.jmf_median || null,
+      pris_uppdaterad: p.jmf_median ? App.idag() : null, jfr_url: p.jamforsok ? "https://auctionet.com/sv/search?is=ended&q=" + encodeURIComponent(p.jamforsok) : null,
+      jfr: p.jmf_median ? `Fyndjakt: ${p.jmf_antal || "?"} sålda på Auctionet, median ${kr(p.jmf_median)}${p.jmf_lag ? ` (${kr(p.jmf_lag)}–${kr(p.jmf_hog)})` : ""}.` : "" };
+    const kalla = ["Annons: " + (p.url || ""), p.jmf_median ? `Jämförelse: ${p.jmf_antal || "?"} sålda på Auctionet, median ${kr(p.jmf_median)}${p.jamforsok ? ` (”${p.jamforsok}”)` : ""}.` : "",
+      ...(p.jmf_exempel || []).slice(0, 3).map(x => `  ${kr(x.klubbat || x.pris)} – ${x.titel} ${x.url}`)];
+    const it = await App.kopt({ rad, urlar: (p.bilder || []).slice(0, 4), kalla });
+    if (!it) return;
+    try { await sparaReaktion(p, "kopt"); } catch (e) {}
+    knapp.disabled = true; knapp.textContent = "✓ " + App.fjNr(it);
   }
   function kategoriFor(k) {
     const t = (k || "").toLowerCase();

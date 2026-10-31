@@ -2,6 +2,7 @@
 // typ "butik": strukturerad bedömning i butiken (tillverkare, serie, marknadsvärde, äkthet) för Samlingen-sajten.
 // typ "akta": original eller nyproduktion, utifrån annonsens bilder (hämtas här – webbläsaren får inte läsa dem).
 // typ "kopiera_bilder": kopierar annonsens bilder till den inloggades mapp i bucketen samling.
+// typ "beskriv": katalogtext och säljannons för ett föremål i samlingen (Köpt-flödet), utifrån fälten och bilderna.
 // typ "importera_bilder": engångsimport av samlingens bilder med bot-nyckeln (ingen inloggning).
 // Kräver inloggad Fyndjakt-medlem (utom importen). Anthropic-nyckeln ligger som hemlighet ANTHROPIC_API_KEY i Supabase.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
@@ -177,6 +178,20 @@ Var ärlig om osäkerhet: sänk sakerhet och säg vad som saknas (t.ex. 'fota bo
 du inte kan belägga – skriv "Okänd".`;
 }
 
+const BESKRIV_INSTRUKTION = `Du är katalogskribent på ett svenskt auktionshus och säljer också själv på Tradera och Blocket.
+Du får uppgifter om ett föremål i en samling (JSON) och ibland bilder (föremålet, stämpeln). Skriv på svenska:
+
+1. "beskrivning": katalogtext i auktionshusens stil, 2–5 korta rader. Första raden: FORMGIVARE/TILLVERKARE i versaler, föremålstyp,
+   modell/serie, material, fabrik, tid – som "MARI SIMMULSON. Vas, stengods, modell 1034, Upsala-Ekeby, 1960-tal." Sedan stämpel/signering
+   (ordagrant det som går att läsa), mått om de är kända, skick. Hitta aldrig på mått, årtal, formgivare eller signaturer: står det inte i
+   uppgifterna och syns det inte på bilden, skriv "troligen" eller utelämna. Ange osäker attribution som "i stil med" eller "troligen".
+2. "annons_rubrik": Tradera/Blocket-rubrik, max 80 tecken, med de ord köpare söker på (formgivare, fabrik, serie, föremålstyp, tid).
+3. "annons_text": säljannons 4–8 rader: vad det är, varför det är eftertraktat (kort, sakligt), stämpel, mått (eller "[mått]" om de saknas
+   så att säljaren fyller i), skick ärligt, och sist "Skickas välpackat eller hämtas i Stockholm." Inga utropstecken, inga emojis,
+   inget pris i texten.
+
+Svara ENBART med JSON: {"beskrivning": "...", "annons_rubrik": "...", "annons_text": "..."}`;
+
 const AKTA_INSTRUKTION = `Du är expert på nordisk keramik, porslin och glas. Avgör om föremålet i annonsen är ORIGINAL från
 produktionsperioden eller NYPRODUKTION/REPLIKA. Titta på alla bilder (stämpel, baksida, etiketter) innan du avgör.
 ${NYPROD}
@@ -330,6 +345,28 @@ Deno.serve(async (req) => {
     if (String(kropp.beskrivning ?? "").trim().length < 10) return svar({ fel: "Beskriv lite mer först" }, 400, origin);
     const res = await profilforslag(nyckel, kropp);
     return res ? svar(res, 200, origin) : svar({ fel: "Kunde inte ta fram sökord just nu" }, 502, origin);
+  }
+  // Köpt-flödet: katalogtext + säljannons. Bilderna läses ur bucketen med den inloggades behörighet.
+  if (kropp.typ === "beskriv") {
+    const f = (kropp as { foremal?: Record<string, unknown> }).foremal ?? {};
+    const falt = ["nummer", "namn", "kategori", "tillverkare", "serie", "antal", "period", "stampel", "skick", "anteckning", "jfr",
+                  "inkopsstalle", "lada"].reduce((o, k) => (f[k] != null && f[k] !== "" ? { ...o, [k]: String(f[k]).slice(0, 800) } : o), {});
+    const innehall: unknown[] = [];
+    for (const path of ((kropp as { paths?: string[] }).paths ?? []).map(String).filter((p) => /^[\w-]+\/[\w-]+\/\d+\.jpg$/.test(p)).slice(0, 3)) {
+      const { data } = await supabase.storage.from("samling").download(path);
+      if (!data || data.size > MAX_BYTES) continue;
+      const bytes = new Uint8Array(await data.arrayBuffer());
+      let bin = "";
+      for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+      innehall.push(bildblock(btoa(bin), "image/jpeg"));
+    }
+    const kanal = String((kropp as { kanal?: string }).kanal ?? "").slice(0, 120);
+    innehall.push({ type: "text", text: `Föremålet:\n${JSON.stringify(falt, null, 1)}${kanal ? `\nSäljs troligen via: ${kanal}` : ""}\n` +
+      (innehall.length ? `${innehall.length} bild(er) ovan.` : "Inga bilder.") });
+    const res = await claude(nyckel, BESKRIV_INSTRUKTION, innehall, 900);
+    if (!res) return svar({ fel: "Kunde inte skriva texterna just nu" }, 502, origin);
+    return svar({ beskrivning: String(res.beskrivning ?? "").slice(0, 1500), annons_rubrik: String(res.annons_rubrik ?? "").slice(0, 100),
+                  annons_text: String(res.annons_text ?? "").slice(0, 2500), bilder: innehall.length - 1 }, 200, origin);
   }
   // Äkta? – annonsens bilder hämtas här, plus eventuellt en egen skärmbild (base64).
   if (kropp.typ === "akta") {

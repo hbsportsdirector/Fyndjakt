@@ -58,7 +58,7 @@
       }
     }
     $("bk-knappar").hidden = false;
-    $("bk-lagg").textContent = b.besked === "KÖP" ? "🏺 Lägg i samlingen (Till salu)" : "🏺 Lägg i samlingen (Oklart)";
+    $("bk-lagg").textContent = "🛒 Köpt";
   }
 
   // Stegraden överst: 1 Fota · 2 Pris · 3 Besked. Beskedet kommer av sig självt när bild och pris finns.
@@ -103,35 +103,22 @@
     $("bk-pris").value = ""; $("bk-knappar").hidden = true; $("bk-detalj").hidden = true; $("bk-redan").hidden = true;
     visaBesked(); visaSteg(); window.scrollTo(0, 0);
   }
+  // Köpt → samma flöde som i Fynd: pris, ställe, behålla/sälja → FJ-nummer, bilder, beskrivning och annons.
   async function laggISamlingen(knapp) {
     if (!bk.res) return;
     const r = bk.res, b = Logik.butikBesked(r, pris(), !!bk.stampel);
-    knapp.disabled = true; knapp.textContent = "Sparar …";
     const namn = r.namn || [r.tillverkare, r.serie].filter(Boolean).join(" ") || "Föremål";
-    const id = App.nyttId(namn);
-    const rad = { id, user_id: konto.uid, lada: b.besked === "KÖP" ? "salj" : "oklart", namn: namn.slice(0, 120),
+    const rad = { namn: namn.slice(0, 120), lada: r.passar_smak ? "egen" : b.besked === "KÖP" ? "salj" : "oklart",
       kategori: r.kategori || "Keramik & porslin", tillverkare: r.tillverkare || "Okänd", serie: r.serie || "", antal: r.antal || 1,
       period: r.period || null, stampel: r.stampel_last || null, skick: r.skick || null, sokord: r.sokord || "",
-      inkopspris: pris() != null ? Math.round(pris()) : null, inkopt: App.idag(), inkopsstalle: "Butik",
+      inkopspris: pris() != null ? Math.round(pris()) : null, inkopsstalle: "",
       marknad_min: r.marknad_min, marknad_max: r.marknad_max, marknad_sakerhet: Math.round(r.sakerhet * 100) + " %",
       tradera_pris: b.besked === "KÖP" ? b.median : null, saker: r.sakerhet >= 0.7 ? "säker" : "trolig",
-      anteckning: `Bedömd i butiken ${App.idag()}: ${b.besked}. ${r.resonemang || ""}`.trim(), bilder: [] };
-    try {
-      const { data, error } = await konto.sb.from("samling_foremal").insert(rad).select().single();
-      if (error) throw new Error("Kunde inte spara: " + error.message);
-      konto.samling.unshift(data);
-      const bilder = [];
-      let n = 0;
-      for (const s of [bk.obj, bk.stampel].filter(Boolean)) {
-        n += 1; const path = `${konto.uid}/${id}/${n}.jpg`;
-        await App.laddaUppBild(path, s.blob); bilder.push({ n, path });
-      }
-      const { data: d2 } = await konto.sb.from("samling_foremal").update({ bilder, uppdaterad: new Date().toISOString() }).eq("id", id).select().single();
-      if (d2) Object.assign(data, d2);
-      App.sand("samling-andrad");
-      knapp.textContent = "✓ Sparad i " + (rad.lada === "salj" ? "Till salu" : "Oklart");
-      toast("Ligger nu i samlingen");
-    } catch (e) { toast(e.message); knapp.disabled = false; knapp.textContent = "🏺 Lägg i samlingen"; }
+      anteckning: [r.formgivare ? "Formgivare: " + r.formgivare + "." : "", `Bedömd i butiken ${App.idag()}: ${b.besked}. ${r.resonemang || ""}`.trim()].filter(Boolean).join("\n") };
+    const kalla = [`Bedömd i butiken: ${b.besked}${r.marknad_min != null ? `, marknad ${kr(r.marknad_min)}–${kr(r.marknad_max)}` : ""} (säkerhet ${Math.round(r.sakerhet * 100)} %).`,
+      r.stampel_last ? "Stämpel: " + r.stampel_last : ""];
+    const it = await App.kopt({ rad, blobs: [bk.obj, bk.stampel].filter(Boolean).map(s => s.blob), kalla });
+    if (it) { knapp.textContent = "✓ " + App.fjNr(it) + " i samlingen"; knapp.disabled = true; }
   }
 
   App.del("butik", { namn: "Butik", ikon: "🛍️",
@@ -153,7 +140,7 @@
           <button class="knapp primar stor" type="button" id="bk-go" disabled style="width:100%;justify-content:center;margin-bottom:12px">Bedöm</button>
           <div class="bk-besked vanta" id="bk-besked"></div>
           <div class="bk-knappar" id="bk-knappar" hidden>
-            <button class="knapp primar" type="button" id="bk-lagg">🏺 Lägg i samlingen</button>
+            <button class="knapp primar" type="button" id="bk-lagg">🛒 Köpt</button>
             <button class="knapp" type="button" id="bk-nasta">Nästa sak</button>
           </div>
           <div class="ruta bk-redan" id="bk-redan" hidden></div>

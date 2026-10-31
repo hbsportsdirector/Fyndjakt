@@ -548,3 +548,16 @@ html { overflow-x: clip; }                       /* clip (inte hidden) – stick
 .salda-lista li a { color: var(--text); display: block; }
 .salda-pris { color: var(--muted); font-size: 12px; }
 a.salda-alla { display: inline-block; color: var(--brass); padding: 8px 0 2px; min-height: 32px; }
+/* Köpt-flödet: FJ-nummer och texter */
+.fjnr { display: inline-block; font-family: var(--mono, ui-monospace, monospace); font-size: 11px; letter-spacing: .04em;
+  color: var(--brass); border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; margin-right: 6px; }
+.kopt-ark { text-align: center; }
+.kopt-ark p { margin: 6px 0 10px; }
+.kopt-nr { font-family: var(--serif); font-size: clamp(40px, 14vw, 64px); color: var(--brass); letter-spacing: .03em; line-height: 1.1; margin: 4px 0; }
+.kopt-ark .textblock, .kopt-ark .rad { text-align: left; }
+.ruta.texter { margin-top: 12px; }
+.textblock { margin: 8px 0; }
+.textblock + .textblock { border-top: 1px dotted var(--line); padding-top: 10px; }
+.textblock-huvud { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 4px; }
+.textblock-text { white-space: pre-wrap; font-size: 14px; }
+.ruta.texter details summary { cursor: pointer; color: var(--brass); padding: 4px 0; }

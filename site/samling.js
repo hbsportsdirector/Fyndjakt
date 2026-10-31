@@ -17,7 +17,7 @@
   function synliga() {
     const q = App.norm(st.q);
     return lista().filter(it => (!st.lada || it.lada === st.lada) && (!st.kategori || it.kategori === st.kategori)
-      && (!q || App.norm([it.namn, it.tillverkare, it.serie, it.sokord, it.anteckning].join(" ")).includes(q)))
+      && (!q || App.norm([App.fjNr(it), it.namn, it.tillverkare, it.serie, it.sokord, it.anteckning, it.beskrivning].join(" ")).includes(q)))
       .sort({
         namn: (a, b) => (a.namn || "").localeCompare(b.namn || "", "sv"),
         varde: (a, b) => (Logik.varde(b) || 0) - (Logik.varde(a) || 0),
@@ -61,7 +61,7 @@
     k.append(b);
     const kropp = el("div", { class: "kropp" });
     kropp.append(el("div", { class: "namn" }, it.namn));
-    kropp.append(el("div", { class: "under" }, under(it) || it.kategori || ""));
+    kropp.append(el("div", { class: "under" }, ...[it.nummer ? el("span", { class: "fjnr" }, App.fjNr(it)) : null, under(it) || it.kategori || ""].filter(Boolean)));
     if ((+it.antal || 1) > 1) kropp.append(el("div", { class: "under" }, it.antal + " st"));
     const pris = el("div", { class: "pris" });
     if (it.lada === "salt") pris.append("Såld för ", el("b", {}, kr(it.salt_for)));
@@ -158,6 +158,7 @@
   }
 
   function render() {
+    if (!$("s-rutnat")) return;  // vyn är inte monterad än (t.ex. Köpt från Butik)
     renderForslagRad();
     try { localStorage.setItem("samling-vy", JSON.stringify(st)); } catch (e) {}
     renderLador();
@@ -204,14 +205,16 @@
   const MER = [["marknad_sakerhet", "Säkerhet, uppskattning", "text"], ["jfr", "Underlag", "text", "bred"], ["jfr_url", "Underlag – länk", "text"],
     ["pris_uppdaterad", "Värderat", "date"], ["sokord", "Sökord (används vid omvärderingen)", "text", "bred"]];
   const ANTECKNING = [["anteckning", "Anteckning", "textarea", "bred"]];
-  const FALT = [...GRUNDFAKTA, ...KOP, ...VARDE, ...MER, ...ANTECKNING];
+  const TEXTER = [["beskrivning", "Beskrivning", "textarea", "bred"], ["annons_rubrik", "Annonsrubrik", "text", "bred"],
+    ["annons_text", "Annonstext", "textarea", "bred"], ["proveniens", "Köpt (proveniens)", "textarea", "bred"]];
+  const FALT = [...GRUNDFAKTA, ...KOP, ...VARDE, ...MER, ...TEXTER, ...ANTECKNING];
   const SALJ = [["tradera_pris", "Utgångspris (kr)", "number"], ["tradera_lagsta", "Lägsta pris (kr)", "number"], ["upplagd", "Upplagd", "datetime-local"], ["steg_satt", "Steg satt (0 = första)", "number"]];
   const SALT = [["salt_for", "Såld för (kr)", "number"], ["salt_datum", "Såld datum", "date"], ["salt_kanal", "Kanal", "text"]];
 
   function falt(it, [id, etikett, typ, bred]) {
     let inp;
     if (typ === "select") { inp = el("select", { name: id }, ...KATEGORIER.map(k => el("option", { value: k }, k))); inp.value = it[id] || KATEGORIER[0]; }
-    else if (typ === "textarea") { inp = el("textarea", { name: id, rows: 3 }); inp.value = it[id] || ""; }
+    else if (typ === "textarea") { inp = el("textarea", { name: id, rows: id === "annons_text" || id === "beskrivning" ? 6 : 3 }); inp.value = it[id] || ""; }
     else {
       let v = it[id] ?? "";
       if (typ === "datetime-local" && v) v = new Date(v).toISOString().slice(0, 16);
@@ -258,7 +261,8 @@
   function visaVy(it, p) {
     const v = el("div");
     v.append(el("div", { class: "huvud" }, el("h2", {}, it.namn), el("button", { class: "knapp liten", type: "button", onclick: () => p.stang() }, "Stäng")));
-    v.append(el("div", { class: "muted", style: "margin:-8px 0 12px" }, [LADNAMN[it.lada], under(it), it.kategori].filter(Boolean).join(" · ")));
+    v.append(el("div", { class: "muted", style: "margin:-8px 0 12px" }, ...[it.nummer ? el("span", { class: "fjnr" }, App.fjNr(it)) : null,
+      [LADNAMN[it.lada], under(it), it.kategori].filter(Boolean).join(" · ")].filter(Boolean)));
     const galleri = el("div", { class: "galleri" }); v.append(galleri); renderGalleri(it, galleri, p);
     const knappar = el("div", { class: "knapprad-stor" },
       el("button", { class: "knapp primar", type: "button", onclick: () => p.byt("redigera") }, "✎ Redigera"),
@@ -280,6 +284,7 @@
     if (it.jfr) fakta.append(el("div", { style: "grid-column:1/-1" }, el("b", {}, "Underlag"), it.jfr_url ? el("a", { href: it.jfr_url, target: "_blank", rel: "noopener" }, it.jfr) : el("span", {}, it.jfr)));
     v.append(fakta);
     if (forslagFor(it)) v.append(el("div", { style: "margin-top:12px" }, forslagKort(it, forslagFor(it), () => p.byt("visa"))));
+    v.append(textRuta(it, () => p.byt("visa")));
     if (it.anteckning) v.append(el("div", { class: "ruta", style: "margin-top:12px;white-space:pre-wrap" }, it.anteckning));
     const saljRuta = el("div"); v.append(saljRuta); renderSalj(it, saljRuta, p);
     const hist = el("div"); v.append(el("h3", {}, "Prishistorik")); v.append(hist); laddaHistorik(it, hist);
@@ -300,6 +305,7 @@
     form.append(grupp("Värde", it, VARDE, it.lada !== "salt", it.auk_median ? "värde ca " + kr(it.auk_median) : ""));
     if (it.lada === "salj") form.append(grupp("Till salu", it, SALJ, true, "pris, upplagd, steg"));
     if (it.lada === "salt") form.append(grupp("Såld", it, SALT, true));
+    form.append(grupp("Texter", it, TEXTER, false, "beskrivning, annons, köpt"));
     form.append(grupp("Mer", it, MER, false, "underlag, sökord"));
     form.append(el("div", { class: "falt-grid", style: "margin-top:10px" }, ...ANTECKNING.map(f => falt(it, f))));
     const status = el("div", { class: "status" });
@@ -535,6 +541,97 @@
     const a = el("a", { href: URL.createObjectURL(blob), download: `samling-${st.lada || "allt"}-${App.idag()}.csv` });
     document.body.append(a); a.click(); a.remove();
   }
+
+  // ── Texter: beskrivning, säljannons, proveniens ─────────────────────
+  async function kopiera(text, knapp) {
+    try { await navigator.clipboard.writeText(text); } catch (e) {
+      const t = el("textarea", {}, text); document.body.append(t); t.select(); try { document.execCommand("copy"); } catch (x) {} t.remove();
+    }
+    if (knapp) { const f = knapp.textContent; knapp.textContent = "✓ Kopierad"; setTimeout(() => { knapp.textContent = f; }, 1500); }
+  }
+  function textBlock(rubrik, text, kopieraText) {
+    const k = el("button", { class: "knapp liten", type: "button" }, "Kopiera");
+    k.onclick = () => kopiera(kopieraText ?? text, k);
+    return el("div", { class: "textblock" }, el("div", { class: "textblock-huvud" }, el("b", {}, rubrik), k), el("div", { class: "textblock-text" }, text));
+  }
+  function textRuta(it, klar) {
+    const r = el("div", { class: "ruta texter" });
+    const annons = it.annons_rubrik || it.annons_text ? [it.annons_rubrik, it.annons_text].filter(Boolean).join("\n\n") : "";
+    if (it.lada === "salj" && annons) r.append(textBlock("Säljannons", annons));
+    if (it.beskrivning) r.append(textBlock("Beskrivning", it.beskrivning));
+    if (it.lada !== "salj" && annons) { const d = el("details", {}, el("summary", {}, "Säljannons (om du vill sälja)"), textBlock("Säljannons", annons)); r.append(d); }
+    if (it.proveniens) r.append(textBlock("Köpt", it.proveniens));
+    const status = el("span", { class: "muted" });
+    const knapp = el("button", { class: "knapp liten", type: "button" }, it.beskrivning ? "✍ Skriv om texterna" : "✍ Skriv beskrivning och annons");
+    knapp.onclick = async () => {
+      knapp.disabled = true; status.textContent = "Claude skriver …";
+      try { await skrivTexter(it); render(); klar(); toast("Texterna är klara"); }
+      catch (e) { status.textContent = e.message; knapp.disabled = false; }
+    };
+    r.append(el("div", { class: "rad", style: "margin-top:8px" }, knapp, status));
+    return r;
+  }
+  async function skrivTexter(it) {
+    const e = Logik.forvantat(it);
+    const plan = e ? Logik.saljplan(e) : null;
+    const r = await App.kannIgen({ typ: "beskriv", foremal: { ...it, nummer: App.fjNr(it) }, kanal: plan && plan.kanalNamn || "",
+      paths: (it.bilder || []).map(b => b.path).filter(Boolean).slice(0, 3) });
+    if (!r.beskrivning && !r.annons_text) throw new Error("Claude gav inget svar – försök igen.");
+    Object.assign(it, await spara(it.id, { beskrivning: r.beskrivning || null, annons_rubrik: r.annons_rubrik || null, annons_text: r.annons_text || null }));
+    return it;
+  }
+
+  // ── Köpt: ett flöde för Butik, Fynd och Samling ─────────────────────
+  // rad = förifyllda fält för samling_foremal; blobs = egna foton (Butik); urlar = annonsens bilder (Fynd);
+  // kalla = rader till proveniensen (bedömning, annonslänk, jämförelser).
+  const VART = [["egen", "🏠 Behålla – egen samling"], ["salj", "🏷 Sälja – till salu"], ["oklart", "❓ Bestämmer senare"], ["pappas", "👴 Pappas"]];
+  async function kopt({ rad, blobs = [], urlar = [], kalla = [] }) {
+    const svar = await App.fraga("Köpt! 🎉", { ok: "Spara i samlingen", falt: [
+      { id: "pris", etikett: "Vad betalade du? (kr)", typ: "number", varde: rad.inkopspris ?? "" },
+      { id: "stalle", etikett: "Var?", varde: rad.inkopsstalle || "", placeholder: "t.ex. Myrorna Hornstull" },
+      { id: "lada", etikett: "Vad ska du göra med den?", val: VART, varde: rad.lada || "oklart" }] });
+    if (!svar) return null;
+    const pris = svar.pris === "" ? null : Math.round(+svar.pris);
+    const stalle = (svar.stalle || "").trim() || rad.inkopsstalle || null;
+    const idag = App.idag();
+    const proveniens = [`Köpt ${App.datum(idag)}${stalle ? " på " + stalle : ""}${pris != null ? " för " + kr(pris) : ""}.`, ...kalla].filter(Boolean).join("\n");
+    const ny = { ...rad, id: rad.id || App.nyttId(rad.namn), user_id: konto.uid, lada: svar.lada, inkopspris: pris, inkopsstalle: stalle,
+                 inkopt: idag, proveniens, bilder: [] };
+    const ark = App.sheet("", el("div", { class: "kopt-ark" }, el("div", { class: "muted" }, "Sparar …")));
+    const vis = ark.el.querySelector(".kopt-ark");
+    try {
+      const { data, error } = await konto.sb.from("samling_foremal").insert(ny).select().single();
+      if (error) throw new Error("Kunde inte spara: " + error.message);
+      const it = data; konto.samling.unshift(it);
+      const steg = el("div", { class: "muted" }, "Sparar bilderna …");
+      vis.replaceChildren(
+        el("div", { class: "kopt-nr" }, App.fjNr(it)),
+        el("p", {}, "Skriv numret på en lapp eller maskeringstejp under föremålet – då hittar du det i appen."),
+        el("div", { class: "muted" }, it.namn + " · " + (LADNAMN[it.lada] || it.lada) + (pris != null ? " · " + kr(pris) : "")),
+        steg);
+      let bilder = [];
+      if (blobs.length) {
+        let n = 0;
+        for (const b of blobs) { n += 1; const path = `${konto.uid}/${it.id}/${n}.jpg`; await App.laddaUppBild(path, b); bilder.push({ n, path }); }
+      } else if (urlar.length) {
+        try { bilder = (await App.kannIgen({ typ: "kopiera_bilder", id: it.id, urlar: urlar.slice(0, 4) })).bilder || []; } catch (e) { console.error(e); }
+      }
+      if (bilder.length) Object.assign(it, await spara(it.id, { bilder }));
+      steg.textContent = "Claude skriver beskrivning och annons …";
+      try {
+        await skrivTexter(it);
+        steg.replaceChildren(...[
+          it.lada === "salj" && it.annons_text ? textBlock("Säljannons", [it.annons_rubrik, it.annons_text].filter(Boolean).join("\n\n")) : null,
+          it.beskrivning ? textBlock("Beskrivning", it.beskrivning) : null].filter(Boolean));
+      } catch (e) { steg.textContent = "Texterna kunde inte skrivas nu (" + e.message + "). Tryck ”Skriv beskrivning” i föremålet senare."; }
+      vis.append(el("div", { class: "rad", style: "margin-top:12px" },
+        el("button", { class: "knapp primar", type: "button", onclick: () => { ark.stang(); App.visa("samling"); oppnaDetalj(it.id); } }, "Öppna i samlingen"),
+        el("button", { class: "knapp", type: "button", onclick: () => ark.stang() }, "Klar")));
+      App.sand("samling-andrad"); render();
+      return it;
+    } catch (e) { vis.replaceChildren(el("p", {}, e.message), el("button", { class: "knapp", type: "button", onclick: () => ark.stang() }, "Stäng")); return null; }
+  }
+  App.kopt = kopt;
 
   App.del("samling", { namn: "Samling", ikon: "🏺",
     montera(sek) {

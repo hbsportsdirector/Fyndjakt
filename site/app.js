@@ -48,6 +48,8 @@ const App = (() => {
   function datum(d) { try { return new Date(d).toLocaleDateString("sv-SE", { day: "numeric", month: "short", year: "numeric" }); } catch (e) { return d; } }
   function idag() { return new Date().toISOString().slice(0, 10); }
   function slug(s) { return String(s || "").toLowerCase().replace(/[åä]/g, "a").replace(/ö/g, "o").replace(/ø/g, "o").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60); }
+  // Löpnummer i samlingen: FJ-0001 … (kolumnen nummer, sätts av databasen).
+  function fjNr(it) { return it && it.nummer ? "FJ-" + String(it.nummer).padStart(4, "0") : ""; }
   function nyttId(namn) { return (slug(namn) || "foremal") + "-" + Math.random().toString(36).slice(2, 6); }
   function norm(t) { return (t || "").toLowerCase().normalize("NFD").replace(/[^a-z0-9]/g, ""); }
 
@@ -184,16 +186,17 @@ const App = (() => {
     fynd: `<p><b>Vad är det här?</b> Fyndjakt letar varje natt igenom Auctionet, Bukowskis, Tradera, Myrorna och Stadsmissionen och visar det som passar dina bevakningar.</p>
       <p><b>Slutar snart</b> ligger alltid överst – det är de du måste ta ställning till i dag. Blir det riktigt bråttom (under 6 timmar, bra betyg eller lågt pris) dyker en röd rad upp överst på hela sajten.</p>
       <p><b>Siffrorna på kortet:</b> Pris nu är budet eller utropet. Köp max är vad du som mest bör betala för att kunna sälja med vinst. Typiskt är vad liknande klubbats för. Procenttalet uppe i hörnet är pris ÷ typiskt – under 50 % är fyndläge.</p>
-      <p><b>Knapparna:</b> 👍/👎 lär appen din smak (👎 döljer kortet). <b>Äkta?</b> låter Claude titta på annonsens bilder efter tecken på nyproduktion. <b>Köpte den</b> lägger föremålet i samlingen under Till salu.</p>`,
+      <p><b>Knapparna:</b> 👍/👎 lär appen din smak (👎 döljer kortet). <b>Äkta?</b> låter Claude titta på annonsens bilder efter tecken på nyproduktion. <b>Köpte den</b> frågar vad du betalade och om du ska behålla eller sälja – föremålet får ett FJ-nummer, bilderna följer med och Claude skriver beskrivning och säljannons.</p>`,
     samling: `<p><b>Lådorna</b> överst är samlingens delar – tryck på en för att bara se den. Siffran är antal föremål, raden under är deras uppskattade värde.</p>
       <p><b>Lägg till</b> ett föremål med kamera, från galleriet eller utan bild. Tar du en bild föreslår Claude namn, tillverkare, serie och värde – ändra fritt.</p>
       <p><b>Tryck på ett föremål</b> för att se allt om det. Där kan du redigera, lägga till bilder, flytta det till en annan låda, se prishistorik och – när det ligger i Till salu – följa prisstegen. <b>🗑 Ta bort</b> finns längst ner; är föremålet sålt är det bättre att flytta det till Sålt, så finns det kvar i vinststatistiken.</p>
+      <p><b>FJ-nummer:</b> varje föremål har ett löpnummer (FJ-0001 …). Sök på numret för att hitta det. Under <b>✍ Skriv beskrivning och annons</b> skriver Claude en katalogtext och en färdig annons att kopiera till Tradera eller Blocket.</p>
       <p><b>Värde ca</b> är medianen av vad liknande sålts för på Auctionet. Samlingen omvärderas automatiskt en gång i månaden – står höjden i namnet ("höjd 25 cm") jämförs bara med föremål i samma storlek. Under <b>Underlag</b> ser du hur många som sålts, spannet och hur stor andel som gick osåld.</p>
       <p>Under <b>Värderat</b> står varifrån värdet kommer: ett datum om det är omvärderat mot Auctionet, annars "äldre värde – ej kontrollerat" och varför det inte omvärderats (för få sålda, parti, konst). Underlaget visar vilka sålda föremål värdet bygger på.</p>`,
     butik: `<p><b>Tre steg:</b> fota föremålet, fota gärna stämpeln (undersidan), skriv priset. Beskedet kommer av sig självt när båda finns.</p>
       <p><b>KÖP</b> = priset är under köptaket. Köptaket är en tredjedel av typiskt slutpris när du köper för att sälja, men 60 % när föremålet passar din smak (den du skrivit under Inställningar) – då är det samling, inte flipp.</p>
       <p><b>FOTA STÄMPELN FÖRST</b> betyder att Claude är för osäker på vad det är. <b>KÖP INTE</b> visar alltid varför – för dyrt, nyproduktion eller för lågt värde.</p>
-      <p>Under beskedet ser du nettot per säljkanal och om något liknande redan finns i samlingen. <b>Lägg i samlingen</b> sparar föremålet med bilderna.</p>`,
+      <p>Under beskedet ser du nettot per säljkanal och om något liknande redan finns i samlingen. <b>🛒 Köpt</b> sparar föremålet med bilderna: du anger pris, butik och om du ska behålla eller sälja. Det får ett FJ-nummer (skriv det på en lapp under föremålet) och Claude skriver beskrivning och säljannons att kopiera.</p>`,
     prisguide: `<p>En lista över vad vanliga loppisfynd brukar gå för, med råd: <b>Köp</b> (säljer med marginal), <b>Kolla</b> (beror på skick, variant eller stämpel) och <b>Undvik</b> (för lågt andrahandsvärde).</p>
       <p>Sök på objekt, fabrik eller formgivare. "Köp max" är högsta inköp som lämnar vinst när det säljs för det lägre priset på Tradera.</p>`,
     stamplar: `<p>Så daterar du och avslöjar nyproduktion på stämplar från Gustavsberg, Rörstrand, Arabia, Royal Copenhagen och Meissen. Sök på det du ser under föremålet – "tre kronor", "hand", "vågor", "krona".</p>`,
@@ -350,7 +353,7 @@ const App = (() => {
     konto.sb.auth.onAuthStateChange((_ev, session) => { setTimeout(() => uppdateraKonto(session), 0); });
   }
 
-  return { KONFIG, konto, del, pa, sand, visa, rakna, start, mobil, $, kr, esc, el, toast, datum, idag, slug, nyttId, norm,
+  return { KONFIG, konto, del, pa, sand, visa, rakna, start, mobil, $, kr, esc, el, toast, datum, idag, slug, nyttId, fjNr, norm,
            skalaNer, dataUrlTillBase64, kannIgen, bildUrlar, bildUrl, laddaUppBild, taBortBild, hamtaAlla, panel, lightbox, fraga,
            sheet, hjalp, huvud, uppdateraBanner, laddaKonto };
 })();
