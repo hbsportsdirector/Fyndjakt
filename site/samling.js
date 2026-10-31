@@ -217,15 +217,23 @@
       const bild = el("div", { class: "id-bild" }, el("span", { class: "id-ikon" }, vad === "obj" ? "📷" : "🔍"));
       const kam = el("label", { class: "knapp" + (vad === "obj" ? " primar" : "") }, "📷 Fota", el("input", { type: "file", accept: "image/*", capture: "environment", class: "dold" }));
       const gal = el("label", { class: "knapp liten" }, "🖼 Galleri", el("input", { type: "file", accept: "image/*", class: "dold" }));
-      for (const l of [kam, gal]) l.querySelector("input").onchange = async e => { const f = e.target.files[0]; e.target.value = ""; if (f) { st_[vad] = await App.skalaNer(f, 1600); if (vad === "stampel") st_.ingenStampel = false; uppdatera(); } };
+      for (const l of [kam, gal]) l.querySelector("input").onchange = async e => {
+        const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+        st_[vad] = await App.skalaNer(f, 1600);
+        if (vad === "stampel") { st_.ingenStampel = false; st_.stampelFil = f; st_.res = null; st_.kor = 0; }
+        if (vad === "obj") { st_.res = null; st_.kor = 0; }
+        uppdatera();
+      };
       ruta.append(bild, el("div", { class: "id-txt" }, el("b", {}, rubrik), el("small", { class: "muted" }, tips), el("div", { class: "rad" }, kam, gal)));
       return ruta;
     };
     const objSlot = slot("obj", "1. Föremålet", "hela föremålet, rakt framifrån, gärna mot ljus bakgrund");
     const stSlot = slot("stampel", "2. Stämpeln eller botten", "nära, skarpt, i bra ljus – signatur, modellnummer och etikett avgör formgivare och serie");
     const ingen = el("button", { class: "knapp liten", type: "button" }, "Ingen stämpel finns");
+    const zoom = el("button", { class: "knapp liten", type: "button", hidden: true }, "🔍 Zooma in på stämpeln");
+    zoom.onclick = () => zoomaStampel(st_.stampelFil, async ny => { st_.stampel = ny; st_.res = null; st_.kor = 0; uppdatera(); });
     ingen.onclick = () => { st_.ingenStampel = true; st_.stampel = null; uppdatera(); };
-    stSlot.querySelector(".rad").append(ingen);
+    stSlot.querySelector(".rad").append(zoom, ingen);
     const extraRad = el("div", { class: "galleri id-extra" });
     const analys = el("div", { class: "id-analys" });
     const kop = el("div", { class: "id-kop", hidden: true });
@@ -240,6 +248,7 @@
       visaBild(objSlot, st_.obj); visaBild(stSlot, st_.stampel);
       stSlot.classList.toggle("ingen", st_.ingenStampel);
       ingen.textContent = st_.ingenStampel ? "✓ Ingen stämpel" : "Ingen stämpel finns";
+      zoom.hidden = !st_.stampelFil;
       extraRad.replaceChildren(...st_.extra.map(x => el("div", { class: "b" }, el("img", { src: x.dataUrl, alt: "" }))));
       const [s1, s2, s3, s4] = steg.children;
       s1.className = st_.obj ? "klar" : "nu"; s2.className = st_.stampel || st_.ingenStampel ? "klar" : st_.obj ? "nu" : "";
@@ -270,6 +279,23 @@
       ruta.append(el("div", { class: "id-sak " + (sak >= 80 ? "hog" : sak >= 55 ? "medel" : "lag") },
         el("b", {}, sak >= 80 ? "Säker" : sak >= 55 ? "Ganska säker" : "Osäker"), ` · ${sak} %`, r.stampel_last ? el("span", { class: "muted" }, ` · läste: ”${r.stampel_last}”`) : null));
       if (r.nyproduktion || r.varning) ruta.append(el("p", { class: "varning" }, "⚠ " + (r.varning || "Troligen nyproduktion")));
+      const sl = r.stampel_las;
+      if (sl && sl.ordagrant) {
+        const box = el("div", { class: "id-stampel" }, el("div", {}, el("b", {}, "Stämpeln: "), el("code", {}, sl.ordagrant), sl.typ ? el("span", { class: "muted" }, " · " + sl.typ) : null));
+        if (sl.osakra_tecken) box.append(el("div", { class: "muted", style: "font-size:13px" }, "Osäkert: " + sl.osakra_tecken + " – rätta nedan om du ser bättre."));
+        if ((sl.tolkningar || []).length > 1) {
+          box.append(el("div", { class: "muted", style: "font-size:13px;margin-top:4px" }, "Andra tolkningar:"));
+          for (const t of sl.tolkningar.slice(1)) {
+            const b = el("button", { class: "knapp liten", type: "button" }, [t.tillverkare, t.formgivare, t.modell].filter(Boolean).join(" · ") + ` (${Math.round(t.sakerhet * 100)} %)`);
+            b.title = t.varfor || "";
+            b.onclick = () => { if (t.tillverkare) falt_.tillverkare.value = t.tillverkare; falt_.formgivare.value = t.formgivare || ""; if (t.modell) falt_.serie.value = t.modell;
+              falt_.formgivare.dispatchEvent(new Event("change")); kontrolleraAuctionet(); };
+            box.append(b);
+          }
+        }
+        if (sl.battre_bild) box.append(el("div", { class: "tips", style: "font-size:13px;margin-top:4px" }, "📷 Bättre stämpelbild: " + sl.battre_bild + (st_.stampelFil ? " – eller tryck ”Zooma in på stämpeln”." : "")));
+        ruta.append(box);
+      }
       ruta.append(el("div", { class: "falt-grid" }, inp("namn", "Namn", r.namn), inp("tillverkare", "Tillverkare", r.tillverkare), inp("formgivare", "Formgivare", r.formgivare),
         inp("serie", "Serie/modell", r.serie), inp("period", "Period", r.period), inp("stampel", "Stämpel", r.stampel_last)));
       if (r.resonemang) ruta.append(el("p", { class: "muted", style: "font-size:13px" }, r.resonemang));
@@ -300,7 +326,10 @@
     // Vilka namn står först i titlarna på sålda exemplar? ("MARI SIMMULSON. Vas …") – en oberoende kontroll av formgivaren.
     async function kontrolleraAuctionet() {
       const r = st_.res, ruta = analys.querySelector("#id-auk"); if (!ruta) return;
-      const fraser = [...new Set([[r.tillverkare !== "Okänd" ? r.tillverkare : "", r.serie].filter(Boolean).join(" "), r.sokord].filter(x => x && x.trim().length > 2))];
+      ruta.replaceChildren(el("span", { class: "muted" }, "Kollar Auctionet …"));
+      const fv = id => (falt_[id] && falt_[id].value.trim()) || "";
+      const tv = fv("tillverkare") || r.tillverkare;
+      const fraser = [...new Set([[tv !== "Okänd" ? tv : "", fv("serie") || r.serie].filter(Boolean).join(" "), fv("formgivare") && tv !== "Okänd" ? fv("formgivare") + " " + tv : "", r.sokord].filter(x => x && x.trim().length > 2))];
       for (const fras of fraser) {
         try {
           const a = await App.kannIgen({ typ: "liknande", sokord: fras });
@@ -373,6 +402,31 @@
       };
     }
     uppdatera();
+  }
+
+  // Zooma in på stämpeln: tryck mitt på den så beskärs originalbilden (full upplösning) runt punkten.
+  function zoomaStampel(fil, klar) {
+    if (!fil) return;
+    const url = URL.createObjectURL(fil);
+    const img = el("img", { src: url, alt: "", class: "zoom-bild" });
+    const valj = el("select", {}, new Option("2× närmare", "0.5"), new Option("3× närmare", "0.33"), new Option("4× närmare", "0.25"));
+    const p = App.panel([el("div", { class: "huvud" }, el("h2", {}, "Tryck mitt på stämpeln"), el("button", { class: "knapp liten", type: "button", onclick: () => { URL.revokeObjectURL(url); p.stang(); } }, "Avbryt")),
+      el("p", { class: "muted" }, "Bilden beskärs runt punkten du trycker på, i full upplösning – då ser Claude tecknen skarpare."),
+      el("label", { class: "rad-etikett" }, "Zoom ", valj), img], { mitten: true });
+    img.onclick = e => {
+      const r = img.getBoundingClientRect();
+      const fx = (e.clientX - r.left) / r.width, fy = (e.clientY - r.top) / r.height;
+      const b = new Image();
+      b.onload = () => {
+        const sida = Math.round(Math.min(b.naturalWidth, b.naturalHeight) * (+valj.value));
+        const x = Math.max(0, Math.min(b.naturalWidth - sida, Math.round(fx * b.naturalWidth - sida / 2)));
+        const y = Math.max(0, Math.min(b.naturalHeight - sida, Math.round(fy * b.naturalHeight - sida / 2)));
+        const ut = Math.min(1600, sida), c = document.createElement("canvas"); c.width = ut; c.height = ut;
+        c.getContext("2d").drawImage(b, x, y, sida, sida, 0, 0, ut, ut);
+        c.toBlob(blob => { const dataUrl = c.toDataURL("image/jpeg", 0.9); URL.revokeObjectURL(url); p.stang(); klar({ blob, dataUrl }); }, "image/jpeg", 0.9);
+      };
+      b.src = url;
+    };
   }
 
   // ── Lägg till (ark med tre val) ───────────────────────────────────

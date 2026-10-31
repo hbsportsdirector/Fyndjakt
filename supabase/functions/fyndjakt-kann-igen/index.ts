@@ -148,6 +148,9 @@ Arabia: krönt A=1928–49; ARABIA FINLAND=1949+; Kilta 1953–75 fajans, Teema 
 Royal Copenhagen: tre vågor; 1935–49 punkt ovanför bokstav; 1950–84 punkt under bokstav; 1985–2014 två bokstäver RO/RY/RA/RL/RC; rits genom vågorna=andrasortering; B&G vågrät rits över tornen=2:a.
 Danskt studio: Saxbo-stämpel, PLS=Palshus, HAK=Kähler/Hammershøi, SALTO+vågor=Axel Salto.
 Meissen: äkta svärd handmålade koboltblå under glasyr, rits=fabriks-2:a; kopior: Samson, Dresden-krona, Wolfsohn AR.
+Upsala-Ekeby: "UE", "Upsala-Ekeby" eller "Ekeby" + "Sweden"; modellnummer inristat eller präglat, ofta med snedstreck där siffrorna efter snedstrecket är dekor/variant (t.ex. 1034/139); formgivare: Mari Simmulson (signerar ofta "Mari"), Ingrid Atterberg, Anna-Lisa Thomson, Vicke Lindstrand (1940-tal), Sven-Erik Skawonius, Hjördis Oldfors. Gefle Porslinsfabrik (samma koncern): "Gefle", Arthur Percy. Karlskrona Porslinsfabrik: "Karlskrona".
+Övrigt svenskt: "Bo Fajans"/"BO" Gävle; "Laholm" + modellnummer; "Höganäs Keramik"/"HK"; "Nittsjö"; "Jie" (Jie Gantofta); "Tilgmans"; "Alingsås"; "Gabriel"; "Andersson & Johansson" Höganäs. Rörstrand studio: handskrivet "R Sweden" + formgivarens initialer.
+Läsa stämplar: text i båge eller cirkel – vrid bilden i tanken och läs hela varvet. Präglade och ristade tecken förväxlas lätt: U/L/I, E/F, 6/b, 9/g/q, 1/7, 0/O, 5/S, 8/B. Skriv vad du ser ordagrant och ange förväxlingsbara alternativ i stället för att gissa ett tecken.
 Glas: Kosta "LH"=Vicke Lindstrand hyttsigill, Boda "H"/"Höglund"=Erik Höglund, Orrefors-gravyr med formgivarsignatur och nummer.
 Skadeavdrag: fabriks-2:a –20–30 %, nagg –30–50 %, hårspricka –50–70 %, lagning –70–90 %.`;
 
@@ -178,7 +181,7 @@ Svara ENBART med ett JSON-objekt:
  "kompletterar": "<en mening om det kompletterar något hen har, annars tom sträng>",
  "sokord": "<2–5 ord som hittar liknande sålda på Tradera/Auctionet>",
  "nasta_kontroll": ["<konkreta saker att kontrollera på plats, max 4>"],
- "resonemang": "<2–3 meningar på svenska om varför>"}
+ "resonemang": "<högst 2 korta meningar på svenska om varför>"}
 Var ärlig om osäkerhet: sänk sakerhet och säg vad som saknas (t.ex. 'fota botten'). Gissa aldrig en signatur eller tillverkare
 du inte kan belägga – skriv "Okänd".`;
 }
@@ -226,6 +229,17 @@ async function wiki(q: string, maste: string, sprak = "sv") {
   } catch { return null; }
 }
 
+const STAMPEL_INSTRUKTION = `Du är expert på att läsa märkningar på nordisk keramik, porslin och glas. Du får EN bild av en stämpel,
+signatur eller botten. Läs den tecken för tecken innan du tolkar något.
+${STAMPLAR}
+Svara ENBART med JSON:
+{"ordagrant": "<exakt det som står, rad för rad med ' / ' mellan rader, osäkra tecken inom [ ], t.ex. 'U[E/L] / SWEDEN / 1034/9 / A6[9/g]'>",
+ "typ": "<präglad|ristad|tryckt|stämpel i glasyr|etikett|signatur|ingen läsbar märkning>",
+ "osakra_tecken": "<vilka tecken som kan läsas på flera sätt och hur, eller tom sträng>",
+ "tolkningar": [{"tillverkare": "<fabrik>", "formgivare": "<namn eller tom>", "modell": "<modell-/dekornummer eller serie>", "sakerhet": <0–1>, "varfor": "<kort>"}],
+ "battre_bild": "<om bilden inte räcker: vad som skulle hjälpa, t.ex. 'närmare, med släpljus från sidan'; annars tom sträng>"}
+Max 3 tolkningar, troligast först. Hitta inte på: syns inget, säg det.`;
+
 const AKTA_INSTRUKTION = `Du är expert på nordisk keramik, porslin och glas. Avgör om föremålet i annonsen är ORIGINAL från
 produktionsperioden eller NYPRODUKTION/REPLIKA. Titta på alla bilder (stämpel, baksida, etiketter) innan du avgör.
 ${NYPROD}
@@ -243,7 +257,8 @@ async function claude(nyckel: string, system: string, innehall: unknown[], max_t
   const data = await r.json();
   const text: string = (data?.content ?? []).filter((b: { type: string }) => b.type === "text").map((b: { text: string }) => b.text).join("\n");
   const m = text.match(/\{[\s\S]*\}/);
-  try { return JSON.parse(m ? m[0] : "{}"); } catch { console.error("Otolkbart svar:", text.slice(0, 400)); return null; }
+  if (!m) { console.error("Inget JSON i svaret", data?.stop_reason, text.slice(0, 400)); return null; }
+  try { return JSON.parse(m[0]); } catch { console.error("Otolkbart svar", data?.stop_reason, text.slice(0, 400)); return null; }
 }
 const tal = (v: unknown) => { const n = Number(v); return Number.isFinite(n) ? Math.round(n) : null; };
 const bool = (v: unknown) => v === true || String(v).toLowerCase() === "true";
@@ -451,12 +466,19 @@ Fyndjakts identifiering: ${String(kropp.identifierat ?? "-").slice(0, 200)}` });
   if (kropp.typ === "butik") {
     const innehall: unknown[] = bilder.map((b) => bildblock(b, mediatyp));
     const kommentar = String((kropp as { kommentar?: string }).kommentar ?? "").trim().slice(0, 600);
+    // Steg 1: läs stämpeln för sig (bild 2), så att den inte drunknar i helhetsbedömningen.
+    let stampelLas: Record<string, unknown> | null = null;
+    if (kropp.stampel && bilder[1]) {
+      stampelLas = await claude(nyckel, STAMPEL_INSTRUKTION, [bildblock(bilder[1], mediatyp),
+        { type: "text", text: "Läs märkningen." + (kommentar ? ` Ägaren säger: "${kommentar}".` : "") }], 900);
+    }
+    if (stampelLas) innehall.push({ type: "text", text: "Stämpeln är redan läst separat (lita på läsningen, men kontrollera mot bild 2):\n" + JSON.stringify(stampelLas) });
     innehall.push({ type: "text", text: (kropp.stampel
       ? `Bild 1 är föremålet, bild 2 är stämpeln/botten${bilder.length > 2 ? `, bild 3–${bilder.length} är detaljer du bett om` : ""}. Läs stämpeln tecken för tecken innan du bestämmer tillverkare, formgivare och modell. Vad är det, och vad är det värt?`
       : `${bilder.length > 1 ? bilder.length + " bilder av samma föremål" : "Bara en bild på föremålet"} – be om stämpelbild i nasta_kontroll om det behövs. Vad är det, och vad är det värt?`) +
       (kommentar ? `\n\nÄgaren rättar/kompletterar: "${kommentar}". Väg in det – det ägaren läser på föremålet går före din tolkning av en suddig bild.` : "") });
-    const res = await claude(nyckel, butikInstruktion(String(kropp.smak ?? ""), String(kropp.har_redan ?? "")), innehall, 1000);
-    if (!res) return svar({ fel: "Kunde inte bedöma just nu" }, 502, origin);
+    const res = await claude(nyckel, butikInstruktion(String(kropp.smak ?? ""), String(kropp.har_redan ?? "")), innehall, 2500);
+    if (!res || (!res.namn && !res.tillverkare)) return svar({ fel: "Claude gav inget användbart svar – försök igen" }, 502, origin);
     const min = tal(res.marknad_min), max = tal(res.marknad_max);
     const str = (v: unknown, n: number) => String(v ?? "").slice(0, n);
     return svar({
@@ -469,6 +491,10 @@ Fyndjakts identifiering: ${String(kropp.identifierat ?? "-").slice(0, 200)}` });
       har_redan: res.har_redan ? str(res.har_redan, 80) : null, kompletterar: str(res.kompletterar, 300), sokord: str(res.sokord, 60),
       nasta_kontroll: (Array.isArray(res.nasta_kontroll) ? res.nasta_kontroll : []).map((t: unknown) => String(t).slice(0, 160)).slice(0, 4),
       resonemang: str(res.resonemang, 600),
+      stampel_las: stampelLas ? { ordagrant: str(stampelLas.ordagrant, 200), typ: str(stampelLas.typ, 40), osakra_tecken: str(stampelLas.osakra_tecken, 200),
+        tolkningar: (Array.isArray(stampelLas.tolkningar) ? stampelLas.tolkningar : []).slice(0, 3).map((t: Record<string, unknown>) => ({
+          tillverkare: str(t.tillverkare, 80), formgivare: str(t.formgivare, 80), modell: str(t.modell, 80), sakerhet: Math.max(0, Math.min(1, Number(t.sakerhet) || 0)), varfor: str(t.varfor, 200) })),
+        battre_bild: str(stampelLas.battre_bild, 200) } : null,
     }, 200, origin);
   }
 

@@ -617,3 +617,7 @@ a.salda-alla { display: inline-block; color: var(--brass); padding: 8px 0 2px; m
 .las-lankar { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
 .las-lankar a.chip { text-decoration: none; }
 .id-lankar { margin-top: 10px; }
+.id-stampel { margin: 8px 0; padding: 8px 10px; border-radius: 10px; background: var(--panel-2); }
+.id-stampel code { font-size: 15px; color: var(--brass); background: none; }
+.id-stampel .knapp { margin: 4px 6px 0 0; }
+.zoom-bild { width: 100%; height: auto; border-radius: 10px; cursor: crosshair; margin-top: 8px; touch-action: manipulation; }
