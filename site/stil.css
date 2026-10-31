@@ -621,3 +621,4 @@ a.salda-alla { display: inline-block; color: var(--brass); padding: 8px 0 2px; m
 .id-stampel code { font-size: 15px; color: var(--brass); background: none; }
 .id-stampel .knapp { margin: 4px 6px 0 0; }
 .zoom-bild { width: 100%; height: auto; border-radius: 10px; cursor: crosshair; margin-top: 8px; touch-action: manipulation; }
+.id-uppmaning { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; }

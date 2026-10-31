@@ -127,13 +127,43 @@
   // ── Värderingsförslag att granska ─────────────────────────────────
   // Omvärderingen lägger här de värden den inte vågar ändra själv. Man väljer "Använd" eller "Behåll mitt".
   const forslagFor = it => konto.forslag.get(it.id);
+  // Behöver identifieras: okänd tillverkare eller låg säkerhet (under 60 %).
+  const sakPct = it => { const m = /^(\d+)/.exec(String(it.marknad_sakerhet || "")); return m ? +m[1] : null; };
+  function behoverId(it) {
+    if (it.lada === "salt") return false;
+    const pct = sakPct(it);
+    return !it.tillverkare || it.tillverkare === "Okänd" || (pct != null && pct < 60);
+  }
+  const idSkal = it => [(!it.tillverkare || it.tillverkare === "Okänd") ? "tillverkare okänd" : "", sakPct(it) != null && sakPct(it) < 60 ? "säkerhet " + sakPct(it) + " %" : ""].filter(Boolean).join(", ");
+  function identifieraLista() {
+    const lista_ = el("div", { class: "forslag-lista" });
+    const p = App.panel([el("div", { class: "huvud" }, el("h2", {}, "Behöver identifieras"), el("button", { class: "knapp liten", type: "button", onclick: () => p.stang() }, "Klar")),
+      el("p", { class: "muted" }, "Föremål där tillverkaren är okänd eller Claude var osäker. Tryck Identifiera: bilderna laddas in, fota gärna stämpeln på nytt, och resultatet sparas i samma föremål."), lista_]);
+    const rader = lista().filter(behoverId).sort((a, b) => (sakPct(a) ?? 50) - (sakPct(b) ?? 50));
+    lista_.replaceChildren(...rader.map(it => {
+      const k = el("div", { class: "forslag-kort" });
+      const bild = el("div", { class: "fk-bild" });
+      const fb = forstaBild(it); if (fb) App.bildUrl(fb).then(u => { if (u) bild.append(el("img", { src: u, alt: "" })); });
+      k.append(bild, el("div", { class: "fk-txt" },
+        el("div", { class: "fk-namn" }, ...[it.nummer ? el("span", { class: "fjnr" }, App.fjNr(it)) : null, it.namn].filter(Boolean)),
+        el("div", { class: "muted" }, idSkal(it) + ` · ${(it.bilder || []).length} bild${(it.bilder || []).length === 1 ? "" : "er"}`),
+        el("div", { class: "rad" }, el("button", { class: "knapp primar liten", type: "button", onclick: () => { p.stang(); identifiera(it); } }, "🔍 Identifiera"),
+          el("button", { class: "knapp liten", type: "button", onclick: () => { p.stang(); oppnaDetalj(it.id); } }, "Öppna"))));
+      return k;
+    }));
+    if (!rader.length) lista_.append(el("div", { class: "tom" }, el("div", { class: "stor" }, "Allt identifierat")));
+  }
   function renderForslagRad() {
     const ruta = $("s-forslag"); if (!ruta) return;
     const n = lista().filter(forslagFor).length;
-    ruta.replaceChildren(...(n ? [el("div", { class: "ruta tips forslag-rad" },
+    const nId = lista().filter(behoverId).length;
+    ruta.replaceChildren(...[n ? el("div", { class: "ruta tips forslag-rad" },
       el("span", {}, el("b", {}, `${n} ${n === 1 ? "värdering" : "värderingar"} att granska`),
         " – omvärderingen hittade nya priser som den inte ändrade själv."),
-      el("button", { class: "knapp primar", type: "button", onclick: granskaLista }, "Granska"))] : []));
+      el("button", { class: "knapp primar", type: "button", onclick: granskaLista }, "Granska")) : null,
+      nId ? el("div", { class: "ruta tips forslag-rad" },
+        el("span", {}, el("b", {}, `🔍 ${nId} ${nId === 1 ? "föremål behöver" : "föremål behöver"} identifieras`), " – okänd tillverkare eller osäker bedömning."),
+        el("button", { class: "knapp", type: "button", onclick: identifieraLista }, "Visa")) : null].filter(Boolean));
   }
   function forslagKort(it, fs, klar) {
     const k = el("div", { class: "forslag-kort" });
@@ -207,7 +237,8 @@
   // ── Guidad identifiering: föremål → stämpel → Claude → Auctionet → bekräfta → köp ──
   // Målet är rätt formgivare/serie varje gång: stämpeln är ett eget steg, Claude får be om fler bilder och
   // ta emot rättelser, och svaret prövas mot vilka namn som står på sålda exemplar på Auctionet.
-  function identifiera() {
+  // befintlig = ett föremål i samlingen som ska identifieras om; då laddas dess bilder in och resultatet sparas i samma rad.
+  function identifiera(befintlig) {
     const st_ = { obj: null, stampel: null, ingenStampel: false, extra: [], res: null, kommentar: "", auk: null, kor: 0 };
     const v = el("div", { class: "ident" });
     const p = App.panel(v);
@@ -237,7 +268,7 @@
     const extraRad = el("div", { class: "galleri id-extra" });
     const analys = el("div", { class: "id-analys" });
     const kop = el("div", { class: "id-kop", hidden: true });
-    v.append(el("div", { class: "huvud" }, el("h2", {}, "Nytt köp"), el("button", { class: "knapp liten", type: "button", onclick: () => p.stang() }, "Avbryt")),
+    v.append(el("div", { class: "huvud" }, el("h2", {}, befintlig ? "Identifiera " + (App.fjNr(befintlig) || befintlig.namn) : "Nytt köp"), el("button", { class: "knapp liten", type: "button", onclick: () => p.stang() }, "Avbryt")),
       steg, objSlot, stSlot, extraRad, analys, kop);
 
     function visaBild(ruta, s_) {
@@ -321,7 +352,7 @@
       nyaLankar(); for (const k of ["namn", "tillverkare", "formgivare", "serie"]) falt_[k].addEventListener("change", nyaLankar);
       ruta.append(lankar);
       analys.replaceChildren(ruta);
-      visaKop();
+      if (befintlig) visaUppdatera(); else visaKop();
     }
     // Vilka namn står först i titlarna på sålda exemplar? ("MARI SIMMULSON. Vas …") – en oberoende kontroll av formgivaren.
     async function kontrolleraAuctionet() {
@@ -354,6 +385,41 @@
         } catch (e) { console.error(e); }
       }
       ruta.replaceChildren(el("span", { class: "muted" }, "Inga sålda exemplar på Auctionet att jämföra med – lita på stämpeln."));
+    }
+    // Befintligt föremål: spara identifieringen i samma rad; nya bilder läggs till sist.
+    function visaUppdatera() {
+      kop.hidden = false;
+      const spar = el("button", { class: "knapp primar", type: "button" }, "Spara identifieringen");
+      const status = el("div", { class: "status" });
+      kop.replaceChildren(el("p", { class: "muted", style: "font-size:13px" }, "Köpet, lådan och texterna ändras inte. Nya bilder läggs till bland föremålets bilder."), el("div", { class: "rad" }, spar), status);
+      spar.onclick = async () => {
+        const r = st_.res, f = id => (falt_[id] && falt_[id].value.trim()) || "";
+        spar.disabled = true; status.textContent = "Sparar …";
+        const auk = st_.auk, it = befintlig;
+        const rad = `Identifierad ${App.datum(App.idag())} av Claude (säkerhet ${Math.round((r.sakerhet || 0) * 100)} %)` +
+          (r.stampel_las && r.stampel_las.ordagrant ? `, stämpel: ”${r.stampel_las.ordagrant}”` : r.stampel_last ? `, stämpel: ”${r.stampel_last}”` : "") + "." +
+          (st_.kommentar ? " Rättelse: " + st_.kommentar + "." : "") + (auk && auk.topp.length ? ` Auctionet: ${auk.topp[0][0]} på ${auk.topp[0][1]} av ${auk.salda.length} sålda.` : "");
+        const andring = { namn: f("namn") || it.namn, tillverkare: f("tillverkare") || "Okänd", formgivare: f("formgivare") || null, serie: f("serie"),
+          period: f("period") || null, stampel: f("stampel") || null, sokord: r.sokord || it.sokord || "",
+          marknad_min: r.marknad_min, marknad_max: r.marknad_max, marknad_sakerhet: Math.round((r.sakerhet || 0) * 100) + " %", saker: (r.sakerhet || 0) >= 0.7 ? "säker" : "trolig",
+          proveniens: [it.proveniens, rad].filter(Boolean).join("\n") };
+        if (KATEGORIER.includes(r.kategori)) andring.kategori = r.kategori;
+        if (auk && auk.salt) Object.assign(andring, { auk_median: auk.salt.median, pris_uppdaterad: App.idag(),
+          jfr: `Auctionet: ${auk.salt.antal} sålda för ”${auk.fras}”, median ${kr(auk.salt.median)} (${kr(auk.salt.lag)}–${kr(auk.salt.hog)}).`,
+          jfr_url: "https://auctionet.com/sv/search?is=ended&q=" + encodeURIComponent(auk.fras) });
+        try {
+          const bilder = [...(it.bilder || [])];
+          let n = Math.max(0, ...bilder.map(b => +b.n || 0));
+          for (const s_ of [st_.obj, st_.stampel, ...st_.extra].filter(x => x && !x.path)) {
+            n += 1; status.textContent = "Laddar upp bild …";
+            const path = `${konto.uid}/${it.id}/${n}.jpg`; await App.laddaUppBild(path, s_.blob); bilder.push({ n, path });
+          }
+          andring.bilder = bilder;
+          Object.assign(it, await spara(it.id, andring));
+          p.stang(); render(); toast("Identifieringen är sparad");
+          oppnaDetalj(it.id);
+        } catch (e) { status.textContent = e.message; spar.disabled = false; }
+      };
     }
     function visaKop() {
       kop.hidden = false;
@@ -401,7 +467,22 @@
         } catch (e) { status.textContent = e.message; spar.disabled = false; }
       };
     }
-    uppdatera();
+    // Befintligt föremål: ladda in bild 1 (föremålet) och bild 2 (troligen stämpeln/botten).
+    if (befintlig && (befintlig.bilder || []).length) {
+      analys.replaceChildren(el("div", { class: "ruta" }, el("div", { class: "spinner" }), " Hämtar föremålets bilder …"));
+      (async () => {
+        try {
+          const b = befintlig.bilder.slice(0, 2);
+          const urls = await App.bildUrlar(b.map(x => x.path));
+          const hamta = async x => { const r_ = await fetch(urls[x.path]); const blob = await r_.blob(); return { ...(await App.skalaNer(blob, 1600)), path: x.path, original: blob }; };
+          st_.obj = await hamta(b[0]);
+          if (b[1]) { st_.stampel = await hamta(b[1]); st_.stampelFil = st_.stampel.original; }
+          analys.replaceChildren();
+          if (!b[1]) analys.append(el("div", { class: "ruta tips" }, "Föremålet har bara en bild. Fota stämpeln eller botten nu – då blir identifieringen mycket säkrare."));
+        } catch (e) { analys.replaceChildren(el("div", { class: "ruta" }, "Kunde inte hämta bilderna: " + e.message + " – fota på nytt.")); }
+        uppdatera();
+      })();
+    } else uppdatera();
   }
 
   // Zooma in på stämpeln: tryck mitt på den så beskärs originalbilden (full upplösning) runt punkten.
@@ -518,6 +599,10 @@
       el("button", { class: "knapp", type: "button", onclick: () => flytta(it, p) }, "📦 Flytta"),
       it.lada !== "salt" ? el("button", { class: "knapp", type: "button", onclick: () => markeraSald(it, p) }, "✓ Såld") : null);
     v.append(knappar);
+    if (it.lada !== "salt") v.append(behoverId(it)
+      ? el("div", { class: "ruta tips id-uppmaning" }, el("span", {}, el("b", {}, "Osäker identifiering. "), idSkal(it) + "."),
+          el("button", { class: "knapp primar liten", type: "button", onclick: () => { p.stang(); identifiera(it); } }, "🔍 Identifiera med stämpeln"))
+      : el("div", { class: "rad", style: "margin-top:8px" }, el("button", { class: "knapp liten", type: "button", onclick: () => { p.stang(); identifiera(it); } }, "🔍 Identifiera igen")));
     if (it.lada === "salj") v.append(klarRuta(it, p));
     const fakta = el("div", { class: "visa-fakta" });
     const f = (b, s, cls) => { if (s == null || s === "" || s === "–") return; fakta.append(el("div", { class: cls || "" }, el("b", {}, b), el("span", { class: cls === "stor" && /Köp|Sål/.test(b) ? "kop" : "" }, s))); };
