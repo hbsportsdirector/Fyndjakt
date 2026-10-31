@@ -173,3 +173,23 @@ def test_saljplan_sager_var_den_ska_ligga():
     assert p["nettoSteg"] == [round(L(f"L.channelNet('tradera', {x})")) for x in p["steg"]]
     assert p["netto"] == p["nettoSteg"][0] and "Blocket" in p["alternativ"]
     assert L("L.saljplan(5000).kanal") == "bukowskis"
+
+
+# ── Till salu: Att fixa → Klar → Upplagd ───────────────────────────────
+def test_salj_klar_checklista():
+    tom = L('L.saljKlar({tradera_pris: 400, bilder: [{}]})')
+    assert tom["steg"] == "fixa" and not tom["alla"]
+    assert [k["id"] for k in tom["saknas"]] == ["bilder", "annons", "matt"]
+    text = "Vas ur serien Berså, formgiven av Stig Lindberg för Gustavsberg. Mått: [mått]. Inga skador."
+    halv = L(f'L.saljKlar({{tradera_pris: 400, bilder: [{{}},{{}},{{}}], annons_rubrik: "Berså vas", annons_text: {json.dumps(text)}}})')
+    assert [k["id"] for k in halv["saknas"]] == ["matt"]
+    full = L(f'L.saljKlar({{tradera_pris: 400, bilder: [{{}},{{}},{{}}], annons_rubrik: "Berså vas", annons_text: L.sattMatt({json.dumps(text)}, "höjd 21 cm")}})')
+    assert full["alla"] and full["steg"] == "fixa"
+    assert L('L.saljKlar({klar: "2026-10-31"}).steg') == "klar"
+    assert L('L.saljKlar({klar: "2026-10-31", upplagd: "2026-11-01"}).steg') == "upplagd"
+
+
+def test_satt_matt():
+    assert L('L.sattMatt("Vas.\\nMått: [mått]\\nFint skick.", "höjd 21 cm")') == "Vas.\nMått: höjd 21 cm\nFint skick."
+    assert L('L.sattMatt("Vas.", "höjd 21 cm")') == "Vas.\nMått: höjd 21 cm."
+    assert L('L.sattMatt("", "höjd 21 cm")') == "Mått: höjd 21 cm."

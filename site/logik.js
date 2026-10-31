@@ -176,6 +176,27 @@
     const v = varde(it);
     return v == null ? null : Math.round(v / Math.max(1, +it.antal || 1));
   }
+  // Till salu: vad som saknas innan annonsen kan läggas ut. steg = fixa → klar → upplagd.
+  const KLAR_BILDER = 3;
+  function saljKlar(it) {
+    const bilder = (it.bilder || []).length;
+    const annons = String(it.annons_text || "").trim();
+    const krav = [
+      { id: "bilder", ok: bilder >= KLAR_BILDER, text: `Bilder ${Math.min(bilder, KLAR_BILDER)}/${KLAR_BILDER}`, tips: "framsida, stämpel/botten och en detalj eller eventuell skada" },
+      { id: "annons", ok: annons.length >= 60 && !!String(it.annons_rubrik || "").trim(), text: "Annons", tips: "rubrik och text" },
+      { id: "matt", ok: !!annons && !/\[\s*mått\s*\]/i.test(annons), text: "Mått", tips: "höjd och bredd/diameter i annonsen" },
+      { id: "pris", ok: !!forvantat(it), text: "Pris", tips: "utgångspris eller värde" },
+    ];
+    const saknas = krav.filter(k => !k.ok);
+    return { krav, saknas, alla: !saknas.length, steg: it.upplagd ? "upplagd" : it.klar ? "klar" : "fixa" };
+  }
+  // Mått in i texten: "[mått]" byts ut, annars läggs en rad till.
+  function sattMatt(text, matt) {
+    const t = String(text || "");
+    if (!matt) return t;
+    return /\[\s*mått\s*\]/i.test(t) ? t.replace(/\[\s*mått\s*\]/gi, matt) : (t ? t.replace(/\s*$/, "") + "\n" : "") + "Mått: " + matt + ".";
+  }
+
   function sammanstallning(lista) {
     const ut = {};
     for (const it of lista || []) {
@@ -192,7 +213,7 @@
   function kr(n) { return n == null || isNaN(n) ? "–" : Math.round(n).toLocaleString("sv-SE") + " kr"; }
 
   const Logik = { KANALER, avgift, channelNet, bestChannel, koptak, butikBesked, flippRakning, prisstege, stegeLage, saljplan, nice,
-                  slutarSnart, bradskande, tidKvar, tidText, kvot, varde, forvantat, sammanstallning, kr,
+                  slutarSnart, bradskande, tidKvar, tidText, kvot, varde, forvantat, saljKlar, sattMatt, KLAR_BILDER, sammanstallning, kr,
                   STEG_DAGAR, KOPTAK_FLIPP, KOPTAK_SAMLING };
   if (typeof module !== "undefined" && module.exports) module.exports = Logik;
   else rot.Logik = Logik;

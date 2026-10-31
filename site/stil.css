@@ -561,3 +561,23 @@ a.salda-alla { display: inline-block; color: var(--brass); padding: 8px 0 2px; m
 .textblock-huvud { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 4px; }
 .textblock-text { white-space: pre-wrap; font-size: 14px; }
 .ruta.texter details summary { cursor: pointer; color: var(--brass); padding: 4px 0; }
+/* Till salu: Att fixa → Klar → Upplagd */
+.chips.saljsteg { margin: 8px 0 4px; }
+.chips.saljsteg[hidden] { display: none; }
+.steg-pill { display: inline-block; font-size: 11px; line-height: 1.3; padding: 2px 7px; border-radius: 999px; margin: 4px 0 2px; border: 1px solid var(--line); }
+.steg-pill.fixa { color: var(--brass); }
+.steg-pill.klar { color: var(--gron-ljus); border-color: var(--gron-ljus); }
+.steg-pill.upplagd { color: var(--muted); }
+.klar-ruta { margin-top: 12px; }
+.klar-lista { list-style: none; margin: 8px 0 12px; padding: 0; }
+.klar-lista li { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px dotted var(--line); }
+.klar-lista li:last-child { border-bottom: 0; }
+.klar-lista .bock { width: 22px; text-align: center; color: var(--brass); font-size: 16px; }
+.klar-lista li.ok .bock { color: var(--gron-ljus); }
+.klar-lista .txt { flex: 1; min-width: 0; }
+.klar-lista .txt small { display: block; color: var(--muted); font-size: 12px; }
+.klar-lista li.ok .txt { color: var(--muted); }
+.galleri .b.plus { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 80px; min-width: 80px;
+  border: 1px dashed var(--line); background: transparent; color: var(--brass); cursor: pointer; border-radius: 8px; font: inherit; }
+.galleri .b.plus span { font-size: 26px; line-height: 1; }
+.galleri .b.plus { width: 84px; height: 84px; min-height: 0; min-width: 0; }

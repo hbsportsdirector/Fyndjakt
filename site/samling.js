@@ -4,9 +4,10 @@
   const { konto, el, kr, toast, $ } = App;
   const LADOR = [["egen", "Egen samling"], ["pappas", "Pappas"], ["oklart", "Oklart"], ["salj", "Till salu"], ["salt", "Sålt"]];
   const LADNAMN = Object.fromEntries(LADOR);
+  const SALJSTEG = [["", "Alla"], ["fixa", "Att fixa"], ["klar", "Klara att lägga ut"], ["upplagd", "Upplagda"]];
   const KATEGORIER = ["Keramik & porslin", "Glas", "Konst", "Möbler", "Belysning", "Skulptur", "Böcker", "Övrigt"];
   const KANALER = [["tradera", "Tradera"], ["blocket", "Blocket"], ["bukowskis", "Bukowskis"], ["auktionsverket", "Auktionsverket"], ["catawiki", "Catawiki"], ["loppis", "Loppis"], ["annat", "Annat"]];
-  const st = { lada: "", q: "", sort: "andrad", kategori: "" };
+  const st = { lada: "", q: "", sort: "andrad", kategori: "", saljsteg: "" };
   try { Object.assign(st, JSON.parse(localStorage.getItem("samling-vy") || "{}")); } catch (e) {}
   let rot;
   const lista = () => konto.samling;
@@ -17,6 +18,7 @@
   function synliga() {
     const q = App.norm(st.q);
     return lista().filter(it => (!st.lada || it.lada === st.lada) && (!st.kategori || it.kategori === st.kategori)
+      && (st.lada !== "salj" || !st.saljsteg || Logik.saljKlar(it).steg === st.saljsteg)
       && (!q || App.norm([App.fjNr(it), it.namn, it.tillverkare, it.serie, it.sokord, it.anteckning, it.beskrivning].join(" ")).includes(q)))
       .sort({
         namn: (a, b) => (a.namn || "").localeCompare(b.namn || "", "sv"),
@@ -42,6 +44,19 @@
       rad.push(knapp(id, namn, l.antal, l.varde, id === "salt" ? `sålt för ${kr(l.salt)} · vinst ${kr(l.salt - l.inkopt)}` : null));
     }
     $("s-lador").replaceChildren(...rad);
+    // Till salu: Att fixa → Klar att lägga ut → Upplagd.
+    const ss = $("s-saljsteg");
+    if (ss) {
+      ss.hidden = st.lada !== "salj";
+      if (st.lada === "salj") {
+        const salj = lista().filter(it => it.lada === "salj"), n = id => salj.filter(it => !id || Logik.saljKlar(it).steg === id).length;
+        ss.replaceChildren(...SALJSTEG.map(([id, namn]) => {
+          const b = el("button", { class: "chip", type: "button", "aria-pressed": String(st.saljsteg === id) }, namn, el("span", { class: "n" }, String(n(id))));
+          b.onclick = () => { st.saljsteg = id; render(); };
+          return b;
+        }));
+      }
+    }
     const sam = $("s-sammanstallning"); sam.replaceChildren();
     const l = st.lada ? (s[st.lada] || { antal: 0, varde: 0, inkopt: 0, salt: 0 }) : { antal: alla, varde: allaVarde, inkopt: lista().reduce((n, it) => n + (+it.inkopspris || 0), 0), salt: s.salt ? s.salt.salt : 0 };
     const post = (t, v) => sam.append(el("span", {}, t + " ", el("b", {}, v)));
@@ -63,6 +78,12 @@
     kropp.append(el("div", { class: "namn" }, it.namn));
     kropp.append(el("div", { class: "under" }, ...[it.nummer ? el("span", { class: "fjnr" }, App.fjNr(it)) : null, under(it) || it.kategori || ""].filter(Boolean)));
     if ((+it.antal || 1) > 1) kropp.append(el("div", { class: "under" }, it.antal + " st"));
+    if (it.lada === "salj") {
+      const k_ = Logik.saljKlar(it);
+      kropp.append(k_.steg === "upplagd" ? el("div", { class: "steg-pill upplagd" }, "Upplagd")
+        : k_.steg === "klar" ? el("div", { class: "steg-pill klar" }, "✓ Klar att lägga ut")
+        : el("div", { class: "steg-pill fixa" }, k_.alla ? "Redo – markera klar" : "Saknas: " + k_.saknas.map(x => x.text.toLowerCase()).join(", ")));
+    }
     const pris = el("div", { class: "pris" });
     if (it.lada === "salt") pris.append("Såld för ", el("b", {}, kr(it.salt_for)));
     else pris.append(...vardeRad(it));
@@ -272,6 +293,7 @@
       el("button", { class: "knapp", type: "button", onclick: () => flytta(it, p) }, "📦 Flytta"),
       it.lada !== "salt" ? el("button", { class: "knapp", type: "button", onclick: () => markeraSald(it, p) }, "✓ Såld") : null);
     v.append(knappar);
+    if (it.lada === "salj") v.append(klarRuta(it, p));
     const fakta = el("div", { class: "visa-fakta" });
     const f = (b, s, cls) => { if (s == null || s === "" || s === "–") return; fakta.append(el("div", { class: cls || "" }, el("b", {}, b), el("span", { class: cls === "stor" && /Köp|Sål/.test(b) ? "kop" : "" }, s))); };
     if (it.lada === "salt") { f("Såld för", kr(it.salt_for), "stor"); f("Inköpt för", it.inkopspris != null ? kr(it.inkopspris) : null, "stor"); f("Vinst", it.salt_for != null && it.inkopspris != null ? kr(it.salt_for - it.inkopspris) : null, "stor"); f("Såld", [it.salt_datum ? App.datum(it.salt_datum) : "", it.salt_kanal].filter(Boolean).join(" via ")); }
@@ -351,11 +373,7 @@
         steg.append(s);
       });
       r.append(steg);
-      if (!it.upplagd) {
-        const b = el("button", { class: "knapp liten", type: "button", style: "margin-top:8px" }, "Jag har lagt upp den nu");
-        b.onclick = async () => { try { Object.assign(it, await spara(it.id, { upplagd: new Date().toISOString(), steg_satt: 0, tradera_pris: it.tradera_pris ?? plan.start })); renderSalj(it, ruta, p); toast("Prisstegen startad"); } catch (x) { toast(x.message); } };
-        r.append(b);
-      } else if (plan.lage) {
+      if (it.upplagd && plan.lage) {
         const l = plan.lage;
         r.append(el("p", { class: "muted", style: "margin:8px 0 0" }, l.sank != null ? `Dag ${l.dagar} – dags att sänka till ${kr(l.sank)}. `
           : l.slut ? "Stegen är slut – auktion med reservationspris, eller paketera. " : `Dag ${l.dagar} – ligger ute på ${kr(l.pris)}${l.nasta != null ? ", nästa sänkning om " + l.nasta + " dagar" : ""}. `));
@@ -414,7 +432,9 @@
   async function renderGalleri(it, galleri, p) {
     galleri.replaceChildren();
     const bilder = it.bilder || [];
-    if (!bilder.length) { galleri.append(el("div", { class: "muted" }, "Ingen bild än – tryck Lägg till bild.")); return; }
+    const plus = el("button", { class: "b plus", type: "button", "aria-label": "Lägg till bild" }, el("span", {}, "＋"), el("small", {}, "Bild"));
+    plus.onclick = () => bildMeny(it, () => p.byt("visa"));
+    if (!bilder.length) { galleri.append(plus, el("div", { class: "muted" }, "Ingen bild än – fota framsidan, stämpeln och en detalj.")); return; }
     const urls = await App.bildUrlar(bilder.map(b => b.path));
     bilder.forEach((b, i) => {
       const d = el("div", { class: "b" + (i === 0 ? " stor" : "") });
@@ -427,6 +447,7 @@
       };
       d.append(img, x); galleri.append(d);
     });
+    galleri.append(plus);
   }
   // Nya bilder: nedskalade till 1600 px, numrerade efter de som finns.
   async function laggTillBilder(it, filer, klar) {
@@ -550,6 +571,62 @@
     document.body.append(a); a.click(); a.remove();
   }
 
+  // ── Till salu: checklista innan annonsen läggs ut ─────────────────
+  function klarRuta(it, p) {
+    const k = Logik.saljKlar(it);
+    const r = el("div", { class: "ruta klar-ruta" });
+    const om = () => { render(); p.byt("visa"); };
+    if (k.steg === "upplagd") { r.append(el("div", { class: "etik" }, "Upplagd " + App.datum(it.upplagd))); return r; }
+    r.append(el("div", { class: "etik" }, k.steg === "klar" ? "✓ Klar att lägga ut sedan " + App.datum(it.klar) : k.alla ? "Allt finns – markera som klar" : "Att fixa innan den läggs ut"));
+    const atgard = {
+      bilder: () => bildMeny(it, om),
+      annons: async (b) => { b.disabled = true; b.textContent = "Claude skriver …"; try { await skrivTexter(it); om(); toast("Annonsen är skriven"); } catch (e) { toast(e.message); b.disabled = false; b.textContent = "✍ Skriv"; } },
+      matt: async () => {
+        const s_ = await App.fraga("Mått", { ok: "Lägg in i annonsen", falt: [
+          { id: "h", etikett: "Höjd (cm)", typ: "text", placeholder: "t.ex. 21" },
+          { id: "b", etikett: "Bredd eller diameter (cm)", typ: "text", placeholder: "t.ex. 12" },
+          { id: "x", etikett: "Annat (valfritt)", typ: "text", placeholder: "t.ex. 6 tallrikar à 24 cm" }] });
+        if (!s_) return;
+        const matt = [s_.h && `höjd ${s_.h} cm`, s_.b && `bredd/diameter ${s_.b} cm`, s_.x].filter(Boolean).join(", ");
+        if (!matt) return;
+        try { Object.assign(it, await spara(it.id, { annons_text: Logik.sattMatt(it.annons_text, matt), beskrivning: it.beskrivning ? Logik.sattMatt(it.beskrivning, matt) : it.beskrivning })); om(); toast("Måtten ligger i annonsen"); } catch (e) { toast(e.message); }
+      },
+      pris: async () => {
+        const s_ = await App.fraga("Utgångspris", { ok: "Spara", falt: [{ id: "pris", etikett: "Pris (kr)", typ: "number", varde: Logik.forvantat(it) || "" }] });
+        if (!s_ || s_.pris === "") return;
+        try { Object.assign(it, await spara(it.id, { tradera_pris: Math.round(+s_.pris) })); om(); } catch (e) { toast(e.message); }
+      },
+    };
+    const knappText = { bilder: "📷 Lägg till", annons: "✍ Skriv", matt: "📏 Fyll i", pris: "Sätt pris" };
+    const lista_ = el("ul", { class: "klar-lista" });
+    for (const kr_ of k.krav) {
+      const li = el("li", { class: kr_.ok ? "ok" : "" }, el("span", { class: "bock" }, kr_.ok ? "✓" : "○"),
+        el("span", { class: "txt" }, kr_.text, kr_.ok ? null : el("small", {}, kr_.tips)));
+      if (!kr_.ok || kr_.id === "bilder") { const b = el("button", { class: "knapp liten", type: "button" }, kr_.ok ? "📷 Fler" : knappText[kr_.id]); b.onclick = () => atgard[kr_.id](b); li.append(b); }
+      lista_.append(li);
+    }
+    r.append(lista_);
+    // Nästa steg när den är klar: lägga ut den (startar prisstegen när kanalen är Tradera köp nu).
+    const upplagd = el("button", { class: "knapp" + (k.steg === "klar" ? " primar" : ""), type: "button" }, "📤 Jag har lagt upp den nu");
+    upplagd.onclick = async () => {
+      const plan = Logik.saljplan(Logik.forvantat(it));
+      try { Object.assign(it, await spara(it.id, { upplagd: new Date().toISOString(), steg_satt: 0, klar: it.klar || new Date().toISOString(),
+        tradera_pris: it.tradera_pris ?? (plan.start || Logik.forvantat(it)) })); om(); toast(plan.typ === "stege" ? "Upplagd – prisstegen startad" : "Upplagd"); } catch (x) { toast(x.message); }
+    };
+    if (k.steg === "klar") {
+      r.append(el("div", { class: "rad" }, upplagd,
+        el("button", { class: "knapp liten", type: "button", onclick: async () => { try { Object.assign(it, await spara(it.id, { klar: null })); om(); } catch (e) { toast(e.message); } } }, "Ångra klar")));
+    } else {
+      const b = el("button", { class: "knapp" + (k.alla ? " primar" : ""), type: "button" }, "✓ Markera som klar att lägga ut");
+      b.onclick = async () => {
+        if (!k.alla && !(await App.fraga("Saknas: " + k.saknas.map(x => x.text.toLowerCase()).join(", ") + ". Markera som klar ändå?", { ok: "Ja, klar" }))) return;
+        try { Object.assign(it, await spara(it.id, { klar: new Date().toISOString() })); om(); toast("Klar att lägga ut"); } catch (e) { toast(e.message); }
+      };
+      r.append(b);
+    }
+    return r;
+  }
+
   // ── Texter: beskrivning, säljannons, proveniens ─────────────────────
   async function kopiera(text, knapp) {
     try { await navigator.clipboard.writeText(text); } catch (e) {
@@ -662,7 +739,7 @@
         el("button", { class: "knapp", type: "button", "aria-label": "Mer", onclick: merMeny }, "⋯")), h.querySelector(".hjalp"));
       sek.append(h,
         el("div", { id: "s-forslag" }),
-        el("div", { class: "lador", id: "s-lador" }), el("div", { class: "sammanstallning", id: "s-sammanstallning" }),
+        el("div", { class: "lador", id: "s-lador" }), el("div", { class: "chips saljsteg", id: "s-saljsteg" }), el("div", { class: "sammanstallning", id: "s-sammanstallning" }),
         el("div", { class: "verktyg" }, el("div", { class: "rad" },
           el("input", { id: "s-q", type: "search", placeholder: "Sök namn, tillverkare, serie …", "aria-label": "Sök i samlingen" }),
           el("select", { id: "s-kategori", "aria-label": "Kategori" }),
