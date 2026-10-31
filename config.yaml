@@ -317,10 +317,15 @@ spar:
       - Stig Lindberg icke-Domino: Reptil 8. Dyra studioföremål: max 4.
       - Nils Landberg Sommerso karaffer/vaser 8-9. Illusion/tulpanglas: max 4.
       - Ulrica Hydman-Vallien och Bertil Vallien: max 2 oavsett föremål.
+      - TALLRIKSHYLLA (enda möbeln i spåret): vägghängd hylla med framkantslister där tallrikar står på
+        högkant. 4+ rader och målad (vit/benvit/grå) = 8-9. 1-2 rader = max 6. Diskställ, tallriksstativ
+        för en tallrik, kryddhylla och vanliga hyllor utan list = max 2.
 
       PLATS: Kunden bor i Stockholm/Åkersberga. Stockholm ger +1 (högst 10).
       Stora/ömtåliga föremål långt bort utan frakt ger -2.
     uteslut_ord:
+      - diskställ
+      - torkställ
       - affischtryck
       - offsettryck
       - print on canvas
@@ -370,23 +375,42 @@ spar:
       - Burkar MED LOCK gillas genomgående oavsett serie.
       - Krackelering, nagg och nyproduktion drar ner tydligt.
       - Ulrica Hydman-Vallien, Bertil Vallien, Ingeborg Lundin, Gunnel Sahlin, Kjell Engman och Bernadotte & Kylberg: nej.
+      - Tallrikshylla (jagas sedan 2026-10-31): hög vägghängd hylla med framkantslister, 4-6 rader, gärna djupare hyllplan nederst, målad vit/benvit/grå = 8-9. Stor (över 100 cm bred, över 150 cm hög) + Stockholm = 9-10. Omålad furu = 6-7. Bara 1-2 rader = max 6. Diskställ och tallriksstativ för en tallrik = max 2.
       - Varm mässingston JA, silver/krom NEJ.
       - Stockholm är plus - kunden hämtar själv.
     bedomningsregler: |
-      Kunden samlar skandinaviskt mid-century art glass + keramik 1949-1975.
-      Namngivna serier och formgivare = krav för 8+. Var sparsam med 9 och 10:
+      Kunden samlar skandinaviskt mid-century art glass + keramik 1949-1975, plus EN möbel: en tallrikshylla att visa samlingen på.
+      Namngivna serier och formgivare = krav för 8+ (undantag: tallrikshyllan). Var sparsam med 9 och 10:
       - 10: Röd Eld-pjäs i saknad form OCH långt under marknadspris. Ovanlig Höglund Boda-röd.
             Saknad Domino-form av Stig Lindberg i perfekt skick.
       - 9: Röd Eld standard-form i gott skick. Saknad Domino-form. Eftersökt Höglund-variant.
            Sommerso Nils Landberg karaff. Rörstrand Blå Eld ovanlig form (tekanna, kaffekanna).
       - 8: Blå Eld ovanlig form. Domino standard-form. Höglund opalin-vas. Harlequin sockerkar.
-           Verifierad serie i gott skick.
+           Verifierad serie i gott skick. Tallrikshylla vägghängd med 4+ rader, målad (9 om stor och i Stockholm).
       - 6–7: Rätt fabrik men vanlig form som kunden har. Lätt skick-problem. Osäker attribution.
       - 4–5: Osäker attribution. Nyproduktion av vanlig form. Utan stämpel.
       - 0–3: Fel kategori. Osignerad modern. Kunden har exakt den.
       Ett lågt pris är ett plus, inte ett tecken på låg kvalitet.
     max_pris: 30000  # Höjt 2026-10-24: Domino H55-set och vissa reklam-askfat går för 15-27 kkr på intl. marknader.
     sokningar:
+      # ─── Tallrikshylla – möbel att visa samlingen på, tillagd 2026-10-31 ───
+      Tallrikshylla:
+        - tallrikshylla
+        - tallriksställ
+        - tallrikställ
+        - tallrikshylla vägg
+        - tallrikshylla antik
+        - tallrikshylla allmoge
+        - tallrikshylla vitmålad
+        - tallrikshylla gustaviansk
+        - tallrikshylla trä
+        - tallriksställning
+        - tallriksrack
+        - fathylla
+        - fatställ
+        - vägghylla tallrikar
+        - hylla för tallrikar
+        - plate rack
       Rörstrand Hertha Bengtson:
         - Röd Eld
         - Rorstrand Röd Eld

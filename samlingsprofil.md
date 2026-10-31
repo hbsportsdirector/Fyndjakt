@@ -145,6 +145,21 @@ BARA champagne- och martiniglas kan få 8+. Stora satser och vardagsglas = max 5
 
 **INTE intresserad av:** opersonlig modern konst, nutida affisch-tryck, 70-tals airbrush, osignerad hobbykonst. Övrig konst, grafik och posters utanför namnlistan = max 3.
 
+## Möbel för samlingen – tallrikshylla (AKTIV JAKT från 2026-10-31)
+Jag vill ha en **tallrikshylla** att visa keramiken på – den enda möbeln jag jagar i det här spåret.
+Förebilden är en hög, vägghängd tallrikshylla i målat trä, i butiksstil:
+- **Form:** 4–6 rader grunda hyllplan med **framkantslist** så att tallrikar och fat står på högkant och
+  lutar mot bakstycket. Gärna **djupare hyllplan nederst** (sned/avfasad underdel) för skålar och krukor.
+- **Storlek:** ungefär 100–150 cm bred och 150–200 cm hög. Större = plus. Hyllor med 1–2 rader = bara 5–6.
+- **Yta:** målad – vit, benvit, ljusgrå, gustaviansk grå eller ljus pastell. Omålad furu/allmogefärg (röd, blå, grön)
+  är OK att måla om = 6–7. Lackat mörkt trä, teak eller metall = max 4.
+- **Stil:** allmoge, gustaviansk, lantlig eller butiksinredning – gammal eller nytillverkad spelar mindre roll,
+  det är formen som räknas. Gärna med mässingskrokar för koppar.
+- **Varianter som räknas:** tallrikshylla, tallriksställ, fathylla, fatställ, väggskänk utan dörrar med tallrikslister.
+- **NEJ (max 2):** diskställ/torkställ för disk, tallriksstativ för en enstaka tallrik, kryddhylla, hyllsystem
+  utan list (vanlig bokhylla), IKEA-hyllor i plast/metall.
+- **Plats:** stor möbel – Stockholm/Åkersberga eller frakt som går att ordna är viktigt. Långt bort utan frakt = −2.
+
 ## Prisnivåer
 
 | Kategori | Mitt-pris | Högst rimligt |
@@ -156,6 +171,7 @@ BARA champagne- och martiniglas kan få 8+. Stora satser och vardagsglas = max 5
 | Sommerso Nils Landberg | 800–2 500 kr | 5 000 kr |
 | Harlequin sockerkar/skål | 150–500 kr | 800 kr |
 | Konst signerad grafik mid-century | 500–2 500 kr | 5 000 kr |
+| Tallrikshylla vägghängd, 4+ rader, målad | 800–3 000 kr | 6 000 kr (stor, antik) |
 
 ## Skick och äkthet
 - Nagg, krackelering, chip, stora fläckar = ned 2–3.
