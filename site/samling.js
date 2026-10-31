@@ -53,7 +53,7 @@
 
   // ── Rutnät ────────────────────────────────────────────────────────
   function sKort(it) {
-    const k = el("button", { class: "s-kort", type: "button", "data-id": it.id });
+    const k = el("button", { class: "s-kort", type: "button", "data-id": it.id, "data-ankare": it.id });
     const b = el("div", { class: "bild" });
     const p = forstaBild(it);
     if (p) b.append(el("img", { alt: "", loading: "lazy", "data-path": p })); else b.append(el("div", { class: "ingen" }, "Ingen bild"));
@@ -165,6 +165,7 @@
     const rader = synliga();
     $("s-antal").textContent = rader.length + " föremål" + (st.lada ? " i " + LADNAMN[st.lada] : "");
     const g = $("s-rutnat"); g.replaceChildren(...rader.map(sKort));
+    App.renderKlar("samling");
     if (!rader.length) {
       const tom = el("div", { class: "tom", style: "grid-column:1/-1" });
       if (!lista().length) tom.append(el("div", { class: "stor" }, "Samlingen är tom"), el("p", {}, "Lägg till ditt första föremål – fota det så föreslår Claude namn, tillverkare och värde."),
@@ -252,6 +253,7 @@
   function oppnaDetalj(id, lage = "visa") {
     const it = lista().find(x => x.id === id); if (!it) return;
     const p = App.panel(el("div"));
+    p.el.dataset.detalj = id;  // så att detaljvyn öppnas igen om appen laddas om (App.sparaPlats)
     const byt = l => { p.el.replaceChildren(l === "redigera" ? redigeraVy(it, p) : visaVy(it, p)); p.el.scrollTop = 0; };
     p.byt = byt;
     byt(lage);
@@ -674,6 +676,7 @@
       render();
     },
     visa() { if (rot) render(); },
+    oppnaDetalj(id) { if (lista().some(x => x.id === id)) oppnaDetalj(id); },
   });
   App.pa("samling-andrad", () => { if (rot && rot.classList.contains("aktiv")) render(); App.rakna("samling", lista().length); });
   App.pa("inloggad", () => App.rakna("samling", lista().length));

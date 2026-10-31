@@ -54,7 +54,7 @@
 
   // ── Kort ───────────────────────────────────────────────────────────
   function kort(p) {
-    const k = el("article", { class: "kort" + (konto.reakt.get(p.nyckel) && konto.reakt.get(p.nyckel).typ === "ogillar" ? " ogillad" : "") });
+    const k = el("article", { class: "kort" + (konto.reakt.get(p.nyckel) && konto.reakt.get(p.nyckel).typ === "ogillar" ? " ogillad" : ""), "data-ankare": p.nyckel });
     const bild = el("a", { class: "bild", href: p.url, target: "_blank", rel: "noopener" });
     const src = mini.get(p.nyckel) || (p.bilder || [])[0];
     if (src) { const i = el("img", { src, alt: "", loading: "lazy", referrerpolicy: "no-referrer" }); i.onerror = () => { i.remove(); bild.prepend(el("div", { class: "ingen" }, "Ingen bild")); }; bild.append(i); }
@@ -273,6 +273,7 @@
         const img = k.querySelector(".bild img"); if (!img) { const b = k.querySelector(".bild"); b.querySelector(".ingen")?.remove(); b.prepend(el("img", { src: m, alt: "" })); }
       });
     });
+    App.renderKlar("fynd");
     clearInterval(timer);
     timer = setInterval(() => lista.querySelectorAll("[data-ts]").forEach(s => { const t = +s.dataset.ts - Date.now() / 1000; s.textContent = tidtext(t); s.className = t < 6 * 3600 ? "het" : t < 86400 ? "snart" : ""; }), 60000);
   }
@@ -319,11 +320,18 @@
             el("button", { class: "knapp filter-knapp", type: "button", id: "fynd-filter", onclick: filterArk }, "⚙ Filter"),
             el("span", { class: "muted hoger", id: "fynd-antal" }))),
         el("div", { id: "fynd-lista" }));
+      // Kom tillbaka till samma spår och lika många visade fynd som innan appen laddades om.
+      const plats = App.plats("fynd");
+      if (plats && plats.extra) {
+        if (plats.extra.visa > st.visa) st.visa = plats.extra.visa;
+        if (plats.extra.spar) st.spar = plats.extra.spar;  // byggChips faller tillbaka på "alla" om spåret inte finns
+      }
       byggChips();
       $("fynd-q").oninput = e => { st.q = e.target.value.trim(); render(); };
       render();
     },
     visa() { if (rot) render(); },
+    plats() { return { visa: st.visa, spar: st.spar }; },
   });
   App.pa("visa-slutar-snart", () => { st.sort = "slutar"; st.spar = "alla"; if (rot) { byggChips(); render(); } });
   App.pa("inloggad", () => { App.rakna("fynd", Logik.slutarSnart(poster().filter(p => !dold(p))).length || ""); });

@@ -233,8 +233,52 @@ const App = (() => {
       el("button", { class: "knapp", type: "button", onclick: loggaUt }, "🚪  Logga ut"));
   }
   const monterade = new Set();
+  // ── Kom tillbaka dit du var ──────────────────────────────────────
+  // När man öppnar en annons i Chrome kan telefonen stänga appen i bakgrunden; då laddas den om från toppen.
+  // Därför sparas platsen per vy: vilket kort som låg överst (data-ankare), hur långt ner, och vyns egna
+  // uppgifter (t.ex. hur många fynd som visades, vilket föremål som var öppet). Gäller i sex timmar.
+  const PLATS_NYCKEL = "fyndjakt-plats", PLATS_TID = 6 * 3600 * 1000;
+  let platser = {};
+  try { platser = JSON.parse(localStorage.getItem(PLATS_NYCKEL) || "{}") || {}; } catch (e) { platser = {}; }
+  const vantarAterstall = new Set();
+  function sparaPlats() {
+    if (!aktiv || !konto.inloggad) return;
+    const sek = document.querySelector(`.vy[data-vy="${aktiv}"]`); if (!sek) return;
+    let ankare = null;
+    for (const e of sek.querySelectorAll("[data-ankare]")) {
+      const r = e.getBoundingClientRect();
+      if (r.bottom > 70) { ankare = { id: e.dataset.ankare, top: Math.round(r.top) }; break; }
+    }
+    const d = delar[aktiv];
+    const detalj = document.querySelector(".panel[data-detalj]");
+    platser[aktiv] = { y: Math.round(window.scrollY), ankare, extra: d && d.plats ? d.plats() : null,
+                       detalj: detalj ? detalj.dataset.detalj : null, t: Date.now() };
+    try { localStorage.setItem(PLATS_NYCKEL, JSON.stringify(platser)); } catch (e) {}
+  }
+  function plats(id) { const p = platser[id]; return p && Date.now() - p.t < PLATS_TID ? p : null; }
+  // Anropas av vyerna när listan är ritad. Returnerar true när platsen är återställd (eller inget fanns).
+  function renderKlar(id) {
+    if (!vantarAterstall.has(id) || id !== aktiv) return;
+    const p = plats(id);
+    if (!p) { vantarAterstall.delete(id); return; }
+    const sek = document.querySelector(`.vy[data-vy="${id}"]`);
+    const kandidater = sek ? sek.querySelectorAll("[data-ankare]") : [];
+    if (p.ankare && !kandidater.length) return;  // listan är inte ritad än – försök igen vid nästa render
+    vantarAterstall.delete(id);
+    const mal = p.ankare && [...kandidater].find(e => e.dataset.ankare === p.ankare.id);
+    if (mal) window.scrollTo(0, window.scrollY + mal.getBoundingClientRect().top - p.ankare.top);
+    else window.scrollTo(0, p.y || 0);
+    if (p.detalj && delar[id] && delar[id].oppnaDetalj && !document.querySelector(".panel")) delar[id].oppnaDetalj(p.detalj);
+  }
+  let platsTimer = null;
+  window.addEventListener("scroll", () => { clearTimeout(platsTimer); platsTimer = setTimeout(sparaPlats, 250); }, { passive: true });
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") sparaPlats(); });
+  window.addEventListener("pagehide", sparaPlats);
+  document.addEventListener("click", e => { if (e.target.closest && e.target.closest("a[target=_blank]")) sparaPlats(); }, true);
+
   function visa(id, { tyst } = {}) {
     if (!delar[id] && id !== "mer") id = mobil() ? "butik" : "fynd";
+    if (aktiv && aktiv !== id) sparaPlats();
     aktiv = id;
     document.body.dataset.vy = id;   // stilen kan anpassa sig efter vyn (t.ex. ingen fyndbanner i Butik på telefon)
     document.querySelectorAll(".vy").forEach(s => s.classList.toggle("aktiv", s.dataset.vy === id));
@@ -244,9 +288,12 @@ const App = (() => {
     if (d && konto.inloggad) {
       const sektion = document.querySelector(`.vy[data-vy="${id}"]`);
       if (!monterade.has(id)) { monterade.add(id); d.montera(sektion); }
+      vantarAterstall.add(id);
+      setTimeout(() => vantarAterstall.delete(id), 8000);  // hoppa inte senare, när man redan börjat bläddra
       if (d.visa) d.visa(sektion);
     }
-    window.scrollTo(0, 0);
+    if (!plats(id)) { vantarAterstall.delete(id); window.scrollTo(0, 0); }
+    else if (vantarAterstall.has(id)) renderKlar(id);
   }
   function rakna(id, n) { document.querySelectorAll(`[data-n="${id}"]`).forEach(e => e.textContent = n || ""); }
   function startvy() {
@@ -353,7 +400,7 @@ const App = (() => {
     konto.sb.auth.onAuthStateChange((_ev, session) => { setTimeout(() => uppdateraKonto(session), 0); });
   }
 
-  return { KONFIG, konto, del, pa, sand, visa, rakna, start, mobil, $, kr, esc, el, toast, datum, idag, slug, nyttId, fjNr, norm,
+  return { KONFIG, konto, del, pa, sand, visa, rakna, start, mobil, $, kr, esc, el, toast, datum, idag, slug, nyttId, fjNr, norm, plats, renderKlar, sparaPlats,
            skalaNer, dataUrlTillBase64, kannIgen, bildUrlar, bildUrl, laddaUppBild, taBortBild, hamtaAlla, panel, lightbox, fraga,
            sheet, hjalp, huvud, uppdateraBanner, laddaKonto };
 })();
