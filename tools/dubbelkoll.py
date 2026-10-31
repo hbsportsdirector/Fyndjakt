@@ -46,7 +46,8 @@ def hamta(fras: str) -> list[dict]:
             sald = p.get("state") == "sold"
             pris = (p.get("highest_bid") or max((b.get("amount", 0) for b in p.get("bids") or []), default=0)) if sald else 0
             titel = (p.get("title") or "").strip()
-            ut.append({"datum": datetime.fromtimestamp(p.get("ends_at") or 0, timezone.utc).date(), "sald": sald,
+            ut.append({"hojd": prisjamforelse.hojd(titel + " " + beskr),
+                       "datum": datetime.fromtimestamp(p.get("ends_at") or 0, timezone.utc).date(), "sald": sald,
                        "pris": int(pris), "utrop": p.get("estimate"), "delar": delar(titel, beskr), "titel": titel,
                        "url": str(p.get("url") or "").replace("auctionet.com/en/", "auctionet.com/sv/")})
         if sida >= (data.get("pagination") or {}).get("total_pages", 1):
@@ -61,8 +62,18 @@ def skriv(fras: str, rader: list[dict]) -> None:
     for r in rader:
         per = f"{round(r['pris'] / r['delar']):>5} kr/del" if r["sald"] and r["delar"] > 1 else " " * 13
         status = f"{r['pris']:>7} kr" if r["sald"] else f" osåld (utrop {r['utrop']})"
-        print(f"  {r['datum']}  {status:>18}  {r['delar']:>3} delar  {per}  {r['titel'][:90]}")
+        h = f"{r['hojd']:g} cm" if r.get("hojd") else "  ? cm"
+        print(f"  {r['datum']}  {status:>18}  {h:>7}  {r['delar']:>3} delar  {per}  {r['titel'][:80]}")
         print(f"      {r['url']}")
+    # Per storlek: medianen för sålda med känd höjd, i band om ±25 %.
+    kanda = sorted((r["hojd"], r["pris"]) for r in salda if r.get("hojd") and r["delar"] == 1)
+    if kanda:
+        import statistics
+        print(f"  Sålda med känd höjd: {len(kanda)} av {len(salda)}")
+        for mitt in (8, 11, 14, 18, 24, 30, 40):
+            band = [p for h, p in kanda if abs(h - mitt) <= max(mitt * 0.25, 3)]
+            if band:
+                print(f"    ca {mitt:>2} cm (±25 %): {len(band):>2} sålda, median {round(statistics.median(band)):>6} kr, {min(band)}–{max(band)} kr")
     partier = [r for r in salda if r["delar"] >= 20]
     if partier:
         print(f"  Sålda partier om 20+ delar ({len(partier)}): "

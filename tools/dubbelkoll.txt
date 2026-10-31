@@ -1,6 +1,4 @@
 # Sökfraser för tools/dubbelkoll.py – en per rad. Ändra och pusha till main så körs dubbelkollen.
-# 2026-10-31: Upsala-Ekeby-vas, stämpel "UE Sweden 1034/9 A69", strukturerad yta med inristad krysslinje
-Upsala-Ekeby 1034
-Ekeby 1034
-Upsala-Ekeby A69
-Upsala-Ekeby vas stengods
+# 2026-10-31: Gunnar Nylund chamotte-vas, 11 cm (flippfynd på Tradera, Säljs för 1 704 kr – för högt?)
+Gunnar Nylund Chamotte vas
+Nylund chamotte
