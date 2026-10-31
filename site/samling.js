@@ -638,6 +638,9 @@
       el("button", { class: "knapp primar liten", type: "button", onclick: () => { p.stang(); identifiera(it); } }, "🔍 Låt Claude granska")));
     const lada = el("select", { name: "lada" }, ...LADOR.map(([v, t]) => el("option", { value: v }, t))); lada.value = it.lada;
     form.append(el("div", { class: "falt-grid" }, el("label", {}, "Låda", lada)));
+    const bildGrupp = el("details", { class: "grupp", open: true }, el("summary", {}, "Bilder", el("small", {}, "föremålet, stämpeln, detaljer")));
+    const bildYta = el("div"); bildGrupp.append(bildYta); form.append(bildGrupp);
+    bildRedigering(it, bildYta);
     form.append(grupp("Grundfakta", it, GRUNDFAKTA, true));
     form.append(grupp("Köp", it, KOP, true, [it.inkopspris != null ? kr(it.inkopspris) : "", it.inkopsstalle].filter(Boolean).join(" · ")));
     form.append(grupp("Värde", it, VARDE, it.lada !== "salt", it.auk_median ? "värde ca " + kr(it.auk_median) : ""));
@@ -763,8 +766,49 @@
     });
     galleri.append(plus);
   }
+  // Bilderna i Redigera: bild 1 = föremålet, bild 2 = stämpeln/botten (det identifieringen utgår från).
+  async function bildRedigering(it, yta) {
+    const om = () => bildRedigering(it, yta);
+    const bilder = it.bilder || [];
+    const kamera = (text, under, plats, primar) => {
+      const l = el("label", { class: "id-slot bild-knapp" + (primar ? " primar-slot" : "") }, el("span", { class: "id-ikon" }, plats === 1 ? "🔍" : plats === 0 ? "📷" : "🖼"),
+        el("span", { class: "id-txt" }, el("b", {}, text), el("small", { class: "muted" }, under)),
+        el("input", { type: "file", accept: "image/*", class: "dold", capture: plats == null ? null : "environment", multiple: plats == null ? "" : null }));
+      l.querySelector("input").onchange = e => { const f = [...e.target.files]; e.target.value = ""; if (f.length) laggTillBilder(it, f, om, plats); };
+      return l;
+    };
+    const grid = el("div", { class: "bild-red" });
+    const urls = bilder.length ? await App.bildUrlar(bilder.map(b => b.path)) : {};
+    const flytta_ = async (fran, till) => {
+      const ny = [...bilder]; const [b] = ny.splice(fran, 1); ny.splice(till, 0, b);
+      try { Object.assign(it, await spara(it.id, { bilder: ny })); render(); om(); } catch (e) { toast(e.message); }
+    };
+    bilder.forEach((b, i) => {
+      const roll = i === 0 ? "Föremålet" : i === 1 ? "Stämpel/botten" : "Bild " + (i + 1);
+      const kort = el("div", { class: "bild-red-kort" + (i < 2 ? " roll" : "") },
+        el("img", { src: urls[b.path] || "", alt: roll, onclick: () => App.lightbox(urls[b.path]) }), el("div", { class: "bild-roll" }, roll));
+      const knappar = el("div", { class: "bild-red-knappar" });
+      if (i !== 0) knappar.append(el("button", { class: "knapp liten", type: "button", onclick: () => flytta_(i, 0) }, "★ Föremålet"));
+      if (i !== 1 && bilder.length > 1) knappar.append(el("button", { class: "knapp liten", type: "button", onclick: () => flytta_(i, 1) }, "🔍 Stämpeln"));
+      const x = el("button", { class: "knapp liten fara", type: "button" }, "✕");
+      x.onclick = async () => {
+        if (x.dataset.saker !== "1") { x.dataset.saker = "1"; x.textContent = "Ta bort?"; setTimeout(() => { x.dataset.saker = ""; x.textContent = "✕"; }, 2500); return; }
+        try { await App.taBortBild(b.path); Object.assign(it, await spara(it.id, { bilder: bilder.filter(y => y.path !== b.path) })); render(); om(); } catch (e) { toast(e.message); }
+      };
+      knappar.append(x); kort.append(knappar); grid.append(kort);
+    });
+    yta.replaceChildren(
+      bilder.length ? grid : el("p", { class: "muted" }, "Inga bilder än."),
+      el("div", { class: "bild-red-val" },
+        kamera(bilder.length ? "Fota föremålet på nytt" : "Fota föremålet", "hela föremålet rakt framifrån, ljus bakgrund – blir huvudbild", 0, !bilder.length),
+        kamera(bilder.length > 1 ? "Fota stämpeln på nytt" : "Fota stämpeln eller botten", "nära och skarpt, gärna med ljus snett från sidan så ristade tecken syns – blir bild 2", Math.min(1, bilder.length), bilder.length === 1),
+        kamera("Fler bilder från galleriet", "detaljer, skador, etiketter – läggs sist", null)),
+      el("p", { class: "muted", style: "font-size:12px;margin:6px 0 0" }, "Bild 1 och 2 är de som Claude läser när du trycker ”Låt Claude granska”. Bilderna sparas direkt."));
+  }
+
   // Nya bilder: nedskalade till 1600 px, numrerade efter de som finns.
-  async function laggTillBilder(it, filer, klar) {
+  // plats: 0 = ny huvudbild (föremålet), 1 = ny stämpelbild; annars läggs bilderna sist.
+  async function laggTillBilder(it, filer, klar, plats) {
     let n = Math.max(0, ...(it.bilder || []).map(b => +b.n || 0));
     const nya = [...(it.bilder || [])];
     toast("Laddar upp …");
@@ -774,7 +818,7 @@
         const { blob } = await App.skalaNer(f, 1600);
         const path = `${konto.uid}/${it.id}/${n}.jpg`;
         await App.laddaUppBild(path, blob);
-        nya.push({ n, path });
+        if (plats != null) nya.splice(Math.min(plats, nya.length), 0, { n, path }); else nya.push({ n, path });
       } catch (e) { toast(e.message); return; }
     }
     try { Object.assign(it, await spara(it.id, { bilder: nya })); toast(filer.length > 1 ? "Bilderna är sparade" : "Bilden är sparad"); klar(); render(); }

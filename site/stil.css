@@ -622,3 +622,15 @@ a.salda-alla { display: inline-block; color: var(--brass); padding: 8px 0 2px; m
 .id-stampel .knapp { margin: 4px 6px 0 0; }
 .zoom-bild { width: 100%; height: auto; border-radius: 10px; cursor: crosshair; margin-top: 8px; touch-action: manipulation; }
 .id-uppmaning { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; }
+/* Bilder i Redigera: föremålet, stämpeln, fler */
+.bild-red { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-bottom: 10px; }
+.bild-red-kort { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--panel-2); }
+.bild-red-kort.roll { border-color: var(--brass); }
+.bild-red-kort img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; cursor: zoom-in; }
+.bild-roll { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--brass); padding: 6px 8px 0; }
+.bild-red-knappar { display: flex; flex-wrap: wrap; gap: 4px; padding: 6px 8px 8px; }
+.bild-red-knappar .knapp { font-size: 12px; padding: 4px 8px; min-height: 32px; }
+.bild-red-val { display: grid; gap: 8px; }
+.bild-knapp { cursor: pointer; margin-bottom: 0; }
+.bild-knapp.primar-slot { border-color: var(--brass); }
+.bild-knapp .id-ikon { flex: 0 0 44px; text-align: center; font-size: 26px; }
