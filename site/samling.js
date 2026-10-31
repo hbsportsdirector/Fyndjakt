@@ -633,6 +633,9 @@
   function redigeraVy(it, p) {
     const form = el("form", { class: "detalj" }); form.noValidate = true;
     form.append(el("div", { class: "huvud" }, el("h2", {}, "Redigera"), el("button", { class: "knapp liten", type: "button", onclick: () => p.byt("visa") }, "Avbryt")));
+    if (it.lada !== "salt") form.append(el("div", { class: "ruta tips id-uppmaning", style: "margin:0 0 12px" },
+      el("span", {}, behoverId(it) ? el("b", {}, "Osäker identifiering. ") : null, "Claude läser stämpeln, kollar mot Auctionet och fyller i tillverkare, formgivare och serie."),
+      el("button", { class: "knapp primar liten", type: "button", onclick: () => { p.stang(); identifiera(it); } }, "🔍 Låt Claude granska")));
     const lada = el("select", { name: "lada" }, ...LADOR.map(([v, t]) => el("option", { value: v }, t))); lada.value = it.lada;
     form.append(el("div", { class: "falt-grid" }, el("label", {}, "Låda", lada)));
     form.append(grupp("Grundfakta", it, GRUNDFAKTA, true));
