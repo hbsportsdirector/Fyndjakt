@@ -3,6 +3,7 @@
 // typ "akta": original eller nyproduktion, utifrån annonsens bilder (hämtas här – webbläsaren får inte läsa dem).
 // typ "kopiera_bilder": kopierar annonsens bilder till den inloggades mapp i bucketen samling.
 // typ "beskriv": katalogtext och säljannons för ett föremål i samlingen (Köpt-flödet), utifrån fälten och bilderna.
+// typ "om": faktaruta om pjäsen (formgivare, serie, tillverkning, kännetecken) grundad på Wikipedia-utdrag, med källor.
 // typ "importera_bilder": engångsimport av samlingens bilder med bot-nyckeln (ingen inloggning).
 // Kräver inloggad Fyndjakt-medlem (utom importen). Anthropic-nyckeln ligger som hemlighet ANTHROPIC_API_KEY i Supabase.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
@@ -196,6 +197,35 @@ Du får uppgifter om ett föremål i en samling (JSON) och ibland bilder (förem
 
 Svara ENBART med JSON: {"beskrivning": "...", "annons_rubrik": "...", "annons_text": "..."}`;
 
+const OM_INSTRUKTION = `Du skriver korta faktarutor för en samlare av nordisk keramik, porslin och glas. Du får uppgifter om en pjäs
+(JSON) och ibland utdrag ur Wikipedia. Skriv på svenska, 4–7 meningar löptext:
+- vem formgivaren är (kort: verksam var och när, känd för vad),
+- vad serien/modellen är, när och var den tillverkades,
+- kännetecken: form, dekor, glasyr, stämpel, varianter eller storlekar,
+- vad samlare tittar efter (tidiga stämplar, färger, skick) och om det finns nyproduktion att se upp med.
+Regler: använd bara det du säkert vet eller som står i utdragen. Är du osäker – skriv "troligen" eller utelämna. Hitta aldrig på
+modellnummer, årtal, upplagor eller namn. Känner du inte till just den här modellen: säg det rakt ut och beskriv formgivaren/fabriken.
+Svara ENBART med JSON: {"text": "...", "sokord": ["<2–3 korta sökfraser för att läsa vidare>"]}`;
+
+// Wikipedia: bästa träffen för en sökning, med sammanfattning. Null om inget rimligt finns.
+async function wiki(q: string, maste: string, sprak = "sv") {
+  const ua = { headers: { "User-Agent": "Fyndjakt/1.0 (privat samling; hbsportsdirector.github.io/Fyndjakt)" } };
+  try {
+    const s = await fetch(`https://${sprak}.wikipedia.org/w/api.php?action=query&list=search&format=json&srlimit=3&srsearch=${encodeURIComponent(q)}`, ua);
+    if (!s.ok) return null;
+    const traffar = ((await s.json())?.query?.search ?? []) as { title: string }[];
+    const nyckel = maste.toLowerCase().replace(/[^a-zåäöéü ]/g, " ").trim().split(/\s+/).pop() ?? "";
+    const titel = traffar.map((t) => t.title).find((t) => nyckel.length >= 3 && t.toLowerCase().includes(nyckel.slice(0, 6)));
+    if (!titel) return null;
+    const r = await fetch(`https://${sprak}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(titel.replace(/ /g, "_"))}`, ua);
+    if (!r.ok) return null;
+    const d = await r.json();
+    if (d.type === "disambiguation" || !d.extract) return null;
+    return { titel: String(d.title), url: String(d.content_urls?.desktop?.page ?? `https://${sprak}.wikipedia.org/wiki/${encodeURIComponent(titel)}`),
+             utdrag: String(d.extract).slice(0, 900) };
+  } catch { return null; }
+}
+
 const AKTA_INSTRUKTION = `Du är expert på nordisk keramik, porslin och glas. Avgör om föremålet i annonsen är ORIGINAL från
 produktionsperioden eller NYPRODUKTION/REPLIKA. Titta på alla bilder (stämpel, baksida, etiketter) innan du avgör.
 ${NYPROD}
@@ -349,6 +379,26 @@ Deno.serve(async (req) => {
     if (String(kropp.beskrivning ?? "").trim().length < 10) return svar({ fel: "Beskriv lite mer först" }, 400, origin);
     const res = await profilforslag(nyckel, kropp);
     return res ? svar(res, 200, origin) : svar({ fel: "Kunde inte ta fram sökord just nu" }, 502, origin);
+  }
+  // Läs mer om pjäsen: Wikipedia om formgivare, fabrik och serie + Claudes faktaruta grundad på utdragen.
+  if (kropp.typ === "om") {
+    const f = (kropp as { foremal?: Record<string, unknown> }).foremal ?? {};
+    const t = (k: string) => String(f[k] ?? "").trim().slice(0, 120);
+    const fg = t("formgivare"), tv = t("tillverkare") === "Okänd" ? "" : t("tillverkare"), serie = t("serie");
+    const glas = /glas/i.test(t("kategori"));
+    const [wf, wt, ws] = await Promise.all([
+      fg ? wiki(fg, fg) : null,
+      tv ? wiki(`${tv} ${glas ? "glasbruk" : "porslinsfabrik keramik"}`, tv.split(/[\s-]/)[0]) : null,
+      serie && serie.length > 2 ? wiki(`${serie} ${tv || fg}`.trim(), serie) : null,
+    ]);
+    const kallor = [wf, wt, ws].filter((k, i, a) => k && a.findIndex((x) => x && x.url === k.url) === i) as { titel: string; url: string; utdrag: string }[];
+    const falt = ["namn", "kategori", "tillverkare", "formgivare", "serie", "period", "stampel", "antal"].reduce((o, k) => (t(k) ? { ...o, [k]: t(k) } : o), {});
+    const text = `Pjäsen:\n${JSON.stringify(falt, null, 1)}\n\n` + (kallor.length
+      ? "Utdrag ur Wikipedia:\n" + kallor.map((k) => `[${k.titel}] ${k.utdrag}`).join("\n\n") : "Inga Wikipedia-utdrag hittades.");
+    const res = await claude(nyckel, OM_INSTRUKTION, [{ type: "text", text }], 700);
+    if (!res) return svar({ fel: "Kunde inte ta fram fakta just nu" }, 502, origin);
+    return svar({ text: String(res.text ?? "").slice(0, 2000), sokord: (Array.isArray(res.sokord) ? res.sokord : []).map((x: unknown) => String(x).slice(0, 60)).slice(0, 3),
+                  kallor }, 200, origin);
   }
   // Köpt-flödet: katalogtext + säljannons. Bilderna läses ur bucketen med den inloggades behörighet.
   if (kropp.typ === "beskriv") {

@@ -41,6 +41,7 @@
       ...rad("Kompletterar", r.kompletterar), ...rad("Resonemang", r.resonemang));
     d.replaceChildren(dl);
     if (r.nasta_kontroll && r.nasta_kontroll.length) d.append(el("p", { style: "margin-top:8px" }, el("b", {}, "Kolla på plats: "), r.nasta_kontroll.join(" · ")));
+    if (App.lankRad) d.append(el("p", { style: "margin:10px 0 2px" }, el("b", {}, "Läs på om pjäsen")), App.lankRad(r));
     // Netto per kanal på medianen.
     if (b.median) {
       const kanaler = el("div", { class: "kanaler" });

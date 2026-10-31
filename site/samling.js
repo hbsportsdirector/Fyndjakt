@@ -289,6 +289,11 @@
       igen.onclick = () => { st_.kommentar = kom.value.trim(); fraga_(); };
       ruta.append(el("label", { style: "display:block;margin-top:8px" }, "Rätta eller berätta mer", el("div", { class: "rad" }, kom, igen)));
       ruta.append(el("div", { class: "id-auk", id: "id-auk" }, el("span", { class: "muted" }, "Kollar Auctionet …")));
+      const lankar = el("div", { class: "id-lankar" });
+      const nyaLankar = () => lankar.replaceChildren(el("div", { class: "muted", style: "font-size:13px" }, "Läs på om pjäsen:"),
+        lankRad({ namn: falt_.namn.value, tillverkare: falt_.tillverkare.value, formgivare: falt_.formgivare.value, serie: falt_.serie.value }));
+      nyaLankar(); for (const k of ["namn", "tillverkare", "formgivare", "serie"]) falt_[k].addEventListener("change", nyaLankar);
+      ruta.append(lankar);
       analys.replaceChildren(ruta);
       visaKop();
     }
@@ -312,7 +317,7 @@
             const stammer = valt && (valt.includes(n1.toLowerCase().split(" ").pop()) || n1.toLowerCase().includes(valt.split(" ").pop()));
             rad.append(stammer ? el("span", { class: "ok" }, `✓ ${n1} står på ${c1} av dem – stämmer med Claude.`)
               : el("span", { class: "varning" }, `${n1} står på ${c1} av dem${valt ? " – Claude sa " + falt_.formgivare.value : ""}. `));
-            if (!stammer) rad.append(el("button", { class: "knapp liten", type: "button", onclick: e => { falt_.formgivare.value = n1; e.currentTarget.textContent = "✓ " + n1; } }, "Använd " + n1));
+            if (!stammer) rad.append(el("button", { class: "knapp liten", type: "button", onclick: e => { falt_.formgivare.value = n1; falt_.formgivare.dispatchEvent(new Event("change")); e.currentTarget.textContent = "✓ " + n1; } }, "Använd " + n1));
           }
           rad.append(el("div", { class: "muted", style: "font-size:13px;margin-top:4px" }, ...salda.slice(0, 3).map(x => el("div", {}, el("a", { href: x.url, target: "_blank", rel: "noopener" }, x.titel), ` – ${kr(x.pris)}`))));
           ruta.replaceChildren(rad);
@@ -473,6 +478,7 @@
     f("Antal", (+it.antal || 1) > 1 ? it.antal + " st" : null); f("Period", it.period); f("Stämpel", it.stampel); f("Skick", it.skick);
     if (it.jfr) fakta.append(el("div", { style: "grid-column:1/-1" }, el("b", {}, "Underlag"), it.jfr_url ? el("a", { href: it.jfr_url, target: "_blank", rel: "noopener" }, it.jfr) : el("span", {}, it.jfr)));
     v.append(fakta);
+    v.append(lasMerRuta(it, () => p.byt("visa")));
     if (forslagFor(it)) v.append(el("div", { style: "margin-top:12px" }, forslagKort(it, forslagFor(it), () => p.byt("visa"))));
     v.append(textRuta(it, () => p.byt("visa")));
     if (it.anteckning) v.append(el("div", { class: "ruta", style: "margin-top:12px;white-space:pre-wrap" }, it.anteckning));
@@ -737,6 +743,45 @@
     document.body.append(a); a.click(); a.remove();
   }
 
+  // ── Läs mer om pjäsen: faktaruta, Wikipedia och sökningar vidare ──
+  const enc = encodeURIComponent;
+  function lasMerLankar(f) {
+    const tv = f.tillverkare && f.tillverkare !== "Okänd" ? f.tillverkare : "";
+    const q = [f.formgivare, tv, f.serie].filter(Boolean).join(" ") || f.namn || "";
+    if (!q.trim()) return [];
+    return [["Auctionet – sålda", `https://auctionet.com/sv/search?is=ended&q=${enc(q)}`],
+      ["DigitaltMuseum", `https://digitaltmuseum.se/search/?q=${enc(q)}`],
+      f.formgivare ? ["Wikipedia: " + f.formgivare, `https://sv.wikipedia.org/w/index.php?search=${enc(f.formgivare)}`] : null,
+      ["Google", `https://www.google.com/search?q=${enc(q)}`]].filter(Boolean);
+  }
+  const lankRad = f => el("div", { class: "las-lankar" }, ...lasMerLankar(f).map(([t, u]) => el("a", { href: u, target: "_blank", rel: "noopener", class: "chip" }, t + " ↗")));
+  function lasMerRuta(it, klar) {
+    const r = el("details", { class: "ruta las-mer" });
+    const om = it.om && it.om.text ? it.om : null;
+    r.open = !!om;
+    r.append(el("summary", {}, "📖 Läs mer om pjäsen", om ? null : el("small", { class: "muted" }, " – fakta, Wikipedia, museer")));
+    if (om) {
+      r.append(el("p", { class: "las-text" }, om.text));
+      if ((om.kallor || []).length) r.append(el("div", { class: "las-kallor" }, el("b", {}, "Källor"),
+        ...om.kallor.map(k => el("div", {}, el("a", { href: k.url, target: "_blank", rel: "noopener" }, k.titel + " – Wikipedia ↗")))));
+      r.append(el("p", { class: "muted", style: "font-size:12px;margin:6px 0 0" }, `Skriven av Claude ${om.datum ? App.datum(om.datum) : ""}${(om.kallor || []).length ? " utifrån källorna ovan" : " utan källor – kontrollera"}.`));
+    }
+    r.append(el("div", { class: "muted", style: "font-size:13px;margin-top:8px" }, "Sök vidare:"), lankRad(it));
+    const status = el("span", { class: "muted" });
+    const knapp = el("button", { class: "knapp liten", type: "button" }, om ? "Hämta igen" : "📖 Ta fram fakta om pjäsen");
+    knapp.onclick = async () => {
+      knapp.disabled = true; status.textContent = "Letar i Wikipedia och frågar Claude …";
+      try {
+        const res = await App.kannIgen({ typ: "om", foremal: it });
+        if (!res.text) throw new Error("Inget svar – försök igen.");
+        Object.assign(it, await spara(it.id, { om: { text: res.text, kallor: res.kallor || [], sokord: res.sokord || [], datum: App.idag() } }));
+        klar();
+      } catch (e) { status.textContent = e.message; knapp.disabled = false; }
+    };
+    r.append(el("div", { class: "rad", style: "margin-top:10px" }, knapp, status));
+    return r;
+  }
+
   // ── Till salu: checklista innan annonsen läggs ut ─────────────────
   function klarRuta(it, p) {
     const k = Logik.saljKlar(it);
@@ -869,6 +914,7 @@
     } catch (e) { vis.replaceChildren(el("p", {}, e.message), el("button", { class: "knapp", type: "button", onclick: () => ark.stang() }, "Stäng")); return null; }
   }
   App.kopt = kopt;
+  App.lankRad = lankRad;
   function koptHuvud(it, vis, pris) {
     const steg = el("div", { class: "muted" });
     vis.replaceChildren(

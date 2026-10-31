@@ -608,3 +608,12 @@ a.salda-alla { display: inline-block; color: var(--brass); padding: 8px 0 2px; m
 .id-kop h3 { margin: 0 0 6px; }
 .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--line); border-top-color: var(--brass); border-radius: 50%; animation: snurra .8s linear infinite; vertical-align: -2px; }
 @keyframes snurra { to { transform: rotate(360deg); } }
+/* Läs mer om pjäsen */
+.las-mer { margin-top: 12px; }
+.las-mer summary { cursor: pointer; font-weight: 600; }
+.las-text { margin: 10px 0 6px; line-height: 1.55; }
+.las-kallor { font-size: 14px; margin-top: 6px; }
+.las-kallor b { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin-bottom: 2px; }
+.las-lankar { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.las-lankar a.chip { text-decoration: none; }
+.id-lankar { margin-top: 10px; }
