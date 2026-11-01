@@ -1,111 +1,110 @@
 {
-  "tid": "2026-10-31T01:37:09",
-  "annonser_totalt": 10093,
-  "nya": 2767,
-  "bedomda": 373,
-  "nya_traffar": 103,
+  "tid": "2026-11-01T01:04:36",
+  "annonser_totalt": 10272,
+  "nya": 3010,
+  "bedomda": 642,
+  "nya_traffar": 43,
   "kallor": {
     "Smakanalys": {
       "nya": 1
     },
-    "Pausade sökord": 20,
+    "Pausade sökord": 21,
     "Auctionet": {
-      "sokningar": 328,
-      "traffar": 2579,
+      "sokningar": 327,
+      "traffar": 2407,
       "fel": 0,
       "felexempel": []
     },
     "Bukowskis": {
-      "sokningar": 328,
+      "sokningar": 327,
       "traffar": 0,
       "fel": 0,
       "felexempel": []
     },
     "Myrorna": {
-      "sokningar": 328,
-      "traffar": 2374,
+      "sokningar": 327,
+      "traffar": 3985,
       "fel": 0,
       "felexempel": []
     },
     "Stadsmissionen": {
-      "sokningar": 328,
-      "traffar": 232,
+      "sokningar": 327,
+      "traffar": 231,
       "fel": 0,
       "felexempel": []
     },
     "Tradera": {
-      "sokningar": 328,
-      "traffar": 8841,
-      "fel": 0,
-      "felexempel": []
+      "sokningar": 327,
+      "traffar": 8618,
+      "fel": 6,
+      "felexempel": [
+        "Rorstrand Röd Eld: ReadTimeout: HTTPSConnectionPool(host='api.tradera.com', port=443): Read timed out. (read timeout=30)",
+        "Sommerso Orrefors: ReadTimeout: HTTPSConnectionPool(host='api.tradera.com', port=443): Read timed out. (read timeout=30)",
+        "chippendale stol: ReadTimeout: HTTPSConnectionPool(host='api.tradera.com', port=443): Read timed out. (read timeout=30)",
+        "reading chair läder: ReadTimeout: HTTPSConnectionPool(host='api.tradera.com', port=443): Read timed out. (read timeout=30)",
+        "Lisa Larson Stora Zoo: ReadTimeout: HTTPSConnectionPool(host='api.tradera.com', port=443): Read timed out. (read timeout=30)"
+      ]
     },
     "Väntande från tidigare": 0,
-    "Återanvända betyg": 119,
+    "Återanvända betyg": 142,
     "Egen modell": {
-      "bortsorterade": 59,
+      "bortsorterade": 70,
       "spår med modell": 5
     },
     "Från kön": 0,
     "Bedömning": {
-      "batch": 372,
-      "direkt": 1
+      "batch": 642,
+      "direkt": 0
     },
     "Flipp": {
-      "priser uppdaterade": 37,
-      "bedömda": 383,
-      "nyproduktion": 33,
-      "jämförelse utan typ": 85,
-      "kandidater": 2119,
-      "betyg 10": 8
+      "priser uppdaterade": 56,
+      "bedömda": 366,
+      "nyproduktion": 37,
+      "jämförelse utan typ": 66,
+      "kandidater": 2116,
+      "betyg 10": 3
     },
-    "Tradera-orter ifyllda": 44,
+    "Tradera-orter ifyllda": 21,
     "Prisjämförelse": {
       "fynd": 120,
-      "med_data": 38
+      "med_data": 77
     },
     "Notiser": {
       "skickade": 0
     },
     "Miniatyrer": {
-      "saknades": 175,
-      "nya": 173,
-      "hamtade": 66,
-      "misslyckade": 2,
-      "borttagna": 119
+      "saknades": 89,
+      "nya": 86,
+      "hamtade": 37,
+      "misslyckade": 3,
+      "borttagna": 130
     }
   },
   "kostnad": {
     "Smakanalys": {
-      "anrop": 2,
-      "in": 122495,
-      "ut": 5000,
-      "usd": 0.295,
-      "kr": 3.1
+      "anrop": 1,
+      "in": 65756,
+      "ut": 2500,
+      "usd": 0.1565,
+      "kr": 1.64
     },
     "Bedömning batch": {
-      "anrop": 89,
-      "in": 520501,
-      "ut": 39107,
-      "usd": 0.358,
-      "kr": 3.76
-    },
-    "Bedömning direkt": {
-      "anrop": 1,
-      "in": 4182,
-      "ut": 118,
-      "usd": 0.0048,
-      "kr": 0.05
+      "anrop": 140,
+      "in": 853588,
+      "ut": 58829,
+      "usd": 0.5739,
+      "kr": 6.03
     },
     "Flipp-identifiering": {
-      "anrop": 79,
-      "in": 623138,
-      "ut": 48758,
-      "usd": 0.8669,
-      "kr": 9.1
+      "anrop": 78,
+      "in": 618877,
+      "ut": 48692,
+      "usd": 0.8623,
+      "kr": 9.05
     },
     "Totalt": {
-      "kr": 16.01
+      "kr": 16.72
     }
   },
-  "stadsmissionen_katalog": 1505
+  "stadsmissionen_katalog": 1485
 }
