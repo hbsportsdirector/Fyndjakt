@@ -1384,7 +1384,8 @@ def test_kopt_flodet_hanger_ihop():
     assert "samling_nummer_seq" in mig and "annons_text" in mig and "proveniens" in mig
     fn = (rot / "supabase/functions/fyndjakt-kann-igen/index.ts").read_text(encoding="utf-8")
     assert 'kropp.typ === "beskriv"' in fn and "BESKRIV_INSTRUKTION" in fn
-    assert 'kropp.typ === "om"' in fn and "wikipedia.org" in fn  # Läs mer om pjäsen, grundad på Wikipedia
+    assert 'kropp.typ === "om"' in fn and "wikipedia.org" in fn
+    assert 'kropp.typ === "chatt"' in fn and "TILLATNA_LANKAR" in fn  # chatten läser bara länkar från kända sajter  # Läs mer om pjäsen, grundad på Wikipedia
     assert "kommentar" in fn and "salda" in fn  # guidad identifiering: rättelser och sålda titlar från Auctionet
     for fil in ("butik.js", "fynd.js"):
         assert "App.kopt(" in (rot / "site" / fil).read_text(encoding="utf-8")

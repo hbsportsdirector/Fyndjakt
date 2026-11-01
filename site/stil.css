@@ -637,3 +637,16 @@ a.salda-alla { display: inline-block; color: var(--brass); padding: 8px 0 2px; m
 .osaker-stampel { display: inline-block; margin-left: 6px; font-size: 10px; font-family: var(--sans); letter-spacing: .06em; text-transform: uppercase;
   color: var(--brass); border: 1px solid var(--brass); border-radius: 4px; padding: 0 4px; vertical-align: middle; }
 .tal .osaker-stampel { font: 600 9px/1.5 var(--sans); font-style: normal; display: inline-block; margin-left: 6px; padding: 0 4px; }
+/* Fråga Claude om pjäsen */
+.chatt-knapp { width: 100%; margin-top: 10px; }
+.chatt-knapp small { color: var(--muted); }
+.chatt-logg { display: flex; flex-direction: column; gap: 8px; max-height: 55vh; overflow-y: auto; padding: 4px 0 8px; }
+.chatt-msg { max-width: 88%; padding: 8px 11px; border-radius: 12px; line-height: 1.45; }
+.chatt-msg.jag { align-self: flex-end; background: var(--panel-2); border: 1px solid var(--line); }
+.chatt-msg.claude { align-self: flex-start; background: var(--panel); border: 1px solid var(--brass); }
+.chatt-text { white-space: pre-wrap; }
+.chatt-tom { padding: 10px 0; font-size: 14px; }
+.chatt-ny { display: flex; gap: 8px; align-items: flex-end; margin-top: 8px; }
+.chatt-ny textarea { flex: 1; min-height: 52px; }
+.chatt-forslag { margin-top: 8px; padding: 8px 10px; border-radius: 10px; background: var(--panel-2); font-size: 14px; }
+.chatt-forslag .rad { margin-top: 6px; }

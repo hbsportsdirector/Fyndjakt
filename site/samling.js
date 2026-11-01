@@ -599,6 +599,8 @@
       el("button", { class: "knapp", type: "button", onclick: () => flytta(it, p) }, "📦 Flytta"),
       it.lada !== "salt" ? el("button", { class: "knapp", type: "button", onclick: () => markeraSald(it, p) }, "✓ Såld") : null);
     v.append(knappar);
+    v.append(el("button", { class: "knapp chatt-knapp", type: "button", onclick: () => chatt(it, () => p.byt("visa")) },
+      "💬 Fråga Claude om pjäsen", it.chatt && it.chatt.length ? el("small", {}, ` · ${it.chatt.length} meddelanden`) : null));
     if (it.lada !== "salt") v.append(behoverId(it)
       ? el("div", { class: "ruta tips id-uppmaning" }, el("span", {}, el("b", {}, "Osäker identifiering. "), idSkal(it) + "."),
           el("button", { class: "knapp primar liten", type: "button", onclick: () => { p.stang(); identifiera(it); } }, "🔍 Identifiera med stämpeln"))
@@ -635,7 +637,8 @@
     form.append(el("div", { class: "huvud" }, el("h2", {}, "Redigera"), el("button", { class: "knapp liten", type: "button", onclick: () => p.byt("visa") }, "Avbryt")));
     if (it.lada !== "salt") form.append(el("div", { class: "ruta tips id-uppmaning", style: "margin:0 0 12px" },
       el("span", {}, behoverId(it) ? el("b", {}, "Osäker identifiering. ") : null, "Claude läser stämpeln, kollar mot Auctionet och fyller i tillverkare, formgivare och serie."),
-      el("button", { class: "knapp primar liten", type: "button", onclick: () => { p.stang(); identifiera(it); } }, "🔍 Låt Claude granska")));
+      el("div", { class: "rad" }, el("button", { class: "knapp primar liten", type: "button", onclick: () => { p.stang(); identifiera(it); } }, "🔍 Låt Claude granska"),
+        el("button", { class: "knapp liten", type: "button", onclick: () => chatt(it, () => p.byt("redigera")) }, "💬 Fråga Claude"))));
     const lada = el("select", { name: "lada" }, ...LADOR.map(([v, t]) => el("option", { value: v }, t))); lada.value = it.lada;
     form.append(el("div", { class: "falt-grid" }, el("label", {}, "Låda", lada)));
     const bildGrupp = el("details", { class: "grupp", open: true }, el("summary", {}, "Bilder", el("small", {}, "föremålet, stämpeln, detaljer")));
@@ -966,6 +969,70 @@
     };
     r.append(el("div", { class: "rad", style: "margin-top:10px" }, knapp, status));
     return r;
+  }
+
+  // ── Fråga Claude om pjäsen: chatt med bilderna, fälten och inklistrade länkar ──
+  const FALTNAMN = { namn: "Namn", tillverkare: "Tillverkare", formgivare: "Formgivare", serie: "Serie/modell", period: "Period",
+    stampel: "Stämpel", skick: "Skick", matt: "Mått", sokord: "Sökord för jämförelser" };
+  function chatt(it, klar) {
+    const logg = el("div", { class: "chatt-logg" });
+    const text = el("textarea", { rows: 2, placeholder: "Fråga, berätta vad du vet (mått, vad som står på botten) eller klistra in en länk till en annons …" });
+    const skicka = el("button", { class: "knapp primar", type: "button" }, "Skicka");
+    const status = el("div", { class: "muted", style: "font-size:13px;min-height:18px" });
+    const p = App.panel([el("div", { class: "huvud" }, el("h2", {}, "💬 " + (App.fjNr(it) ? App.fjNr(it) + " · " : "") + it.namn),
+        el("button", { class: "knapp liten", type: "button", onclick: () => { p.stang(); klar && klar(); } }, "Klar")),
+      el("p", { class: "muted", style: "margin:-6px 0 8px;font-size:13px" }, "Claude ser föremålets bilder och uppgifter. Länkar till Tradera, Auctionet, museer m.fl. läses in."),
+      logg, el("div", { class: "chatt-ny" }, text, skicka), status]);
+    let samtal = Array.isArray(it.chatt) ? [...it.chatt] : [];
+    const bubbla = m => {
+      const b = el("div", { class: "chatt-msg " + (m.roll === "claude" ? "claude" : "jag") }, el("div", { class: "chatt-text" }, m.text));
+      if (m.lankar && m.lankar.length) b.append(el("div", { class: "muted", style: "font-size:12px;margin-top:4px" },
+        ...m.lankar.map(l => el("div", {}, (l.ok ? "✓ läste " : "✗ kunde inte läsa ") + l.url.replace(/^https?:\/\/(www\.)?/, "").slice(0, 60)))));
+      if (m.forslag && !m.hanterat) {
+        const rader = Object.entries(m.forslag).map(([k, v]) => el("div", {}, el("b", {}, (FALTNAMN[k] || k) + ": "),
+          k !== "matt" && it[k] ? el("s", { class: "muted" }, it[k]) : null, k !== "matt" && it[k] ? " → " : "", v));
+        const anv = el("button", { class: "knapp primar liten", type: "button" }, "Använd ändringarna");
+        const nej = el("button", { class: "knapp liten", type: "button" }, "Nej tack");
+        anv.onclick = async () => {
+          anv.disabled = true;
+          const andring = {};
+          for (const [k, v] of Object.entries(m.forslag)) {
+            if (k === "matt") { if (!String(it.anteckning || "").includes(v)) andring.anteckning = [it.anteckning, v].filter(Boolean).join("\n"); }
+            else andring[k] = v;
+          }
+          andring.proveniens = [it.proveniens, `Ändrat ${App.datum(App.idag())} efter samtal med Claude: ${Object.keys(m.forslag).map(k => FALTNAMN[k] || k).join(", ")}${m.varfor ? " – " + m.varfor : ""}`].filter(Boolean).join("\n");
+          try { m.hanterat = "använt"; Object.assign(it, await spara(it.id, { ...andring, chatt: samtal })); render(); rita(); toast("Uppgifterna är uppdaterade"); }
+          catch (e) { anv.disabled = false; m.hanterat = null; toast(e.message); }
+        };
+        nej.onclick = async () => { m.hanterat = "avböjt"; try { Object.assign(it, await spara(it.id, { chatt: samtal })); } catch (e) {} rita(); };
+        b.append(el("div", { class: "chatt-forslag" }, el("div", { class: "etik" }, "Claude föreslår"), ...rader,
+          m.varfor ? el("div", { class: "muted", style: "font-size:13px" }, m.varfor) : null, el("div", { class: "rad" }, anv, nej)));
+      } else if (m.forslag && m.hanterat) b.append(el("div", { class: "muted", style: "font-size:12px;margin-top:4px" }, m.hanterat === "använt" ? "✓ Ändringarna används" : "Förslaget avböjt"));
+      return b;
+    };
+    const rita = () => {
+      logg.replaceChildren(...(samtal.length ? samtal.map(bubbla) : [el("div", { class: "muted chatt-tom" },
+        "Exempel: ”Det står UE och 1034/189 på botten, höjd 27,5 cm” eller klistra in länken till en annons på samma modell.")]));
+      logg.scrollTop = logg.scrollHeight;
+    };
+    const skickaNu = async () => {
+      const t = text.value.trim(); if (!t) return;
+      samtal.push({ roll: "jag", text: t, t: Date.now() }); text.value = ""; rita();
+      skicka.disabled = true; status.replaceChildren(el("span", { class: "spinner" }), " Claude läser" + (/https?:\/\//.test(t) ? " länken och" : "") + " tänker …");
+      try {
+        const r = await App.kannIgen({ typ: "chatt", foremal: { ...it, nummer: App.fjNr(it), chatt: undefined, om: undefined },
+          paths: [...new Set([...(it.bilder || []).slice(0, 2), ...(it.bilder || []).slice(-1)].map(b => b.path))].filter(Boolean),
+          samtal: samtal.slice(-16).map(m => ({ roll: m.roll, text: m.text })) });
+        samtal.push({ roll: "claude", text: r.svar, forslag: r.forslag || null, varfor: r.varfor || "", lankar: r.lankar || [], t: Date.now() });
+        samtal = samtal.slice(-40);
+        Object.assign(it, await spara(it.id, { chatt: samtal }));
+        status.textContent = "";
+      } catch (e) { status.textContent = e.message; }
+      skicka.disabled = false; rita(); text.focus();
+    };
+    skicka.onclick = skickaNu;
+    text.onkeydown = e => { if (e.key === "Enter" && !e.shiftKey && !App.mobil()) { e.preventDefault(); skickaNu(); } };
+    rita();
   }
 
   // ── Till salu: checklista innan annonsen läggs ut ─────────────────
