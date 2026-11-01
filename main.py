@@ -31,11 +31,33 @@ def las_config() -> dict:
         cfg = yaml.safe_load(f)
     if not cfg.get("spar"):
         raise SystemExit("config.yaml saknar 'spar'.")
+    tillfalligt(cfg)
     for sid, spar in cfg["spar"].items():
         spar.setdefault("namn", sid)
         spar["profil"] = bygg_profil(spar)
         spar["profil_bas"] = spar["profil"]  # före reaktioner och lärdomar – används för kategoriprofilerna
     return cfg
+
+
+def tillfalligt(cfg: dict, nu: float | None = None) -> bool:
+    """Blocket `tillfalligt` i config.yaml höjer (eller sänker) gränser fram till `till` (UTC) och slutar sedan gälla
+    av sig självt. Toppnivånycklar ersätts; `spar: {id: {...}}` ändrar enskilda spår. Returnerar True om det gällde."""
+    from datetime import datetime, timezone
+    t = cfg.pop("tillfalligt", None)
+    if not t or not t.get("till"):
+        return False
+    till = datetime.fromisoformat(str(t["till"]).replace("Z", "+00:00"))
+    if (nu or time.time()) >= till.timestamp():
+        return False
+    for k, v in t.items():
+        if k == "spar":
+            for sid, andring in (v or {}).items():
+                if sid in cfg["spar"]:
+                    cfg["spar"][sid].update(andring)
+        elif k != "till":
+            cfg[k] = v
+    print(f"Tillfälliga gränser gäller till {t['till']}: " + ", ".join(k for k in t if k != "till"))
+    return True
 
 
 def bygg_profil(spar: dict) -> str:

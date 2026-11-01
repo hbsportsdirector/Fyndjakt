@@ -1418,3 +1418,15 @@ def test_jamforelse_samma_storlek(monkeypatch):
     assert flipp.storlek_for(a, {"typ": "vas", "styck": 3}) is False
     assert flipp.storlek_for(a, {"typ": "tallrik", "styck": 1}) is False
     assert flipp.storlek_for(Annons(kalla="tradera", id="2", titel="Vas Nylund", url="u"), {"typ": "vas"}) is None
+
+
+def test_tillfalliga_granser_slutar_av_sig_sjalva():
+    cfg = {"max_prisjamforelser_per_korning": 120, "spar": {"flipp": {"max_bedomningar": 400}},
+           "tillfalligt": {"till": "2026-11-02T12:00:00Z", "max_prisjamforelser_per_korning": 1500, "spar": {"flipp": {"max_bedomningar": 1500}}}}
+    fore = {**cfg, "spar": {"flipp": dict(cfg["spar"]["flipp"])}}
+    assert main.tillfalligt(fore, nu=1793000000)            # 2026-10-26 – gäller
+    assert fore["max_prisjamforelser_per_korning"] == 1500 and fore["spar"]["flipp"]["max_bedomningar"] == 1500
+    efter = {**cfg, "spar": {"flipp": dict(cfg["spar"]["flipp"])}}
+    assert not main.tillfalligt(efter, nu=1793700000)       # efter 2 nov – gäller inte längre
+    assert efter["max_prisjamforelser_per_korning"] == 120 and efter["spar"]["flipp"]["max_bedomningar"] == 400
+    assert "tillfalligt" not in efter

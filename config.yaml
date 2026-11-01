@@ -19,6 +19,15 @@ granska_max_per_sokord: 25         # bildgranska högst så många per sökord o
 gruppstorlek: 5                    # annonser per Claude-anrop – profilen skickas en gång per grupp
 max_bedomningar_per_anvandare: 150  # för varje inbjuden användares egna spår
 max_prisjamforelser_per_korning: 120  # sålda föremål på Auctionet hämtas för fynden som visas
+# Tillfälligt (slutar gälla av sig självt efter "till", UTC): en natt med höjda gränser så att alla fynd
+# jämförs om med storleksfiltret (2026-11-01). Kan tas bort när den gått ut.
+tillfalligt:
+  till: "2026-11-02T12:00:00Z"
+  max_prisjamforelser_per_korning: 1500
+  granska_max_per_sokord: 60
+  spar:
+    flipp:
+      max_bedomningar: 1500
 sidor_per_sokning: 4               # hur många resultatsidor per sökning och sajt
 modell: claude-haiku-4-5-20251001  # byt till claude-sonnet-5-5 för skarpare omdömen
 
