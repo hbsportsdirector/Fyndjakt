@@ -65,13 +65,15 @@ def _fraga(klient, reakt: list[dict], bas: str = "") -> str:
     if bas:
         innehall.append({"type": "text", "text": "Det här vet vi redan om kundens smak – upprepa det inte, "
                          "skriv bara NYA iakttagelser (eller där reaktionerna tydligt säger emot):\n" + bas})
-    try:
-        svar = klient.messages.create(model=MODELL, max_tokens=2500, system=INSTRUKTION,
-                                      messages=[{"role": "user", "content": innehall}])
-    except anthropic.BadRequestError:  # t.ex. en bild som inte längre finns – försök med bara text
-        svar = klient.messages.create(model=MODELL, max_tokens=2500, system=INSTRUKTION,
-                                      messages=[{"role": "user", "content": [d for d in innehall if d["type"] == "text"]}])
     import bedomning
+    tp = bedomning.tanke_params(MODELL, 2500)
+    extra = {"extra_body": {"output_config": tp["output_config"]}} if "output_config" in tp else {}
+    try:
+        svar = klient.messages.create(model=MODELL, max_tokens=tp["max_tokens"], system=INSTRUKTION,
+                                      messages=[{"role": "user", "content": innehall}], **extra)
+    except anthropic.BadRequestError:  # t.ex. en bild som inte längre finns – försök med bara text
+        svar = klient.messages.create(model=MODELL, max_tokens=tp["max_tokens"], system=INSTRUKTION,
+                                      messages=[{"role": "user", "content": [d for d in innehall if d["type"] == "text"]}], **extra)
     bedomning.registrera("Smakanalys", svar)
     text = "".join(b.text for b in svar.content if getattr(b, "type", "text") == "text")
     rader = [r.strip() for r in text.splitlines() if r.strip().startswith(("-", "•"))]

@@ -157,6 +157,22 @@ PRIS = {  # USD per miljon tokens (in, ut). Batch kostar hälften.
 KOSTNAD: dict[str, dict] = {}
 
 
+# Nyare modeller (Sonnet 5.5, Opus 5.5 …) tänker alltid först, och tänkandet räknas in i max_tokens. För dem:
+# lågt tankedjup och marginal i max_tokens – annars kan svaret bli tomt (stop_reason max_tokens).
+TANKE_MARGINAL = 4000
+
+
+def tankar_alltid(modell: str) -> bool:
+    return not str(modell).startswith(("claude-haiku-4", "claude-3", "claude-sonnet-4", "claude-opus-4"))
+
+
+def tanke_params(modell: str, max_tokens: int, effort: str = "low") -> dict:
+    """{"max_tokens": …, "output_config": …} för en förfrågan (batch-dict eller extra_body)."""
+    if not tankar_alltid(modell):
+        return {"max_tokens": max_tokens}
+    return {"max_tokens": max_tokens + TANKE_MARGINAL, "output_config": {"effort": effort}}
+
+
 def registrera(del_: str, svar, batch: bool = False) -> None:
     """Lägger till ett svars tokens och kostnad under rubriken del_."""
     u = getattr(svar, "usage", None)

@@ -78,7 +78,7 @@ async function profilforslag(nyckel: string, kropp: { beskrivning?: string; har_
   const r = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "x-api-key": nyckel, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-    body: JSON.stringify({ model: MODELL, max_tokens: 1200, system: PROFIL_INSTRUKTION,
+    body: JSON.stringify({ model: MODELL, max_tokens: 8000, system: PROFIL_INSTRUKTION, output_config: { effort: "low" },
                            messages: [{ role: "user", content: text }] }),
   });
   if (!r.ok) { console.error("Anthropic", r.status, await r.text()); return null; }
@@ -247,11 +247,13 @@ ${STAMPLAR}
 Svara ENBART med JSON: {"bedomning": "original|nyproduktion|osäkert", "sakerhet": <0–1>, "tecken": ["<konkreta tecken du ser, max 4>"],
  "behover": "<vad som skulle avgöra det, t.ex. 'foto på stämpeln', eller tom sträng>", "svar": "<1–2 meningar på svenska>"}`;
 
-async function claude(nyckel: string, system: string, innehall: unknown[], max_tokens = 900) {
+// Modellen tänker alltid först (adaptivt tänkande), och tänkandet räknas in i max_tokens – därför generöst tak,
+// och effort styr hur mycket den tänker: "low" för texter, "medium" för stämplar och identifiering.
+async function claude(nyckel: string, system: string, innehall: unknown[], max_tokens = 8000, effort = "medium") {
   const r = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "x-api-key": nyckel, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-    body: JSON.stringify({ model: MODELL, max_tokens, system, messages: [{ role: "user", content: innehall }] }),
+    body: JSON.stringify({ model: MODELL, max_tokens, system, output_config: { effort }, messages: [{ role: "user", content: innehall }] }),
   });
   if (!r.ok) { console.error("Anthropic", r.status, await r.text()); return null; }
   const data = await r.json();
@@ -410,7 +412,7 @@ Deno.serve(async (req) => {
     const falt = ["namn", "kategori", "tillverkare", "formgivare", "serie", "period", "stampel", "antal"].reduce((o, k) => (t(k) ? { ...o, [k]: t(k) } : o), {});
     const text = `Pjäsen:\n${JSON.stringify(falt, null, 1)}\n\n` + (kallor.length
       ? "Utdrag ur Wikipedia:\n" + kallor.map((k) => `[${k.titel}] ${k.utdrag}`).join("\n\n") : "Inga Wikipedia-utdrag hittades.");
-    const res = await claude(nyckel, OM_INSTRUKTION, [{ type: "text", text }], 700);
+    const res = await claude(nyckel, OM_INSTRUKTION, [{ type: "text", text }], 6000, "low");
     if (!res) return svar({ fel: "Kunde inte ta fram fakta just nu" }, 502, origin);
     return svar({ text: String(res.text ?? "").slice(0, 2000), sokord: (Array.isArray(res.sokord) ? res.sokord : []).map((x: unknown) => String(x).slice(0, 60)).slice(0, 3),
                   kallor }, 200, origin);
@@ -432,7 +434,7 @@ Deno.serve(async (req) => {
     const kanal = String((kropp as { kanal?: string }).kanal ?? "").slice(0, 120);
     innehall.push({ type: "text", text: `Föremålet:\n${JSON.stringify(falt, null, 1)}${kanal ? `\nSäljs troligen via: ${kanal}` : ""}\n` +
       (innehall.length ? `${innehall.length} bild(er) ovan.` : "Inga bilder.") });
-    const res = await claude(nyckel, BESKRIV_INSTRUKTION, innehall, 900);
+    const res = await claude(nyckel, BESKRIV_INSTRUKTION, innehall, 6000, "low");
     if (!res) return svar({ fel: "Kunde inte skriva texterna just nu" }, 502, origin);
     return svar({ beskrivning: String(res.beskrivning ?? "").slice(0, 1500), annons_rubrik: String(res.annons_rubrik ?? "").slice(0, 100),
                   annons_text: String(res.annons_text ?? "").slice(0, 2500), bilder: innehall.length - 1 }, 200, origin);
@@ -449,7 +451,7 @@ Deno.serve(async (req) => {
     innehall.push({ type: "text", text: `${innehall.length ? `Bilderna (${innehall.length} st) är från annonsen${extra ? ", den första en skärmbild i full upplösning" : ""}.` : "Inga bilder gick att hämta – bedöm bara utifrån texten och säg att bild behövs."}
 ANNONS: "${String(kropp.titel ?? "").slice(0, 300)}" · ${String(kropp.pris_text ?? "").slice(0, 60)} · ${String(kropp.kalla ?? "").slice(0, 30)}
 Fyndjakts identifiering: ${String(kropp.identifierat ?? "-").slice(0, 200)}` });
-    const res = await claude(nyckel, AKTA_INSTRUKTION, innehall, 500);
+    const res = await claude(nyckel, AKTA_INSTRUKTION, innehall, 8000, "medium");
     if (!res) return svar({ fel: "Kunde inte granska just nu" }, 502, origin);
     const b = String(res.bedomning ?? "osäkert").toLowerCase();
     return svar({ bedomning: ["original", "nyproduktion"].includes(b) ? b : "osäkert", sakerhet: Math.max(0, Math.min(1, Number(res.sakerhet) || 0)),
@@ -470,14 +472,14 @@ Fyndjakts identifiering: ${String(kropp.identifierat ?? "-").slice(0, 200)}` });
     let stampelLas: Record<string, unknown> | null = null;
     if (kropp.stampel && bilder[1]) {
       stampelLas = await claude(nyckel, STAMPEL_INSTRUKTION, [bildblock(bilder[1], mediatyp),
-        { type: "text", text: "Läs märkningen." + (kommentar ? ` Ägaren säger: "${kommentar}".` : "") }], 900);
+        { type: "text", text: "Läs märkningen." + (kommentar ? ` Ägaren säger: "${kommentar}".` : "") }], 8000, "medium");
     }
     if (stampelLas) innehall.push({ type: "text", text: "Stämpeln är redan läst separat (lita på läsningen, men kontrollera mot bild 2):\n" + JSON.stringify(stampelLas) });
     innehall.push({ type: "text", text: (kropp.stampel
       ? `Bild 1 är föremålet, bild 2 är stämpeln/botten${bilder.length > 2 ? `, bild 3–${bilder.length} är detaljer du bett om` : ""}. Läs stämpeln tecken för tecken innan du bestämmer tillverkare, formgivare och modell. Vad är det, och vad är det värt?`
       : `${bilder.length > 1 ? bilder.length + " bilder av samma föremål" : "Bara en bild på föremålet"} – be om stämpelbild i nasta_kontroll om det behövs. Vad är det, och vad är det värt?`) +
       (kommentar ? `\n\nÄgaren rättar/kompletterar: "${kommentar}". Väg in det – det ägaren läser på föremålet går före din tolkning av en suddig bild.` : "") });
-    const res = await claude(nyckel, butikInstruktion(String(kropp.smak ?? ""), String(kropp.har_redan ?? "")), innehall, 2500);
+    const res = await claude(nyckel, butikInstruktion(String(kropp.smak ?? ""), String(kropp.har_redan ?? "")), innehall, 12000, "medium");
     if (!res || (!res.namn && !res.tillverkare)) return svar({ fel: "Claude gav inget användbart svar – försök igen" }, 502, origin);
     const min = tal(res.marknad_min), max = tal(res.marknad_max);
     const str = (v: unknown, n: number) => String(v ?? "").slice(0, n);
@@ -503,7 +505,8 @@ Fyndjakts identifiering: ${String(kropp.identifierat ?? "-").slice(0, 200)}` });
     headers: { "x-api-key": nyckel, "anthropic-version": "2023-06-01", "content-type": "application/json" },
     body: JSON.stringify({
       model: MODELL,
-      max_tokens: 700,
+      max_tokens: 8000,
+      output_config: { effort: "medium" },
       system: INSTRUKTION,
       messages: bygg_meddelanden(bilder, mediatyp, kropp.samtal ?? []),
     }),

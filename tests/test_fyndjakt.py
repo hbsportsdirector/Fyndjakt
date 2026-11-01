@@ -1430,3 +1430,14 @@ def test_tillfalliga_granser_slutar_av_sig_sjalva():
     assert not main.tillfalligt(efter, nu=1793700000)       # efter 2 nov – gäller inte längre
     assert efter["max_prisjamforelser_per_korning"] == 120 and efter["spar"]["flipp"]["max_bedomningar"] == 400
     assert "tillfalligt" not in efter
+
+
+def test_tankande_modeller_far_marginal():
+    """Sonnet 5.5 tänker alltid och tänkandet räknas in i max_tokens – utan marginal blev svaret tomt."""
+    assert bedomning.tanke_params("claude-haiku-4-5-20251001", 400) == {"max_tokens": 400}
+    p = bedomning.tanke_params("claude-sonnet-5-5", 400)
+    assert p["max_tokens"] == 400 + bedomning.TANKE_MARGINAL and p["output_config"] == {"effort": "low"}
+    import flipp
+    from sources import Annons
+    f = flipp.forfragan([Annons(kalla="tradera", id="1", titel="Vas", url="u")], "claude-sonnet-5-5")
+    assert f["max_tokens"] > 4000 and f["output_config"]["effort"] == "medium"

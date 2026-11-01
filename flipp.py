@@ -246,7 +246,7 @@ def forfragan(annonser: list, modell: str) -> dict:
             f"Annons {nr} ({len(bilder)} bilder):\nTitel: {a.titel}\nPris: {a.pris_text}\n"
             f"Beskrivning: {a.beskrivning[:900]}")})
         innehall += [bildblock(u) for u in bilder]
-    return {"model": modell, "max_tokens": 140 * len(annonser) + 50, "system": INSTRUKTION,
+    return {"model": modell, **bedomning.tanke_params(modell, 140 * len(annonser) + 50, "medium"), "system": INSTRUKTION,
             "messages": [{"role": "user", "content": innehall}]}
 
 

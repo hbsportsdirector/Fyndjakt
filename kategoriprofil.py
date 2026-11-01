@@ -36,11 +36,13 @@ def _nyckel(bas: str, kategori: str, sokord: list[str]) -> str:
 
 
 def _skriv(klient, spar: dict, kategori: str, sokord: list[str]) -> str:
-    svar = klient.messages.create(
-        model=MODELL, max_tokens=700,
-        system=INSTRUKTION.format(namn=spar.get("namn", ""), kategori=kategori, sokord=", ".join(sokord[:40])),
-        messages=[{"role": "user", "content": spar["profil_bas"]}])
     import bedomning
+    tp = bedomning.tanke_params(MODELL, 700)
+    svar = klient.messages.create(
+        model=MODELL, max_tokens=tp["max_tokens"],
+        system=INSTRUKTION.format(namn=spar.get("namn", ""), kategori=kategori, sokord=", ".join(sokord[:40])),
+        messages=[{"role": "user", "content": spar["profil_bas"]}],
+        **({"extra_body": {"output_config": tp["output_config"]}} if "output_config" in tp else {}))
     bedomning.registrera("Kategoriprofiler", svar)
     return "".join(b.text for b in svar.content if getattr(b, "type", "text") == "text").strip()
 
