@@ -37,27 +37,32 @@ def test_prisstege_aldrig_under_golvet():
         assert abs(s["start"] - e * 1.15) <= (30 if e < 1000 else 55)
 
 
-def test_saljplan_per_prisklass():
-    assert L("L.saljplan(250).typ") == "auktion"
-    assert L("L.saljplan(299).typ") == "auktion"
-    assert L("L.saljplan(300).typ") == "stege"
-    assert L("L.saljplan(2000).typ") == "stege"
-    assert L("L.saljplan(2001).typ") == "auktionshus"
+def test_saljplan_tradera_eller_blocket_med_avhamtning():
+    assert L("L.saljplan(250).kanal") == "blocket"
+    assert L("L.saljplan(399).kanal") == "blocket"
+    assert L("L.saljplan(400).kanal") == "tradera"
+    assert L("L.saljplan(5000).kanal") == "tradera"            # inga auktionshus längre
     assert L("L.saljplan(0).typ") == "okand"
-    assert "1 kr" in L("L.saljplan(100).text")
-    assert L("L.saljplan(5000).netto") == int(5000 - (5000 * 0.175 + 170 + 5000 * 0.0195) - 15 - 100 + 0.5)  # 3 742,5 → 3 743
+    assert L("L.saljplan(900, null, {kategori: 'Möbler'}).kanal") == "blocket"
+    assert L("L.saljplan(200, null, {kanal: 'tradera'}).kanal") == "tradera"   # ditt eller Claudes val går före
+    b = L("L.saljplan(300)")
+    assert b["start"] > 300 and b["golv"] < 300 and b["steg"][0] == b["start"] and b["steg"][-1] == b["golv"]   # överpris som sänks
+    assert b["nettoSteg"] == b["steg"] and "Blocket" in b["text"] and "Tradera" in b["alternativ"]           # ingen avgift
+    t = L("L.saljplan(1000)")
+    assert t["start"] < 1000 and t["golv"] <= 500 and t["stegNamn"] == "Utrop" and t["dagar"] == 7
+    assert t["netto"] == 1000 - 100 and "hämtar" in t["text"]     # 10 %, inget emballage eller fraktsvinn vid avhämtning
 
 
 def test_stegens_lage_over_tid():
-    # Upplagd för 25 dagar sedan, steg 0 satt → borde ligga på steg 2 (sänk).
+    # Tradera (800 kr): ett steg i veckan. Upplagd för 15 dagar sedan, steg 0 satt → borde ligga på steg 2 (lägg om).
     nu = 1_800_000_000_000
-    upplagd = "new Date(%d - 25 * 86400000).toISOString()" % nu
-    lage = L(f"L.saljplan(800, {{upplagd: {upplagd}, steg_satt: 0, nu: {nu}}}).lage")
-    assert lage["dagar"] == 25 and lage["satt"] == 0 and lage["bor"] == 2
-    assert lage["sank"] == 695
-    # Samma dag som upplagd: inget att sänka, nästa sänkning om 10 dagar.
+    upplagd = "new Date(%d - 15 * 86400000).toISOString()" % nu
+    plan = L(f"L.saljplan(800, {{upplagd: {upplagd}, steg_satt: 0, nu: {nu}}})")
+    lage = plan["lage"]
+    assert lage["dagar"] == 15 and lage["satt"] == 0 and lage["bor"] == 2 and lage["sank"] == plan["steg"][2]
+    # Samma dag som upplagd: inget att sänka, nästa steg om 7 dagar.
     lage = L(f"L.saljplan(800, {{upplagd: new Date({nu}).toISOString(), steg_satt: 0, nu: {nu}}}).lage")
-    assert lage["sank"] is None and lage["nasta"] == 10
+    assert lage["sank"] is None and lage["nasta"] == 7
 
 
 # ── Kanaler ────────────────────────────────────────────────────────────
@@ -75,14 +80,14 @@ def test_channel_net_avgifter():
 
 
 def test_best_channel_sorterar_pa_vinst():
+    # Vi säljer på Tradera och Blocket med avhämtning: Blocket utan avgift, Tradera 10 % (högst 200 kr), ingen frakt.
     rader = L("L.bestChannel(1000, 200)")
-    assert [r["kanal"] for r in rader][:1] == ["tradera"]            # billigast under 2 000 kr
-    assert rader[0]["vinst"] == 665 and rader[0]["netto"] == 865
+    assert [r["kanal"] for r in rader] == ["blocket", "tradera"]
+    assert rader[0]["netto"] == 1000 and rader[1]["netto"] == 900 and rader[1]["vinst"] == 700
     assert all(a["vinst"] >= b["vinst"] for a, b in zip(rader, rader[1:]))
-    assert "blocket" not in [r["kanal"] for r in rader]              # jämförs inte som standard
-    # Dyrt föremål: Traderas tak på 200 kr gör den fortfarande billigast, men auktionshusen är med i listan.
-    dyra = L("L.bestChannel(10000, 0)")
-    assert {r["kanal"] for r in dyra} == {"tradera", "bukowskis", "auktionsverket", "catawiki"}
+    # Dyrt föremål: Traderas tak på 200 kr. Auktionshusen går fortfarande att jämföra om man ber om dem.
+    assert L("L.bestChannel(10000, 0)")[1]["netto"] == 9800
+    assert {r["kanal"] for r in L("L.bestChannel(10000, 0, ['bukowskis', 'tradera'])")} == {"bukowskis", "tradera"}
 
 
 # ── Köptak och besked i butiken ────────────────────────────────────────
@@ -167,12 +172,9 @@ def test_flipp_rakning_samma_som_python():
 
 
 def test_saljplan_sager_var_den_ska_ligga():
-    assert L("L.saljplan(250).kanalNamn") == "Tradera – auktion"
-    p = L("L.saljplan(400)")
-    assert p["kanal"] == "tradera" and "Tradera" in p["kanalNamn"] and "Tradera" in p["text"]
-    assert p["nettoSteg"] == [round(L(f"L.channelNet('tradera', {x})")) for x in p["steg"]]
-    assert p["netto"] == p["nettoSteg"][0] and "Blocket" in p["alternativ"]
-    assert L("L.saljplan(5000).kanal") == "bukowskis"
+    p = L("L.saljplan(1500)")
+    assert p["kanal"] == "tradera" and "Tradera" in p["kanalNamn"] and p["varfor"] and "Blocket" in p["alternativ"]
+    assert all(abs(n - L(f"L.nettoHamtning('tradera', {x})")) <= 0.5 for n, x in zip(p["nettoSteg"], p["steg"]))
 
 
 # ── Till salu: Att fixa → Klar → Upplagd ───────────────────────────────

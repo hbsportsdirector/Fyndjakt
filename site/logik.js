@@ -23,14 +23,19 @@
     pris = +pris || 0;
     return pris - avgift(kanal, pris) - EMBALLAGE - pris * SVINN;
   }
+  // Vi säljer bara med avhämtning (ingen frakt): då försvinner emballage och fraktsvinn – kvar är bara avgiften.
+  function nettoHamtning(kanal, pris) {
+    pris = +pris || 0;
+    return pris - avgift(kanal, pris);
+  }
   // Kanalerna sorterade efter vinst (netto − inköp) vid försäljning till `varde`. Bäst först.
-  // Blocket (0 %) räknas inte som standard – det är avhämtning utan köparskydd, inte en försäljningskanal att jämföra med.
-  const JAMFORDA = ["tradera", "bukowskis", "auktionsverket", "catawiki"];
+  // Vi säljer på Tradera och Blocket, med avhämtning.
+  const JAMFORDA = ["tradera", "blocket"];
   function bestChannel(varde, inkop, kanaler) {
     inkop = +inkop || 0;
     const lista = (kanaler || JAMFORDA).map(k => ({
-      kanal: k, namn: KANALER[k].namn, netto: Math.round(channelNet(k, varde)),
-      vinst: Math.round(channelNet(k, varde) - inkop),
+      kanal: k, namn: KANALER[k].namn, netto: Math.round(nettoHamtning(k, varde)),
+      vinst: Math.round(nettoHamtning(k, varde) - inkop),
     }));
     lista.sort((a, b) => b.vinst - a.vinst);
     return lista;
@@ -108,33 +113,62 @@
   // Var i stegen är vi? upplagd = ISO-tid, stegSatt = index på steget som faktiskt ligger ute, nu = ms.
   function stegeLage(stege, upplagd, stegSatt, nu) {
     if (!upplagd) return null;
+    const dg = stege.dagar || STEG_DAGAR;
     const d = Math.floor(((nu || Date.now()) - new Date(upplagd).getTime()) / 86400000);
     const sista = stege.steg.length - 1;
-    const bor = Math.min(sista, Math.max(0, Math.floor(d / STEG_DAGAR)));
+    const bor = Math.min(sista, Math.max(0, Math.floor(d / dg)));
     const a = Math.min(sista, Math.max(0, +stegSatt || 0));
     return { dagar: d, satt: a, bor, pris: stege.steg[a], sank: bor > a ? stege.steg[bor] : null,
-             nasta: a < sista && bor <= a ? STEG_DAGAR * (a + 1) - d : null,
-             slut: a === sista && d >= STEG_DAGAR * stege.steg.length };
+             nasta: a < sista && bor <= a ? dg * (a + 1) - d : null,
+             slut: a === sista && d >= dg * stege.steg.length };
   }
 
-  function saljplan(forvantat, lage) {
+  // Säljplan med avhämtning: Blocket (överpris som sänks) eller Tradera (auktion med utrop som sänks vid omläggning).
+  const SALJ_DAGAR = 7;
+  function nedtrappning(start, faktor, golv) {
+    const steg = [start];
+    let p = start;
+    for (let k = 0; k < 8; k++) {
+      const nx = nice(p * faktor);
+      if (nx <= golv || nx >= p) break;
+      steg.push(nx); p = nx;
+    }
+    if (steg[steg.length - 1] > golv) steg.push(golv);
+    return steg;
+  }
+  function blocketPlan(e) {
+    const start = nice(e * 1.25), golv = nice(e * 0.85), steg = nedtrappning(start, 0.9, golv);
+    return { typ: "stege", e, kanal: "blocket", kanalNamn: "Blocket – avhämtning", start, golv, steg, dagar: SALJ_DAGAR, stegNamn: "Pris",
+      netto: start, nettoSteg: steg.map(p => Math.round(nettoHamtning("blocket", p))),
+      kort: `begär ${kr(start)} (överpris – räkna med prut), sänk 10 % i veckan ner till ${kr(golv)}`,
+      text: `Lägg ut på Blocket för ${kr(start)} – med marginal för prut – och skriv att den hämtas. Sänk 10 % var ${SALJ_DAGAR}:e dag ner till ${kr(golv)}. Ingen avgift.` };
+  }
+  function traderaPlan(e) {
+    const start = nice(e * 0.8), golv = nice(e * 0.5), steg = nedtrappning(start, 0.85, golv);
+    return { typ: "stege", e, kanal: "tradera", kanalNamn: "Tradera – auktion, avhämtning", start, golv, steg, dagar: SALJ_DAGAR, stegNamn: "Utrop",
+      netto: Math.round(nettoHamtning("tradera", e)), nettoSteg: steg.map(p => Math.round(nettoHamtning("tradera", p))),
+      kort: `auktion 7 dagar med utrop ${kr(start)} och avhämtning, lägg om med 15 % lägre utrop om den blir osåld`,
+      text: `Tradera-auktion 7 dagar med utropspris ${kr(start)}, frakt avstängd – köparen hämtar. Blir den osåld: lägg upp igen med 15 % lägre utrop, ner till ${kr(golv)}. Tradera tar 10 % (högst 200 kr).` };
+  }
+  // Vilken kanal? Billigt, möbler och lampor: Blocket (lokala köpare, ingen avgift). Samlarobjekt från ca 400 kr: Tradera
+  // (samlarna söker där och budgivningen hittar priset). info.kanal ("blocket"/"tradera") går före – Claudes eller ditt val.
+  const TRADERA_FRAN = 400;
+  function rekommenderadKanal(e, info) {
+    info = info || {};
+    if (info.kanal === "blocket" || info.kanal === "tradera") return { kanal: info.kanal, varfor: info.kanal_varfor || "ditt val" };
+    if (/Möbler|Belysning/.test(info.kategori || "")) return { kanal: "blocket", varfor: "stort att hämta – lokala köpare på Blocket" };
+    if (e < TRADERA_FRAN) return { kanal: "blocket", varfor: `under ${kr(TRADERA_FRAN)} – ingen avgift och snabb affär lokalt` };
+    return { kanal: "tradera", varfor: "samlarobjekt – budgivningen på Tradera hittar rätt pris" };
+  }
+
+  function saljplan(forvantat, lage, info) {
     const e = +forvantat;
     if (!e) return { typ: "okand", text: "Sätt ett förväntat pris först." };
-    // kanal = var den ska läggas ut; alternativ = när något annat kan vara bättre. netto = i handen efter avgifter.
-    if (e < 300) return { typ: "auktion", e, kanal: "tradera", kanalNamn: "Tradera – auktion",
-      netto: Math.round(channelNet("tradera", e)),
-      alternativ: "Blocket eller Marketplace om den är stor eller ömtålig och kan hämtas – ingen avgift, men oftast lägre pris.",
-      text: `Under 300 kr: Tradera-auktion 7 dagar, utrop 1 kr${e >= 150 ? " (eller 49 kr)" : ""}. Ingen prisstege – marknaden hittar priset på en vecka.` };
-    if (e > 2000) return { typ: "auktionshus", e, kanal: "bukowskis", kanalNamn: "Auktionshus – Bukowskis eller Auktionsverket",
-      netto: Math.round(channelNet("bukowskis", e)),
-      alternativ: `Catawiki för utländska samlare. Tradera bara med reservationspris på ${kr(Math.round(e * STEG_GOLV))}.`,
-      text: `Över 2 000 kr: lämna till Bukowskis eller Auktionsverket (17–17,5 % + 170 kr), eller Catawiki. Tradera bara med reservationspris på ${kr(Math.round(e * STEG_GOLV))}.` };
-    const stege = prisstege(e);
-    const nu = lage ? stegeLage(stege, lage.upplagd, lage.steg_satt, lage.nu) : null;
-    return { typ: "stege", e, ...stege, lage: nu, kanal: "tradera", kanalNamn: "Tradera – köp nu med ”ta emot bud”",
-      netto: Math.round(channelNet("tradera", stege.start)), nettoSteg: stege.steg.map(p => Math.round(channelNet("tradera", p))),
-      alternativ: "Blocket med avhämtning om den är stor eller tung att skicka – ingen avgift, men räkna med att bli prutad.",
-      text: `300–2 000 kr: lägg ut på Tradera som köp nu på ${kr(stege.start)} med "ta emot bud", sänk 10 % var ${STEG_DAGAR}:e dag ner till golvet ${kr(stege.golv)}. Därefter Tradera-auktion med reservationspris eller paketera.` };
+    const r = rekommenderadKanal(e, info);
+    const val = r.kanal === "blocket" ? blocketPlan(e) : traderaPlan(e);
+    const annan = r.kanal === "blocket" ? traderaPlan(e) : blocketPlan(e);
+    const nu = lage ? stegeLage(val, lage.upplagd, lage.steg_satt, lage.nu) : null;
+    return { ...val, lage: nu, varfor: r.varfor, annanKanal: annan.kanal, alternativ: `${annan.kanalNamn}: ${annan.kort}.` };
   }
 
   // ── Fynd: slutar snart ─────────────────────────────────────────────
@@ -213,7 +247,7 @@
   function kr(n) { return n == null || isNaN(n) ? "–" : Math.round(n).toLocaleString("sv-SE") + " kr"; }
 
   const Logik = { KANALER, avgift, channelNet, bestChannel, koptak, butikBesked, flippRakning, prisstege, stegeLage, saljplan, nice,
-                  slutarSnart, bradskande, tidKvar, tidText, kvot, varde, forvantat, saljKlar, sattMatt, KLAR_BILDER, sammanstallning, kr,
+                  slutarSnart, bradskande, tidKvar, tidText, kvot, varde, forvantat, saljKlar, nettoHamtning, rekommenderadKanal, SALJ_DAGAR, sattMatt, KLAR_BILDER, sammanstallning, kr,
                   STEG_DAGAR, KOPTAK_FLIPP, KOPTAK_SAMLING };
   if (typeof module !== "undefined" && module.exports) module.exports = Logik;
   else rot.Logik = Logik;

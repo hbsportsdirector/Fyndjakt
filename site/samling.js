@@ -668,44 +668,45 @@
     return form;
   }
 
+  // Säljplanen: Tradera eller Blocket, alltid avhämtning. Kanalen kan bytas med en knapp.
+  const planInfo = it => ({ kategori: it.kategori, kanal: it.kanal, kanal_varfor: it.kanal_varfor });
   function renderSalj(it, ruta, p) {
     ruta.replaceChildren();
     if (it.lada !== "salj") return;
     const e = Logik.forvantat(it);
-    const plan = Logik.saljplan(e, { upplagd: it.upplagd, steg_satt: it.steg_satt });
+    const plan = Logik.saljplan(e, { upplagd: it.upplagd, steg_satt: it.steg_satt }, planInfo(it));
     const r = el("div", { class: "ruta", style: "margin-top:14px" });
     r.append(el("div", { class: "etik" }, "Till salu" + (e ? " · förväntat pris " + kr(e) : "")));
-    if (!e) r.append(el("p", { style: "margin:6px 0" }, "Sätt ett utgångspris (Redigera → Till salu) eller ett värde, så räknas säljplanen ut."));
-    else {
-      // Var den ska ligga – det viktigaste, överst och tydligt.
-      r.append(el("div", { class: "salj-kanal" }, el("span", { class: "muted" }, "Lägg ut på"), el("b", {}, plan.kanalNamn),
-        el("span", { class: "muted" }, `ca ${kr(plan.netto)} i handen${plan.typ === "stege" ? " vid startpriset" : ""} efter avgifter`)));
-      r.append(el("p", { style: "margin:6px 0" }, plan.text));
-    }
+    if (!e) { r.append(el("p", { style: "margin:6px 0" }, "Sätt ett pris (Redigera → Till salu) eller ett värde, så räknas säljplanen ut.")); ruta.append(r); return; }
+    r.append(el("div", { class: "salj-kanal" }, el("span", { class: "muted" }, "Lägg ut på"), el("b", {}, plan.kanalNamn),
+      el("span", { class: "muted" }, plan.kanal === "blocket" ? `begär ${kr(plan.start)} – ingen avgift` : `ca ${kr(plan.netto)} i handen om den går för ${kr(e)}`)));
+    if (plan.varfor) r.append(el("p", { class: "muted", style: "margin:2px 0 0;font-size:13px" }, "Varför: " + plan.varfor + "."));
+    r.append(el("p", { style: "margin:6px 0" }, plan.text));
     if (it.upplagd) r.append(el("p", { class: "muted", style: "margin:0 0 6px" }, `Upplagd ${App.datum(it.upplagd)}${it.tradera_lagsta ? " · lägsta pris " + kr(it.tradera_lagsta) : ""}`));
-    if (plan.typ === "stege") {
-      const steg = el("div", { class: "stege" });
-      plan.steg.forEach((pris, i) => {
-        const s = el("span", { title: `ca ${kr(plan.nettoSteg[i])} i handen på Tradera` }, (i === 0 ? "Start " : i === plan.steg.length - 1 ? "Golv " : "") + kr(pris),
-          el("small", {}, ` → ${kr(plan.nettoSteg[i])}`));
-        if (plan.lage && i === plan.lage.satt) s.classList.add("nu");
-        if (plan.lage && plan.lage.sank != null && i === plan.lage.bor) s.classList.add("sank");
-        steg.append(s);
-      });
-      r.append(steg);
-      if (it.upplagd && plan.lage) {
-        const l = plan.lage;
-        r.append(el("p", { class: "muted", style: "margin:8px 0 0" }, l.sank != null ? `Dag ${l.dagar} – dags att sänka till ${kr(l.sank)}. `
-          : l.slut ? "Stegen är slut – auktion med reservationspris, eller paketera. " : `Dag ${l.dagar} – ligger ute på ${kr(l.pris)}${l.nasta != null ? ", nästa sänkning om " + l.nasta + " dagar" : ""}. `));
-        if (l.sank != null) {
-          const b = el("button", { class: "knapp liten", type: "button" }, "Jag har sänkt till " + kr(l.sank));
-          b.onclick = async () => { try { Object.assign(it, await spara(it.id, { steg_satt: l.bor })); renderSalj(it, ruta, p); toast("Steget sparat"); } catch (x) { toast(x.message); } };
-          r.append(b);
-        }
+    const steg = el("div", { class: "stege" });
+    plan.steg.forEach((pris, i) => {
+      const s_ = el("span", { title: `ca ${kr(plan.nettoSteg[i])} i handen` }, (i === 0 ? plan.stegNamn + " " : i === plan.steg.length - 1 ? "Golv " : `Vecka ${i + 1}: `) + kr(pris));
+      if (plan.lage && i === plan.lage.satt) s_.classList.add("nu");
+      if (plan.lage && plan.lage.sank != null && i === plan.lage.bor) s_.classList.add("sank");
+      steg.append(s_);
+    });
+    r.append(steg);
+    if (it.upplagd && plan.lage) {
+      const l = plan.lage, ord = plan.kanal === "tradera" ? "lägga om med utrop" : "sänka till";
+      r.append(el("p", { class: "muted", style: "margin:8px 0 0" }, l.sank != null ? `Dag ${l.dagar} – dags att ${ord} ${kr(l.sank)}. `
+        : l.slut ? (plan.kanal === "tradera" ? "Utropen är slut – prova Blocket, eller behåll den. " : "Golvet nått – prova Tradera-auktion, eller behåll den. ")
+        : `Dag ${l.dagar} – ligger ute på ${kr(l.pris)}${l.nasta != null ? ", nästa steg om " + l.nasta + " dagar" : ""}. `));
+      if (l.sank != null) {
+        const b = el("button", { class: "knapp liten", type: "button" }, (plan.kanal === "tradera" ? "Jag har lagt om med utrop " : "Jag har sänkt till ") + kr(l.sank));
+        b.onclick = async () => { try { Object.assign(it, await spara(it.id, { steg_satt: l.bor })); renderSalj(it, ruta, p); toast("Steget sparat"); } catch (x) { toast(x.message); } };
+        r.append(b);
       }
     }
-    if (plan.typ === "stege") r.append(el("p", { class: "muted", style: "margin:6px 0 0;font-size:13px" }, "Siffran efter pilen är vad du får i handen på Tradera (10 %, max 200 kr, emballage och svinn)."));
-    if (plan.alternativ) r.append(el("p", { class: "muted", style: "margin:6px 0 0;font-size:13px" }, "Alternativ: " + plan.alternativ));
+    r.append(el("p", { class: "muted", style: "margin:6px 0 0;font-size:13px" }, plan.kanal === "tradera"
+      ? "Tradera tar 10 % av slutpriset (högst 200 kr). Stäng av frakt i annonsen – köparen hämtar." : "Blocket är gratis för privatpersoner. Skriv att den hämtas och att du inte skickar."));
+    const byt = el("button", { class: "knapp liten", type: "button", style: "margin-top:8px" }, "Byt till " + (plan.annanKanal === "blocket" ? "Blocket" : "Tradera"));
+    byt.onclick = async () => { try { Object.assign(it, await spara(it.id, { kanal: plan.annanKanal, kanal_varfor: "ditt val", steg_satt: 0 })); renderSalj(it, ruta, p); render(); } catch (x) { toast(x.message); } };
+    r.append(el("div", { class: "muted", style: "margin:6px 0 0;font-size:13px" }, "Alternativ: " + plan.alternativ), byt);
     ruta.append(r);
   }
 
@@ -1073,9 +1074,9 @@
     // Nästa steg när den är klar: lägga ut den (startar prisstegen när kanalen är Tradera köp nu).
     const upplagd = el("button", { class: "knapp" + (k.steg === "klar" ? " primar" : ""), type: "button" }, "📤 Jag har lagt upp den nu");
     upplagd.onclick = async () => {
-      const plan = Logik.saljplan(Logik.forvantat(it));
+      const plan = Logik.saljplan(Logik.forvantat(it), null, planInfo(it));
       try { Object.assign(it, await spara(it.id, { upplagd: new Date().toISOString(), steg_satt: 0, klar: it.klar || new Date().toISOString(),
-        tradera_pris: it.tradera_pris ?? (plan.start || Logik.forvantat(it)) })); om(); toast(plan.typ === "stege" ? "Upplagd – prisstegen startad" : "Upplagd"); } catch (x) { toast(x.message); }
+        kanal: plan.kanal, tradera_pris: it.tradera_pris ?? Logik.forvantat(it) })); om(); toast(`Upplagd på ${plan.kanal === "blocket" ? "Blocket" : "Tradera"} – nedtrappningen startad`); } catch (x) { toast(x.message); }
     };
     if (k.steg === "klar") {
       r.append(el("div", { class: "rad" }, upplagd,
@@ -1122,11 +1123,15 @@
   }
   async function skrivTexter(it) {
     const e = Logik.forvantat(it);
-    const plan = e ? Logik.saljplan(e) : null;
-    const r = await App.kannIgen({ typ: "beskriv", foremal: { ...it, nummer: App.fjNr(it) }, kanal: plan && plan.kanalNamn || "",
+    const plan = e ? Logik.saljplan(e, null, planInfo(it)) : null;
+    const r = await App.kannIgen({ typ: "beskriv", foremal: { ...it, nummer: App.fjNr(it), chatt: undefined, om: undefined },
+      kanal: plan ? `${plan.kanalNamn} (förväntat pris ${kr(e)}; ${plan.varfor})` : "",
       paths: (it.bilder || []).map(b => b.path).filter(Boolean).slice(0, 3) });
     if (!r.beskrivning && !r.annons_text) throw new Error("Claude gav inget svar – försök igen.");
-    Object.assign(it, await spara(it.id, { beskrivning: r.beskrivning || null, annons_rubrik: r.annons_rubrik || null, annons_text: r.annons_text || null }));
+    const andring = { beskrivning: r.beskrivning || null, annons_rubrik: r.annons_rubrik || null, annons_text: r.annons_text || null };
+    // Claudes kanalval gäller om du inte själv valt kanal (och inte redan lagt upp den).
+    if ((r.kanal === "blocket" || r.kanal === "tradera") && it.kanal_varfor !== "ditt val" && !it.upplagd) Object.assign(andring, { kanal: r.kanal, kanal_varfor: "Claude: " + (r.kanal_varfor || "") });
+    Object.assign(it, await spara(it.id, andring));
     return it;
   }
 

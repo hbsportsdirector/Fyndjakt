@@ -126,9 +126,8 @@
       sek.innerHTML = `
         <div class="vy-huvud" id="sp-huvud"></div>
         <div class="saljplan-klass">
-          <div class="ruta"><b class="pris">&lt; 300 kr</b>Tradera-auktion 7 dagar, utrop 1 kr (eller 49 kr), samfrakt. Marketplace/Blocket för avhämtning. Ingen prisstege.</div>
-          <div class="ruta"><b class="pris">300–2 000 kr</b>Prisstege på Tradera: start +15 % över förväntat pris med ”ta emot bud”, sänk 10 % var ${Logik.STEG_DAGAR}:e dag ner till golvet 85 %. Därefter auktion med reservationspris eller paketera.</div>
-          <div class="ruta"><b class="pris">&gt; 2 000 kr</b>Auktionshus: Bukowskis eller Auktionsverket online (17–17,5 % + 170 kr), eller Catawiki. Tradera bara med reservationspris på 85 %.</div>
+          <div class="ruta"><b class="pris">Blocket</b>Under ca 400 kr, möbler och lampor. Begär ca 25 % över förväntat pris – folk prutar – och sänk 10 % i veckan ner till golvet 85 %. Ingen avgift. Avhämtning.</div>
+          <div class="ruta"><b class="pris">Tradera</b>Samlarobjekt från ca 400 kr. Auktion 7 dagar med utrop ca 80 % av förväntat pris och frakt avstängd – köparen hämtar. Osåld: lägg om med 15 % lägre utrop, ner till 50 %. 10 % avgift, högst 200 kr.</div>
         </div>
         <div class="ruta" style="margin-top:14px">
           <h3>Räkna på ett pris</h3>
@@ -137,19 +136,17 @@
         </div>
         <div id="sp-checklista" style="margin-top:14px"></div>`;
       const r = () => {
-        const plan = Logik.saljplan(+$("sp-pris").value || 0);
+        const e = +$("sp-pris").value || 0;
+        const plan = Logik.saljplan(e);
         const ut = $("sp-resultat"); ut.replaceChildren();
-        if (plan.kanalNamn) ut.append(el("div", { class: "salj-kanal" }, el("span", { class: "muted" }, "Lägg ut på"), el("b", {}, plan.kanalNamn),
-          el("span", { class: "muted" }, `ca ${kr(plan.netto)} i handen${plan.typ === "stege" ? " vid startpriset" : ""}`)));
+        if (!plan.kanalNamn) { ut.append(el("p", {}, plan.text)); return; }
+        ut.append(el("div", { class: "salj-kanal" }, el("span", { class: "muted" }, "Lägg ut på"), el("b", {}, plan.kanalNamn),
+          el("span", { class: "muted" }, plan.varfor)));
         ut.append(el("p", {}, plan.text));
-        if (plan.alternativ) ut.append(el("p", { class: "muted" }, "Alternativ: " + plan.alternativ));
-        if (plan.typ === "stege") {
-          ut.append(el("div", { class: "stege" }, ...plan.steg.map((p, i) => el("span", { class: i === 0 ? "nu" : "" }, `Dag ${i * Logik.STEG_DAGAR}: ${kr(p)}`))));
-          ut.append(el("p", { class: "muted", style: "margin-top:8px" }, `Netto på Tradera vid start ${kr(Logik.channelNet("tradera", plan.start))}, vid golv ${kr(Logik.channelNet("tradera", plan.golv))}.`));
-        }
-        if (plan.typ === "auktionshus") ut.append(el("p", { class: "muted" }, `Netto via Bukowskis ca ${kr(plan.netto)}, via Catawiki ${kr(Logik.channelNet("catawiki", plan.e))}.`));
+        ut.append(el("div", { class: "stege" }, ...plan.steg.map((p, i) => el("span", { class: i === 0 ? "nu" : "" }, `${i === 0 ? plan.stegNamn : "Vecka " + (i + 1)}: ${kr(p)}`))));
+        ut.append(el("p", { class: "muted", style: "margin-top:8px" }, "Alternativ: " + plan.alternativ));
       };
-      $("sp-huvud").replaceWith(App.huvud("saljplan", "Säljplan", "Rätt kanal och rätt pris per prisklass"));
+      $("sp-huvud").replaceWith(App.huvud("saljplan", "Säljplan", "Tradera eller Blocket – med avhämtning"));
       $("sp-pris").oninput = r; r();
       const c = await hamta("checklista");
       $("sp-checklista").replaceChildren(...c.filter(x => x.rubrik !== "På loppisen").map(x => {
