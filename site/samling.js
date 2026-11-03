@@ -1054,11 +1054,13 @@
       annons: async (b) => { b.disabled = true; b.textContent = "Claude skriver …"; try { await skrivTexter(it); om(); toast("Annonsen är skriven"); } catch (e) { toast(e.message); b.disabled = false; b.textContent = "✍ Skriv"; } },
       matt: async () => {
         const s_ = await App.fraga("Mått", { ok: "Lägg in i annonsen", falt: [
-          { id: "h", etikett: "Höjd (cm)", typ: "text", placeholder: "t.ex. 21" },
+          { id: "h", etikett: "Höjd eller längd (cm)", typ: "text", placeholder: "t.ex. 21 – eller 38 för ett avlångt fat" },
           { id: "b", etikett: "Bredd eller diameter (cm)", typ: "text", placeholder: "t.ex. 12" },
           { id: "x", etikett: "Annat (valfritt)", typ: "text", placeholder: "t.ex. 6 tallrikar à 24 cm" }] });
         if (!s_) return;
-        const matt = [s_.h && `höjd ${s_.h} cm`, s_.b && `bredd/diameter ${s_.b} cm`, s_.x].filter(Boolean).join(", ");
+        // Fat, brickor och tallrikar ligger ner: då är första måttet en längd, inte en höjd.
+        const ligger = /\b(fat|bricka|tallrik|assiett|skärbräda|underlägg|platta)/i.test(it.namn || "");
+        const matt = [s_.h && `${ligger ? "längd" : "höjd"} ${s_.h} cm`, s_.b && `bredd/diameter ${s_.b} cm`, s_.x].filter(Boolean).join(", ");
         if (!matt) return;
         try { Object.assign(it, await spara(it.id, { annons_text: Logik.sattMatt(it.annons_text, matt), beskrivning: it.beskrivning ? Logik.sattMatt(it.beskrivning, matt) : it.beskrivning })); om(); toast("Måtten ligger i annonsen"); } catch (e) { toast(e.message); }
       },
