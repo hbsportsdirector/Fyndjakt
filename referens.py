@@ -174,7 +174,9 @@ def tolka_post(post: dict, sokfras: str = "") -> dict | None:
     bilder = [b.get("w640") or b.get("hd") for b in (post.get("images") or []) if b.get("w640") or b.get("hd")]
     if not bilder or not post.get("id"):
         return None
-    fabrik = fabrik_i(titel) or fabrik_i(text) or fabrik_i(sokfras)
+    # Fabriken måste stå i posten själv – inte bara i sökfrasen. Auctionet ger annars träffar på andra ord i frasen
+    # ("Bay Keramik" gav 4 000 poster om all möjlig keramik), och de vore falska referenser.
+    fabrik = fabrik_i(titel) or fabrik_i(text)
     if not fabrik:
         return None
     allt = f"{text} {skick}"

@@ -51,8 +51,10 @@ def test_foremalstyp_i_versaler_ar_inte_formgivare():
 def test_utan_bild_eller_fabrik_ges_upp():
     assert referens.tolka_post(post("MARI SIMMULSON. Skål.", bilder=0)) is None
     assert referens.tolka_post(post("Skål, keramik, okänd.", "Oläslig stämpel.")) is None
-    r = referens.tolka_post(post("Skål, keramik.", "Oläslig stämpel."), sokfras="Upsala-Ekeby")
-    assert r and r["fabrik"] == "Upsala-Ekeby" and r["sokfras"] == "Upsala-Ekeby"
+    # Sökfrasen räcker inte som fabrik: står den inte i posten är träffen troligen på något annat ord.
+    assert referens.tolka_post(post("Skål, keramik.", "Oläslig stämpel."), sokfras="Upsala-Ekeby") is None
+    r = referens.tolka_post(post("Skål, keramik, Ekeby.", "Oläslig stämpel."), sokfras="Upsala Ekeby skål")
+    assert r and r["fabrik"] == "Upsala-Ekeby" and r["sokfras"] == "Upsala Ekeby skål"
 
 
 def test_osald_post_markeras():

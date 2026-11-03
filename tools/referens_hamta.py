@@ -95,9 +95,17 @@ class Databas:
         print("Nyckeln stämmer.")
 
     def antal(self) -> list[dict]:
-        r = requests.post(f"{self.url}/rest/v1/rpc/referens_antal", json={},
-                          headers={"apikey": self.nyckel, "Authorization": f"Bearer {self.nyckel}", "Content-Type": "application/json"}, timeout=60)
-        return r.json() if r.status_code == 200 else []
+        for forsok in range(3):
+            try:
+                r = requests.post(f"{self.url}/rest/v1/rpc/referens_antal", json={},
+                                  headers={"apikey": self.nyckel, "Authorization": f"Bearer {self.nyckel}", "Content-Type": "application/json"}, timeout=120)
+                if r.status_code == 200:
+                    return r.json()
+                print(f"  (räkningen svarade {r.status_code} – försöker igen)")
+            except requests.RequestException as e:
+                print(f"  (räkningen: {e} – försöker igen)")
+            time.sleep(5)
+        return []
 
 
 def hamta_sida(fras: str, sida: int) -> tuple[list[dict], int]:
