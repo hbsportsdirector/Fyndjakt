@@ -1,0 +1,74 @@
+# Sökfraser för referensbiblioteket (tools/referens_hamta.py) – en per rad, rader med # hoppas över.
+# Auctionet ger högst ~10 000 träffar per fras, så stora fabriker delas upp per formgivare och föremålstyp.
+# Dubbletter rensas på Auctionets id, så överlapp gör inget. Lägg till rader när du vill – hämtaren tar bara nya.
+
+# ── Upsala-Ekeby ──────────────────────────────────────────────
+Upsala-Ekeby
+Upsala Ekeby vas
+Upsala Ekeby skål
+Upsala Ekeby fat
+Upsala Ekeby figurin
+Mari Simmulson
+Ingrid Atterberg
+Anna-Lisa Thomson Ekeby
+Vicke Lindstrand Ekeby
+Hjördis Oldfors
+Sven-Erik Skawonius
+Dorothy Clough
+Taisto Kaasinen
+
+# ── Rörstrand ─────────────────────────────────────────────────
+Gunnar Nylund Rörstrand
+Gunnar Nylund chamotte
+Hertha Bengtson
+Blå Eld
+Carl-Harry Stålhane
+Marianne Westman Rörstrand
+Sylvia Leuchovius
+Olle Alberius
+Rörstrand stengods vas
+Rörstrand fajans
+
+# ── Gustavsberg ───────────────────────────────────────────────
+Stig Lindberg Gustavsberg
+Stig Lindberg Domino
+Berndt Friberg
+Lisa Larson Gustavsberg
+Wilhelm Kåge
+Kåge Argenta
+Karin Björquist
+Gustavsberg studio vas
+Gustavsberg stengods skål
+
+# ── Glas ──────────────────────────────────────────────────────
+Erik Höglund Boda
+Boda glas
+Vicke Lindstrand Kosta
+Kosta Boda vas
+Nils Landberg Orrefors
+Edvin Öhrström Orrefors
+Orrefors Ariel
+Orrefors Graal
+Ingeborg Lundin
+Sven Palmqvist
+
+# ── Danskt och finskt ─────────────────────────────────────────
+Saxbo
+Palshus
+Kähler keramik
+Axel Salto
+Royal Copenhagen stengods
+Nils Thorsson
+Arabia Finland stengods
+Birger Kaipiainen
+Kaj Franck
+
+# ── Övrigt svenskt ────────────────────────────────────────────
+Bo Fajans
+Gefle keramik
+Arthur Percy
+Höganäs keramik
+Laholm keramik
+Nittsjö keramik
+Tilgmans keramik
+Jie Gantofta

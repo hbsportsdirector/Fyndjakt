@@ -5,3 +5,5 @@ __pycache__/
 site/data/fynd.json
 # Tillfällig bildmigrering – bilderna ligger i Supabase nu
 tools/samling-migrering/
+# Referensbibliotekets läge per sökfras (tools/referens_hamta.py) – lokalt på datorn som hämtar
+data/referens_lage.json
