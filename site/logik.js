@@ -231,6 +231,68 @@
     return /\[\s*mått\s*\]/i.test(t) ? t.replace(/\[\s*mått\s*\]/gi, matt) : (t ? t.replace(/\s*$/, "") + "\n" : "") + "Mått: " + matt + ".";
   }
 
+  // ── Sälj: kvällens lista, pengarna och lagret ──────────────────────
+  // En uppgift per föremål i Till salu, närmast pengarna först: svara på en avslutad auktion, sänka priset, byta kanal,
+  // lägga upp, sätta pris, fota, skriva, mått. Varje uppgift har en uppskattad tid i minuter så att en kväll kan planeras.
+  const UPPGIFT_MIN = { resultat: 1, sank: 2, byt: 2, laggupp: 5, pris: 1, fota: 5, skriv: 2, matt: 2, ute: 0 };
+  const PRIO = { resultat: 1, sank: 2, byt: 3, laggupp: 4, pris: 5, fota: 6, skriv: 7, matt: 8, ute: 9 };
+  function saljUppgifter(lista, nu) {
+    nu = nu || Date.now();
+    const ut = [];
+    for (const it of lista || []) {
+      if (it.lada !== "salj") continue;
+      const e = forvantat(it), k = saljKlar(it);
+      const info = { kategori: it.kategori, kanal: it.kanal, kanal_varfor: it.kanal_varfor };
+      let u;
+      if (it.upplagd && e) {
+        const plan = saljplan(e, { upplagd: it.upplagd, steg_satt: it.steg_satt, nu }, info), l = plan.lage;
+        if (plan.kanal === "tradera" && (l.sank != null || l.slut)) u = { typ: "resultat", plan, pris: l.sank };   // auktionen är slut: såld, eller lägg om
+        else if (l.sank != null) u = { typ: "sank", plan, pris: l.sank };
+        else if (l.slut) u = { typ: "byt", plan };
+        else u = { typ: "ute", plan };                                                                           // ligger ute – inget att göra än
+      } else if (k.alla || it.klar) u = { typ: "laggupp", plan: e ? saljplan(e, null, info) : null };
+      else {
+        const saknas = k.saknas.map((x) => x.id);
+        u = { typ: saknas.includes("pris") ? "pris" : saknas.includes("bilder") ? "fota" : saknas.includes("annons") ? "skriv" : "matt", saknas, krav: k.krav };
+      }
+      ut.push({ ...u, it, e, prio: PRIO[u.typ], minuter: UPPGIFT_MIN[u.typ] });
+    }
+    return ut.sort((a, b) => a.prio - b.prio || (b.e || 0) - (a.e || 0));
+  }
+  // Kvällens lista: uppgifterna som ryms i `minuter` (standard 30), i prioritetsordning. Minst en om det finns någon.
+  function kvallensLista(uppgifter, minuter) {
+    const tak = minuter || 30, ut = [];
+    let summa = 0;
+    for (const u of uppgifter || []) {
+      if (u.typ === "ute") continue;
+      if (ut.length && summa + u.minuter > tak) break;
+      ut.push(u); summa += u.minuter;
+    }
+    return { lista: ut, minuter: summa, kvar: (uppgifter || []).filter((u) => u.typ !== "ute").length - ut.length };
+  }
+  // Pengarna: sålt, inköp, avgifter och vinst för månaden och året, plus vad som ligger ute och vad som väntar.
+  function saljPengar(lista, nu) {
+    const d = new Date(nu || Date.now()), manad = d.toISOString().slice(0, 7), ar = d.toISOString().slice(0, 4);
+    const tom = () => ({ antal: 0, salt: 0, inkop: 0, avgift: 0, vinst: 0 });
+    const ut = { manad: tom(), ar: tom(), ute: { antal: 0, begart: 0 }, vantar: { antal: 0, varde: 0 } };
+    for (const it of lista || []) {
+      if (it.lada === "salt" && it.salt_for != null) {
+        const p = +it.salt_for || 0, a = avgift(it.salt_kanal || "tradera", p), dat = String(it.salt_datum || "");
+        for (const [k, pre] of [["manad", manad], ["ar", ar]]) {
+          if (!dat.startsWith(pre)) continue;
+          const m = ut[k]; m.antal += 1; m.salt += p; m.inkop += +it.inkopspris || 0; m.avgift += a; m.vinst = m.salt - m.inkop - m.avgift;
+        }
+      } else if (it.lada === "salj") {
+        const e = forvantat(it) || 0;
+        if (it.upplagd && e) {
+          const plan = saljplan(e, { upplagd: it.upplagd, steg_satt: it.steg_satt, nu: nu || Date.now() }, { kategori: it.kategori, kanal: it.kanal });
+          ut.ute.antal += 1; ut.ute.begart += plan.lage ? plan.lage.pris : e;
+        } else { ut.vantar.antal += 1; ut.vantar.varde += e; }
+      }
+    }
+    return ut;
+  }
+
   function sammanstallning(lista) {
     const ut = {};
     for (const it of lista || []) {
@@ -248,6 +310,7 @@
 
   const Logik = { KANALER, avgift, channelNet, bestChannel, koptak, butikBesked, flippRakning, prisstege, stegeLage, saljplan, nice,
                   slutarSnart, bradskande, tidKvar, tidText, kvot, varde, forvantat, saljKlar, nettoHamtning, rekommenderadKanal, SALJ_DAGAR, sattMatt, KLAR_BILDER, sammanstallning, kr,
+                  saljUppgifter, kvallensLista, saljPengar,
                   STEG_DAGAR, KOPTAK_FLIPP, KOPTAK_SAMLING };
   if (typeof module !== "undefined" && module.exports) module.exports = Logik;
   else rot.Logik = Logik;

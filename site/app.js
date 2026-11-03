@@ -14,8 +14,8 @@ const App = (() => {
                   samling: [], harRedan: [], forslag: new Map() };
   const delar = {};          // id → {namn, ikon, montera(el), visa(), mobil?}
   const ordning = [];
-  const MOBIL_FLIKAR = ["fynd", "samling", "butik", "prisguide", "mer"];
-  const MOBIL_MER = ["stamplar", "kalkyl", "saljplan", "installningar"];
+  const MOBIL_FLIKAR = ["fynd", "samling", "salj", "butik", "mer"];
+  const MOBIL_MER = ["prisguide", "stamplar", "kalkyl", "saljplan", "installningar"];
   let aktiv = null;
   const lyssnare = {};
 
@@ -197,6 +197,10 @@ const App = (() => {
       <p><b>FJ-nummer:</b> varje föremål har ett löpnummer (FJ-0001 …). Sök på numret för att hitta det. Under <b>✍ Skriv beskrivning och annons</b> skriver Claude en katalogtext och en färdig annons att kopiera till Tradera eller Blocket.</p>
       <p><b>Värde ca</b> är medianen av vad liknande sålts för på Auctionet. Samlingen omvärderas automatiskt en gång i månaden – står höjden i namnet ("höjd 25 cm") jämförs bara med föremål i samma storlek. Under <b>Underlag</b> ser du hur många som sålts, spannet och hur stor andel som gick osåld.</p>
       <p>Under <b>Värderat</b> står varifrån värdet kommer: ett datum om det är omvärderat mot Auctionet, annars "äldre värde – ej kontrollerat" och varför det inte omvärderats (för få sålda, parti, konst). Underlaget visar vilka sålda föremål värdet bygger på.</p>`,
+    salj: `<p><b>En sak i taget.</b> Sälj tar allt som ligger i Till salu och gör om det till en kö: fota, låt Claude skriva, fyll i mått, lägg upp, sänk, svara på en avslutad auktion. Varje kort har en knapp – gör det, så kommer nästa.</p>
+      <p><b>Ikväll</b> är det som ryms på en halvtimme, närmast pengarna först (avslutade auktioner och prissänkningar före fotograferande). "Visa resten" visar hela kön.</p>
+      <p><b>Lägg upp</b> öppnar ett ark med kanal, pris, rubrik och annonstext med kopiera-knappar. När annonsen ligger ute trycker du "Jag har lagt upp den" – då startar nedtrappningen (Blocket: −10 % i veckan ner till 85 %; Tradera: nytt utrop −15 % per omläggning ner till 50 %).</p>
+      <p><b>Pengarna</b> räknar sålt minus inköp och avgifter per månad och år. <b>Lagret</b> är allt till salu med läge och nästa steg – tryck på en rad för att öppna föremålet.</p>`,
     butik: `<p><b>Tre steg:</b> fota föremålet, fota gärna stämpeln (undersidan), skriv priset. Beskedet kommer av sig självt när båda finns.</p>
       <p><b>KÖP</b> = priset är under köptaket. Köptaket är en tredjedel av typiskt slutpris när du köper för att sälja, men 60 % när föremålet passar din smak (den du skrivit under Inställningar) – då är det samling, inte flipp.</p>
       <p><b>FOTA STÄMPELN FÖRST</b> betyder att Claude är för osäker på vad det är. <b>KÖP INTE</b> visar alltid varför – för dyrt, nyproduktion eller för lågt värde.</p>

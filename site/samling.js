@@ -731,7 +731,7 @@
     if (!svar) return;
     try {
       Object.assign(it, await spara(it.id, { lada: "salt", salt_for: svar.salt_for === "" ? null : Math.round(+svar.salt_for), salt_datum: svar.salt_datum || App.idag(), salt_kanal: svar.salt_kanal }));
-      render(); toast("Markerad som såld"); p.byt("visa");
+      render(); toast("Markerad som såld"); if (p) p.byt("visa");
     } catch (x) { toast(x.message); }
   }
   // Ta bort: frågar först i ett ark – det går inte att ångra, och samlingen är gemensam.
@@ -1043,13 +1043,9 @@
   }
 
   // ── Till salu: checklista innan annonsen läggs ut ─────────────────
-  function klarRuta(it, p) {
-    const k = Logik.saljKlar(it);
-    const r = el("div", { class: "ruta klar-ruta" });
-    const om = () => { render(); p.byt("visa"); };
-    if (k.steg === "upplagd") { r.append(el("div", { class: "etik" }, "Upplagd " + App.datum(it.upplagd))); return r; }
-    r.append(el("div", { class: "etik" }, k.steg === "klar" ? "✓ Klar att lägga ut sedan " + App.datum(it.klar) : k.alla ? "Allt finns – markera som klar" : "Att fixa innan den läggs ut"));
-    const atgard = {
+  // Åtgärderna i Till salu – delas av klarRuta och Sälj-vyn. om() körs efter att något sparats.
+  function saljAtgard(it, om) {
+    return {
       bilder: () => bildMeny(it, om),
       annons: async (b) => { b.disabled = true; b.textContent = "Claude skriver …"; try { await skrivTexter(it); om(); toast("Annonsen är skriven"); } catch (e) { toast(e.message); b.disabled = false; b.textContent = "✍ Skriv"; } },
       matt: async () => {
@@ -1067,7 +1063,33 @@
         if (!s_ || s_.pris === "") return;
         try { Object.assign(it, await spara(it.id, { tradera_pris: Math.round(+s_.pris) })); om(); } catch (e) { toast(e.message); }
       },
+      // Lägg upp: startar nedtrappningen i vald kanal (Claudes förslag, ditt val, eller regeln).
+      upplagd: async () => {
+        const plan = Logik.saljplan(Logik.forvantat(it), null, planInfo(it));
+        try { Object.assign(it, await spara(it.id, { upplagd: new Date().toISOString(), steg_satt: 0, klar: it.klar || new Date().toISOString(),
+          kanal: plan.kanal, tradera_pris: it.tradera_pris ?? Logik.forvantat(it) })); om(); toast(`Upplagd på ${plan.kanal === "blocket" ? "Blocket" : "Tradera"} – nedtrappningen startad`); } catch (x) { toast(x.message); }
+      },
+      // Sänkt / omlagd till nästa steg. Tradera: ny auktion → klockan börjar om.
+      steg: async (bor, kanal) => {
+        try { Object.assign(it, await spara(it.id, kanal === "tradera" ? { steg_satt: bor, upplagd: new Date().toISOString() } : { steg_satt: bor })); om(); toast("Steget sparat"); } catch (x) { toast(x.message); }
+      },
+      // Byt kanal och börja om från start i den nya.
+      bytKanal: async (kanal) => {
+        try { Object.assign(it, await spara(it.id, { kanal, kanal_varfor: "ditt val", steg_satt: 0, upplagd: it.upplagd ? new Date().toISOString() : null })); om(); } catch (x) { toast(x.message); }
+      },
+      behall: async () => {
+        try { Object.assign(it, await spara(it.id, { lada: "egen", upplagd: null, steg_satt: 0 })); om(); toast("Flyttad till Egen samling"); } catch (x) { toast(x.message); }
+      },
+      sald: () => markeraSald(it, null),
     };
+  }
+  function klarRuta(it, p) {
+    const k = Logik.saljKlar(it);
+    const r = el("div", { class: "ruta klar-ruta" });
+    const om = () => { render(); p.byt("visa"); };
+    if (k.steg === "upplagd") { r.append(el("div", { class: "etik" }, "Upplagd " + App.datum(it.upplagd))); return r; }
+    r.append(el("div", { class: "etik" }, k.steg === "klar" ? "✓ Klar att lägga ut sedan " + App.datum(it.klar) : k.alla ? "Allt finns – markera som klar" : "Att fixa innan den läggs ut"));
+    const atgard = saljAtgard(it, om);
     const knappText = { bilder: "📷 Lägg till", annons: "✍ Skriv", matt: "📏 Fyll i", pris: "Sätt pris" };
     const lista_ = el("ul", { class: "klar-lista" });
     for (const kr_ of k.krav) {
@@ -1079,11 +1101,7 @@
     r.append(lista_);
     // Nästa steg när den är klar: lägga ut den (startar prisstegen när kanalen är Tradera köp nu).
     const upplagd = el("button", { class: "knapp" + (k.steg === "klar" ? " primar" : ""), type: "button" }, "📤 Jag har lagt upp den nu");
-    upplagd.onclick = async () => {
-      const plan = Logik.saljplan(Logik.forvantat(it), null, planInfo(it));
-      try { Object.assign(it, await spara(it.id, { upplagd: new Date().toISOString(), steg_satt: 0, klar: it.klar || new Date().toISOString(),
-        kanal: plan.kanal, tradera_pris: it.tradera_pris ?? Logik.forvantat(it) })); om(); toast(`Upplagd på ${plan.kanal === "blocket" ? "Blocket" : "Tradera"} – nedtrappningen startad`); } catch (x) { toast(x.message); }
-    };
+    upplagd.onclick = atgard.upplagd;
     if (k.steg === "klar") {
       r.append(el("div", { class: "rad" }, upplagd,
         el("button", { class: "knapp liten", type: "button", onclick: async () => { try { Object.assign(it, await spara(it.id, { klar: null })); om(); } catch (e) { toast(e.message); } } }, "Ångra klar")));
@@ -1234,4 +1252,5 @@
   App.pa("samling-andrad", () => { if (rot && rot.classList.contains("aktiv")) render(); App.rakna("samling", lista().length); });
   App.pa("inloggad", () => App.rakna("samling", lista().length));
   App.oppnaForemal = oppnaDetalj;
+  App.samling = { spara, saljAtgard, planInfo, kopiera, markeraSald: it => markeraSald(it, null) };
 })();

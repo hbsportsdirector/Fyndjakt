@@ -195,3 +195,39 @@ def test_satt_matt():
     assert L('L.sattMatt("Vas.\\nMått: [mått]\\nFint skick.", "höjd 21 cm")') == "Vas.\nMått: höjd 21 cm\nFint skick."
     assert L('L.sattMatt("Vas.", "höjd 21 cm")') == "Vas.\nMått: höjd 21 cm."
     assert L('L.sattMatt("", "höjd 21 cm")') == "Mått: höjd 21 cm."
+
+
+# ── Sälj: kvällens lista och pengarna ───────────────────────────────────
+
+def test_salj_uppgifter_narmast_pengarna_forst():
+    nu = 1_762_000_000_000  # ms
+    text = json.dumps("Vas. Mått: höjd 21 cm. Hämtas i Stockholm – skickas inte.")
+    dag = lambda n: f"new Date({nu} - {n} * 86400000).toISOString()"
+    lista = (
+        "[{id:'a', lada:'salj', namn:'A', tradera_pris: 800},"                                                  # saknar bilder → fota
+        f" {{id:'b', lada:'salj', namn:'B', tradera_pris: 600, bilder:[{{}},{{}},{{}}], annons_rubrik:'x', annons_text:{text}, klar: 'x'}},"  # klar → lägg upp
+        f" {{id:'c', lada:'salj', namn:'C', tradera_pris: 500, kanal:'blocket', upplagd: {dag(9)}, steg_satt: 0}},"  # dag 9 på Blocket → sänk (645 → 595)
+        f" {{id:'d', lada:'salj', namn:'D', tradera_pris: 500, kanal:'tradera', upplagd: {dag(8)}, steg_satt: 0}},"  # auktion slut → resultat (nytt utrop 395 × 0,85 → 345)
+        f" {{id:'e', lada:'salj', namn:'E', tradera_pris: 500, kanal:'blocket', upplagd: {dag(2)}, steg_satt: 0}},"  # ligger ute
+        " {id:'f', lada:'egen', namn:'F', tradera_pris: 9000}]"                                                 # inte till salu
+    )
+    u = L(f"L.saljUppgifter({lista}, {nu}).map(u => [u.it.id, u.typ, u.pris ?? null])")
+    assert u == [["d", "resultat", 345], ["c", "sank", 595], ["b", "laggupp", None], ["a", "fota", None], ["e", "ute", None]]
+    k = L(f"L.kvallensLista(L.saljUppgifter({lista}, {nu}), 30)")
+    assert [x["it"]["id"] for x in k["lista"]] == ["d", "c", "b", "a"] and k["minuter"] == 13 and k["kvar"] == 0
+    kort = L(f"L.kvallensLista(L.saljUppgifter({lista}, {nu}), 3)")
+    assert [x["it"]["id"] for x in kort["lista"]] == ["d", "c"] and kort["kvar"] == 2
+
+
+def test_salj_pengar_manad_och_ar():
+    nu = "new Date('2026-11-03T10:00:00Z').getTime()"
+    lista = ("[{lada:'salt', salt_for: 1000, salt_kanal:'tradera', salt_datum:'2026-11-02', inkopspris: 200},"
+             " {lada:'salt', salt_for: 500, salt_kanal:'blocket', salt_datum:'2026-10-20', inkopspris: 100},"
+             " {lada:'salt', salt_for: 300, salt_kanal:'tradera', salt_datum:'2025-12-24', inkopspris: 50},"
+             " {lada:'salj', tradera_pris: 400, kanal:'blocket', upplagd: '2026-11-01T00:00:00Z', steg_satt: 0},"
+             " {lada:'salj', tradera_pris: 250}]")
+    p = L(f"L.saljPengar({lista}, {nu})")
+    assert p["manad"] == {"antal": 1, "salt": 1000, "inkop": 200, "avgift": 100, "vinst": 700}
+    assert p["ar"]["antal"] == 2 and p["ar"]["salt"] == 1500 and p["ar"]["vinst"] == 1500 - 300 - 100
+    assert p["ute"]["antal"] == 1 and p["ute"]["begart"] == 495   # Blocket: 400 × 1,25 avrundat
+    assert p["vantar"] == {"antal": 1, "varde": 250}
