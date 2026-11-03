@@ -10,7 +10,8 @@ bara_sverige: true                 # bara svenska auktionshus på Auctionet (Tra
 min_betyg: 8                       # krävs för Telegram-notis och för att synas på sidan
 sajt_min_betyg: 7                  # visas på sidan (reglaget börjar på min_betyg – dra ner till 7 för fler)
 max_fran_kon_per_korning: 300      # väntande annonser som bildgranskas direkt ur kön varje natt
-sajt_max_per_sokord: 0             # 0 = visa alla fynd; sidan varvar sökorden i stället för att dölja
+sajt_max_per_sokord: 0             # 0 = allt följer med i fynddatan; sidan varvar sökorden i stället för att dölja
+sajt_visa_per_sokord: 5            # sidan visar högst så många per sökord (bäst först) – resten bakom "Visa alla" i filtret
 max_pris: 25000                    # kr, 0 = ingen gräns (kan sättas per spår)
 max_bedomningar_per_korning: 800   # fullgranskningar med bilder (ca 2,5 öre styck med batch)
 sallning: true                     # sålla alla annonser på titel+pris först (ca 30 öre för 16 000)
@@ -53,6 +54,9 @@ bedomningsregler_anvandare: |
   - 4–5: Kanske, men något skaver (fel färg, epok, material eller storlek).
   - 0–3: Fel sak, reproduktion, trasigt, eller sådant kunden redan har.
   Kända formgivare och eftersökta serier ska inte dras ner för att de är serietillverkade.
+  Men vanliga saker som det alltid finns gott om till salu (mattor, ljusstakar, landskapsmålningar,
+  litografier, tallrikar) får 8 eller mer BARA om just den här sticker ut: ovanligt fin, ovanligt billig
+  eller ovanlig i sig. En som bara är "rätt sort" är 6–7. Kunden behöver inte 40 av samma sak.
 
 uteslut_ord:
   - ikea
@@ -157,14 +161,20 @@ spar:
       - Stockholm är plus - kunden hämtar själv.
     bedomningsregler: |
       Kunden inreder ett engelskt bibliotek (Sherlock Holmes-era, 1880-1920). Mahogny, läder,
-      varm mässing, antikvarisk känsla. Var sparsam med 9 och 10:
+      varm mässing, antikvarisk känsla. Kunden behöver EN av varje sak (en matta, ett skrivbord, ett par
+      kandelabrar) – inte ett urval. Saker som det alltid finns gott om till salu (orientaliska mattor,
+      ljusstakar och kandelabrar i mässing, landskaps- och stillebenmålningar, litografier, taklampor)
+      får 8 eller mer BARA om just den här sticker ut: ovanligt fin, ovanligt billig för vad den är, eller
+      ovanlig i sig. En som bara är "rätt sort i rätt storlek" är 6–7. Var sparsam med 9 och 10:
       - 10: Antik engelsk mahogny-byrå original (1800-tal), partners desk med läderskiva perfekt skick,
             originalbankerslamp Emeralite/Faries, antik jordglob 1800-tal på trästativ.
       - 9: Chippendale-byrå, mahogny skrivbord med läderskiva, mahogny bokskåp med glasdörrar
            barristerstil, par av höga mässings-kandelabrar, antik pendelklocka mahogny.
       - 8: Mahogny-byrå standard, sekretär med lådor, läderband böcker-serie enhetlig, picture-light
-           mässing, bordslampa mässing antik, persisk matta mörk 160×240.
-      - 6–7: Rätt stil men mindre bra skick, enstaka Chippendale-stol, antik mahogny-småmöbel.
+           mässing, bordslampa mässing antik. Persisk matta mörk 160×240 bara om den är ovanligt fin
+           eller ovanligt billig.
+      - 6–7: Rätt stil men mindre bra skick, enstaka Chippendale-stol, antik mahogny-småmöbel,
+             vanlig persisk/orientalisk matta i rätt storlek, vanliga mässingsljusstakar.
       - 4–5: Nära-rätt möbel men fel träslag (ek istället för mahogny), nyare kopia av antik design,
              modern mässingslampa i vintage-stil.
       - 0–3: Modern designfåtölj (Fritz Hansen etc.), lampett, Billy, skandinavisk minimalism,

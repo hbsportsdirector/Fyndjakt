@@ -5,7 +5,7 @@
   const KALLNAMN = { auctionet: "Auctionet", tradera: "Tradera", bukowskis: "Bukowskis", myrorna: "Myrorna", stadsmissionen: "Stadsmissionen" };
   const REGORDNING = ["Stockholm", "Uppsala och Mälardalen", "Östergötland, Småland och Blekinge", "Västsverige och Värmland",
     "Skåne", "Norrland och Dalarna", "Övriga Sverige", "Okänd ort"];
-  const st = { spar: "alla", sort: "slutar", kalla: "", region: "", q: "", min: 0, visa: 60 };
+  const st = { spar: "alla", sort: "slutar", kalla: "", region: "", q: "", min: 0, visa: 60, allaPerSokord: false };
   try { Object.assign(st, JSON.parse(localStorage.getItem("fynd-vy") || "{}")); } catch (e) {}
   const mini = new Map();   // nyckel → data-URL (fyndjakt_bilder)
   let rot, timer;
@@ -38,11 +38,16 @@
     const k = titelNyckel(p);
     return !!(k && doldaTitlar.has(k));
   }
-  function synliga() {
+  // Högst så många per sökord visas (bäst först, "rang" sätts av nattkörningen) – annars blir 60 mattor en katalog.
+  const perSokord = () => (st.allaPerSokord ? 0 : +((konto.fynd || {}).per_sokord || 0));
+  const inomTaket = p => !perSokord() || (p.rang == null || p.rang < perSokord());
+  function synligaUtanTak() {
     const nu = Date.now() / 1000;
     return poster().filter(p => !dold(p) && iSpar(p) && (!st.kalla || p.kalla === st.kalla) && (!st.region || p.region === st.region || p.region === "Okänd ort")
       && (+p.betyg || 0) >= st.min && traffSok(p) && (!p.slutar_ts || p.slutar_ts > nu - 3600));
   }
+  function synliga() { return synligaUtanTak().filter(inomTaket); }
+  const doldaAvTaket = () => (perSokord() ? synligaUtanTak().filter(p => !inomTaket(p)).length : 0);
   function sorterare() {
     return {
       slutar: (a, b) => (a.slutar_ts || 9e12) - (b.slutar_ts || 9e12),
@@ -267,6 +272,12 @@
       }
       lista.append(g);
     }
+    const dolda = doldaAvTaket();
+    if (dolda) {
+      const tak = el("div", { class: "tak-rad" }, el("span", {}, `${dolda} till döljs – högst ${perSokord()} per sökord visas.`),
+        el("button", { class: "knapp liten", type: "button", onclick: () => { st.allaPerSokord = true; render(); } }, "Visa alla"));
+      lista.append(tak);
+    }
     $("fynd-antal").textContent = antalText();
     App.rakna("fynd", snart.length || "");
     laddaMini([...snart, ...rader.slice(0, st.visa)].map(p => p.nyckel)).then(() => {
@@ -308,10 +319,12 @@
     const kalla = sel("fa-kalla", "Källa", [["", "Alla källor"], ...[...new Set(poster().map(p => p.kalla))].sort().map(k => [k, KALLNAMN[k] || k])], st.kalla);
     const region = sel("fa-region", "Område", [["", "Hela Sverige"], ...REGORDNING.filter(r => finns.has(r)).map(r => [r, r])], st.region);
     const min = sel("fa-min", "Lägsta betyg", [["0", "Alla betyg"], ["6", "Betyg 6+"], ["8", "Betyg 8+"], ["10", "Bara 10"]], String(st.min));
-    const ark = App.sheet("Sortera och filtrera", el("div", {}, sort, kalla, region, min,
+    const takN = +((konto.fynd || {}).per_sokord || 0);
+    const tak = takN ? sel("fa-tak", "Per sökord", [["tak", `Högst ${takN} per sökord (bäst först)`], ["alla", "Alla"]], st.allaPerSokord ? "alla" : "tak") : null;
+    const ark = App.sheet("Sortera och filtrera", el("div", {}, sort, kalla, region, min, tak,
       el("div", { class: "rad knappar-rad" },
-        el("button", { class: "knapp primar", type: "button", onclick: () => { st.sort = sort.querySelector("select").value; st.kalla = kalla.querySelector("select").value; st.region = region.querySelector("select").value; st.min = +min.querySelector("select").value; ark.stang(); byggChips(); render(); } }, "Visa fynden"),
-        el("button", { class: "knapp", type: "button", onclick: () => { st.sort = "slutar"; st.kalla = ""; st.region = ""; st.min = 0; ark.stang(); byggChips(); render(); } }, "Nollställ"))));
+        el("button", { class: "knapp primar", type: "button", onclick: () => { st.sort = sort.querySelector("select").value; st.kalla = kalla.querySelector("select").value; st.region = region.querySelector("select").value; st.min = +min.querySelector("select").value; if (tak) st.allaPerSokord = tak.querySelector("select").value === "alla"; ark.stang(); byggChips(); render(); } }, "Visa fynden"),
+        el("button", { class: "knapp", type: "button", onclick: () => { st.sort = "slutar"; st.kalla = ""; st.region = ""; st.min = 0; st.allaPerSokord = false; ark.stang(); byggChips(); render(); } }, "Nollställ"))));
   }
 
   App.del("fynd", { namn: "Fynd", ikon: "🔎",

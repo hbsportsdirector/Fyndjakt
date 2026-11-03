@@ -124,7 +124,8 @@ def anvandarfynd(db, cfg: dict) -> dict:
     if not egna:
         return {}
     rader = db.traffar(cfg.get("sajt_min_betyg", 6))
-    return {uid: {"spar": _sparlista(spar), "poster": _poster(db, cfg, set(spar), rader), "uppdaterad": _nu()}
+    return {uid: {"spar": _sparlista(spar), "poster": _poster(db, cfg, set(spar), rader), "uppdaterad": _nu(),
+                  "per_sokord": cfg.get("sajt_visa_per_sokord", 0)}
             for uid, spar in egna.items()}
 
 
@@ -139,7 +140,8 @@ def bygg(db, cfg: dict) -> Path:
     spar = [s for s in _sparlista({sid: cfg["spar"][sid] for sid in spar_ids}) if spar_ids] if spar_ids else []
     poster = _poster(db, cfg, spar_ids) if spar_ids else []
     data = {"poster": poster, "spar": spar, "uppdaterad": _nu(),
-            "standard": cfg.get("min_betyg", 7), "golv": cfg.get("sajt_min_betyg", 6)}
+            "standard": cfg.get("min_betyg", 7), "golv": cfg.get("sajt_min_betyg", 6),
+            "per_sokord": cfg.get("sajt_visa_per_sokord", 0)}
     ut = UT / "data"
     ut.mkdir(parents=True, exist_ok=True)
     fil = ut / "fynd.json"

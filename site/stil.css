@@ -650,3 +650,6 @@ a.salda-alla { display: inline-block; color: var(--brass); padding: 8px 0 2px; m
 .chatt-ny textarea { flex: 1; min-height: 52px; }
 .chatt-forslag { margin-top: 8px; padding: 8px 10px; border-radius: 10px; background: var(--panel-2); font-size: 14px; }
 .chatt-forslag .rad { margin-top: 6px; }
+
+/* Fynd: raden under listan när taket per sökord döljer fler */
+.tak-rad { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; color: var(--muted); font-size: 14px; padding: 8px 16px 24px; }

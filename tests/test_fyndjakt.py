@@ -190,6 +190,24 @@ def test_sajt_max_per_sokord(tmp_path, monkeypatch):
     assert len(sajt.anvandarfynd(db, cfg)["per"]["poster"]) == 3
 
 
+def test_sajt_visa_per_sokord_foljer_med_och_rang_satts(tmp_path, monkeypatch):
+    """Allt följer med i datan; sidan döljer själv rang >= sajt_visa_per_sokord bakom "Visa alla"."""
+    import json, sajt
+    monkeypatch.setattr(sajt, "UT", tmp_path)
+    db = Databas(tmp_path / "t.db")
+    for i in range(4):
+        a = auctionet.tolka(dict(AUCTIONET_POST, id=i), "Konst")
+        a.sokord = "persisk matta"
+        db.spara(a, 9, "x")
+    db.con.execute("UPDATE sedda SET spar='hemmet'"); db.con.commit()
+    cfg = {"_admins": {"per"}, "sajt_min_betyg": 8, "sajt_visa_per_sokord": 5, "spar": {"hemmet": {"sokningar": {}, "publik": True}}}
+    egna = sajt.anvandarfynd(db, cfg)["per"]
+    assert egna["per_sokord"] == 5 and len(egna["poster"]) == 4
+    assert sorted(p["rang"] for p in egna["poster"]) == [0, 1, 2, 3]
+    sajt.bygg(db, cfg)
+    assert json.loads((tmp_path / "data" / "fynd.json").read_text(encoding="utf-8"))["per_sokord"] == 5
+
+
 def test_sajt_har_flikar_per_spar(tmp_path, monkeypatch):
     import sajt, json, re
     monkeypatch.setattr(sajt, "UT", tmp_path)
