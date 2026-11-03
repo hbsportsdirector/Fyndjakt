@@ -341,21 +341,18 @@ def snabb_installningar(cfg: dict) -> dict:
     return cfg
 
 
-# Snabbkörningens sökord: bara de som är värda att leta på varje timme – sökord som gett fynd, sökord i flippspår,
-# och sökord som är för nya för att dömas (under SNABB_NYTT bedömda). Resten tas av kvällskörningen.
-SNABB_NYTT = 10
-
-
-def snabb_urval(cfg: dict, stat: dict) -> set[tuple]:
+# Snabbkörningens sökord: flippspåret helt, och i de andra spåren bara sökord som innehåller något av orden i
+# config.yaml → snabb_sokord (Röd Eld, Domino …) – sånt som försvinner på några timmar. Resten tas av kvällskörningen.
+def snabb_urval(cfg: dict) -> set[tuple]:
     """{(spår, sökord)} att HOPPA ÖVER i snabbkörningen."""
+    bevaka = [str(o).lower() for o in cfg.get("snabb_sokord") or []]
     bort = set()
     for sid, spar in cfg["spar"].items():
         if spar.get("flipp"):
             continue
         for fragor in spar.get("sokningar", {}).values():
             for fraga in fragor:
-                bedomda, fynd = stat.get((sid, fraga), (0, 0))
-                if fynd == 0 and bedomda >= SNABB_NYTT:
+                if not any(o in fraga.lower() for o in bevaka):
                     bort.add((sid, fraga))
     return bort
 
@@ -403,9 +400,9 @@ def main() -> int:
     pausade = sokordsvard.pausa(cfg, db, export)
     STATISTIK["Pausade sökord"] = len(pausade)
     if args.snabb:
-        bort = snabb_urval(cfg, sokordsvard.statistik(db))
+        bort = snabb_urval(cfg)
         pausade = set(pausade) | bort
-        print(f"Snabbkörning: hoppar över {len(bort)} sökord som aldrig gett fynd – de tas av kvällskörningen.")
+        print(f"Snabbkörning: hoppar över {len(bort)} sökord – flippspåret och snabb_sokord bevakas, resten tas av kvällskörningen.")
     _tid("förberedelser")
     annonser = hamta_alla(cfg, pausade)
     _tid("hämtning")

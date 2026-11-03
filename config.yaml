@@ -22,6 +22,20 @@ max_bedomningar_per_anvandare: 150  # för varje inbjuden användares egna spår
 max_prisjamforelser_per_korning: 120  # sålda föremål på Auctionet hämtas för fynden som visas
 # Tillfälligt (slutar gälla av sig självt efter "till", UTC): en natt med höjda gränser så att alla fynd
 # jämförs om med storleksfiltret (2026-11-01). Kan tas bort när den gått ut.
+# Snabbkörningen (varje timme hemma) tar bara flippspåret och sökord i de andra spåren som innehåller något av de
+# här orden – sånt som försvinner på några timmar. Allt annat tas av kvällskörningen. Ändra listan fritt.
+snabb_sokord:
+  - Röd Eld
+  - Blå Eld
+  - Hertha Bengtson
+  - Domino
+  - Stig Lindberg
+  - Höglund
+  - Friberg
+  - Simmulson
+  - Atterberg
+  - Ekeby
+
 tillfalligt:
   till: "2026-11-02T12:00:00Z"
   max_prisjamforelser_per_korning: 1500

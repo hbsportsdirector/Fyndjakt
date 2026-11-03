@@ -1486,8 +1486,10 @@ def test_snabb_installningar_begransar_kallor_och_budget():
     assert cfg["spar"]["flipp"]["max_bedomningar"] == 60 and cfg["batch"] is False
 
 
-def test_snabb_urval_hoppar_over_dott_men_inte_flipp_eller_nytt():
-    cfg = {"spar": {"hemmet": {"sokningar": {"M": ["persisk matta", "chesterfield", "nytt ord"]}},
+def test_snabb_urval_flipp_och_bevakade_ord():
+    cfg = {"snabb_sokord": ["Röd Eld", "Domino"],
+           "spar": {"hemmet": {"sokningar": {"M": ["persisk matta", "chesterfield"]}},
+                    "samlingen": {"sokningar": {"K": ["Rorstrand Röd Eld", "Domino askfat", "Stig Lindberg Tahiti"]}},
                     "flipp": {"flipp": True, "sokningar": {"K": ["Upsala-Ekeby"]}}}}
-    stat = {("hemmet", "persisk matta"): (500, 100), ("hemmet", "chesterfield"): (80, 0), ("hemmet", "nytt ord"): (3, 0), ("flipp", "Upsala-Ekeby"): (300, 0)}
-    assert main.snabb_urval(cfg, stat) == {("hemmet", "chesterfield")}
+    assert main.snabb_urval(cfg) == {("hemmet", "persisk matta"), ("hemmet", "chesterfield"), ("samlingen", "Stig Lindberg Tahiti")}
+    assert main.snabb_urval({"spar": {"x": {"sokningar": {"K": ["a"]}}}}) == {("x", "a")}   # ingen lista: bara flipp
