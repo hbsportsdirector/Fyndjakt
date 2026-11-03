@@ -50,14 +50,22 @@ def vardera(foremal: dict, poster: list[dict], idag: date | None = None) -> dict
     storlek = None if foremal.get("kategori") in UTAN_STORLEK else \
         hojd(f"{foremal.get('namn') or ''} {foremal.get('anteckning') or ''}")
     urval, filtrerat = jamforbara(poster, storlek)
-    salda = [round(p["pris"] / prisjamforelse.styck_i(p["titel"])) for p in urval if p["sald"]]
+    n = int(foremal.get("antal") or 1)
+    salda_poster = [p for p in urval if p["sald"]]
+    bara_partier = False
+    if n > 1:
+        # Ett parti jämförs helst med sålda partier (titeln anger antal): där är styckpriset känt. Ett ensamt
+        # "Snapsglas" utan antal kan vara tolv glas för 1 400 kr – räknat som ett styck blåser det upp värdet.
+        lotter = [p for p in salda_poster if prisjamforelse.styck_i(p["titel"]) > 1]
+        if len(lotter) >= MIN_SALDA:
+            salda_poster, bara_partier = lotter, True
+    salda = [round(p["pris"] / prisjamforelse.styck_i(p["titel"])) for p in salda_poster]
     osalda = sum(1 for p in urval if not p["sald"])
     sammanfattning = prisjamforelse.sammanfatta(salda)
     andel_osald = round(osalda / len(urval), 2) if urval else None
-    n = int(foremal.get("antal") or 1)
     res = {"antal": len(salda), "osalda": osalda, "andel_osald": andel_osald, "storlek": storlek,
            "storleksfiltrerat": filtrerat, "uppdatera": bool(sammanfattning and len(salda) >= MIN_SALDA),
-           "parti": n if n > 1 else None}
+           "parti": n if n > 1 else None, "bara_partier": bara_partier}
     if sammanfattning:
         res.update({k: sammanfattning[k] for k in ("median", "lag", "hog")})
         if n > 1:
@@ -89,7 +97,7 @@ def text(res: dict, idag: date) -> str:
             delar.append(f"{res['osalda']} osålda")
         return ", ".join(delar) + "."
     if res.get("parti"):
-        t = (f"Auctionet {_datum(idag)}: {res['antal']} sålda, median {_kr(res['styckmedian'])} per styck × {res['parti']} delar"
+        t = (f"Auctionet {_datum(idag)}: {res['antal']} sålda{' partier' if res.get('bara_partier') else ''}, median {_kr(res['styckmedian'])} per styck × {res['parti']} delar"
              f"{rabatt_text(res)} ≈ {_kr(res['median'])} för partiet, ungefärligt")
     else:
         t = f"Auctionet {_datum(idag)}: {res['antal']} sålda, median {_kr(res['median'])} ({_kr(res['lag'])[:-3]}–{_kr(res['hog'])})"

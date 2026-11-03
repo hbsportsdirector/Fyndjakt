@@ -1345,6 +1345,12 @@ def test_vardering_tunt_underlag_andrar_inget():
     assert tre["text"] == "Auctionet 3 nov 2026: 3 sålda, median 500 kr per styck × 3 delar ≈ 1 500 kr för partiet, ungefärligt."
     sextio = vardering.vardera({"namn": "Servis", "antal": 60}, par)
     assert sextio["median"] == 18000 and "× 0.6 (partirabatt)" in sextio["text"]
+    # Ett parti jämförs helst med sålda partier: ensamma "Snapsglas" för 1 400 kr är i verkligheten tolv glas.
+    blandat = par + [{"pris": 1400, "sald": True, "titel": "ORREFORS. Snapsglas", "text": ""} for _ in range(5)]
+    atta = vardering.vardera({"namn": "Snapsglas", "antal": 8}, blandat, date(2026, 11, 3))
+    assert atta["bara_partier"] and atta["styckmedian"] == 500 and atta["antal"] == 3 and "3 sålda partier" in atta["text"]
+    ett = vardering.vardera({"namn": "Snapsglas"}, blandat)
+    assert not ett["bara_partier"] and ett["antal"] == 8
 
 
 def test_omvardering_andrar_bara_det_som_ar_sakert():
