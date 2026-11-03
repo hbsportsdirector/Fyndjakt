@@ -58,6 +58,9 @@
         redanRuta.append(el("div", {}, el("a", { href: "#", onclick: e => { e.preventDefault(); App.visa("samling"); App.oppnaForemal(it.id); } }, it.namn), ` – ${[it.tillverkare, it.serie].filter(Boolean).join(" · ")}`));
       }
     }
+    // Referenser ur biblioteket: vad stämpeln jämfördes med, och vilken som matchade.
+    const ref = $("bk-ref"); ref.replaceChildren(); ref.hidden = !(r.referenser && r.referenser.length);
+    if (r.referenser && r.referenser.length) ref.append(App.referensRuta(r));
     $("bk-knappar").hidden = false;
     $("bk-lagg").textContent = "🛒 Köpt";
   }
@@ -88,8 +91,8 @@
   }
   async function bedom() {
     if (!bk.obj) return;
-    $("bk-go").disabled = true; $("bk-knappar").hidden = true; $("bk-detalj").hidden = true; $("bk-redan").hidden = true;
-    const box = $("bk-besked"); box.className = "bk-besked vanta"; box.replaceChildren(el("div", { class: "stort" }, "Tittar …"), el("div", { class: "under" }, "5–40 sekunder"));
+    $("bk-go").disabled = true; $("bk-knappar").hidden = true; $("bk-detalj").hidden = true; $("bk-redan").hidden = true; $("bk-ref").hidden = true;
+    const box = $("bk-besked"); box.className = "bk-besked vanta"; box.replaceChildren(el("div", { class: "stort" }, "Tittar …"), el("div", { class: "under" }, bk.stampel ? "Läser stämpeln och slår upp i referensbiblioteket – 10–60 sekunder" : "5–40 sekunder"));
     try {
       const bilder = [bk.obj, bk.stampel].filter(Boolean).map(s => App.dataUrlTillBase64(s.dataUrl));
       bk.res = await App.kannIgen({ typ: "butik", bilder, mediatyp: "image/jpeg", stampel: !!bk.stampel, smak: konto.installningar.smak || "", har_redan: harRedanText() });
@@ -101,7 +104,7 @@
   function nasta() {
     bk.obj = bk.stampel = bk.res = null;
     for (const vad of ["obj", "stampel"]) { const lab = $("bk-" + vad); lab.classList.remove("har"); lab.querySelector("img").hidden = true; lab.querySelector(".txt").textContent = vad === "obj" ? "Fota föremålet" : "Fota stämpeln"; }
-    $("bk-pris").value = ""; $("bk-knappar").hidden = true; $("bk-detalj").hidden = true; $("bk-redan").hidden = true;
+    $("bk-pris").value = ""; $("bk-knappar").hidden = true; $("bk-detalj").hidden = true; $("bk-redan").hidden = true; $("bk-ref").hidden = true;
     visaBesked(); visaSteg(); window.scrollTo(0, 0);
   }
   // Köpt → samma flöde som i Fynd: pris, ställe, behålla/sälja → FJ-nummer, bilder, beskrivning och annons.
@@ -116,8 +119,10 @@
       marknad_min: r.marknad_min, marknad_max: r.marknad_max, marknad_sakerhet: Math.round(r.sakerhet * 100) + " %",
       tradera_pris: b.besked === "KÖP" ? b.median : null, saker: r.sakerhet >= 0.7 ? "säker" : "trolig",
       anteckning: `Bedömd i butiken ${App.idag()}: ${b.besked}. ${r.resonemang || ""}`.trim() };
+    const match = r.referens_match && (r.referenser || []).find(x => x.ref === r.referens_match);
     const kalla = [`Bedömd i butiken: ${b.besked}${r.marknad_min != null ? `, marknad ${kr(r.marknad_min)}–${kr(r.marknad_max)}` : ""} (säkerhet ${Math.round(r.sakerhet * 100)} %).`,
-      r.stampel_last ? "Stämpel: " + r.stampel_last : ""];
+      r.stampel_last ? "Stämpel: " + r.stampel_last : "",
+      match ? `Stämpeln matchar referens ${[match.fabrik, match.formgivare, match.modell && "modell " + match.modell].filter(Boolean).join(", ")}: ${match.url}` : ""];
     const it = await App.kopt({ rad, blobs: [bk.obj, bk.stampel].filter(Boolean).map(s => s.blob), kalla });
     if (it) { knapp.textContent = "✓ " + App.fjNr(it) + " i samlingen"; knapp.disabled = true; }
   }
@@ -144,6 +149,7 @@
             <button class="knapp primar" type="button" id="bk-lagg">🛒 Köpt</button>
             <button class="knapp" type="button" id="bk-nasta">Nästa sak</button>
           </div>
+          <div class="ruta bk-ref" id="bk-ref" hidden></div>
           <div class="ruta bk-redan" id="bk-redan" hidden></div>
           <details class="bk-detalj-fall" id="bk-detalj-fall"><summary>Detaljer</summary><div class="ruta bk-detalj" id="bk-detalj" hidden></div></details>
           <details class="sec"><summary>Fototips som höjer träffsäkerheten</summary><ul id="bk-tips"></ul></details>

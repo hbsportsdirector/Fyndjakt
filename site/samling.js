@@ -329,6 +329,10 @@
       }
       ruta.append(el("div", { class: "falt-grid" }, inp("namn", "Namn", r.namn), inp("tillverkare", "Tillverkare", r.tillverkare), inp("formgivare", "Formgivare", r.formgivare),
         inp("serie", "Serie/modell", r.serie), inp("period", "Period", r.period), inp("stampel", "Stämpel", r.stampel_last)));
+      if (r.referenser && r.referenser.length) ruta.append(App.referensRuta(r, { valj: x => {
+        if (x.fabrik) falt_.tillverkare.value = x.fabrik; if (x.formgivare) falt_.formgivare.value = x.formgivare; if (x.modell) falt_.serie.value = x.modell;
+        falt_.formgivare.dispatchEvent(new Event("change")); kontrolleraAuctionet(); toast("Fälten fyllda från " + x.ref);
+      } }));
       if (r.resonemang) ruta.append(el("p", { class: "muted", style: "font-size:13px" }, r.resonemang));
       // Claude vill se mer → en knapp per bild den ber om.
       const vill = (r.nasta_kontroll || []).filter(Boolean);

@@ -182,7 +182,9 @@ Svara ENBART med ett JSON-objekt:
  "kompletterar": "<en mening om det kompletterar något hen har, annars tom sträng>",
  "sokord": "<2–5 ord som hittar liknande sålda på Tradera/Auctionet>",
  "nasta_kontroll": ["<konkreta saker att kontrollera på plats, max 4>"],
- "resonemang": "<högst 2 korta meningar på svenska om varför>"}
+ "resonemang": "<högst 2 korta meningar på svenska om varför>",
+ "referens_match": "<R1, R2 … när en referens ur biblioteket verkligen matchar stämpeln, annars null>",
+ "referens_varfor": "<kort: vad som stämmer eller inte stämmer mot referenserna, eller tom sträng>"}
 Var ärlig om osäkerhet: sänk sakerhet och säg vad som saknas (t.ex. 'fota botten'). Gissa aldrig en signatur eller tillverkare
 du inte kan belägga – skriv "Okänd".`;
 }
@@ -287,6 +289,49 @@ ${NYPROD}
 ${STAMPLAR}
 Svara ENBART med JSON: {"bedomning": "original|nyproduktion|osäkert", "sakerhet": <0–1>, "tecken": ["<konkreta tecken du ser, max 4>"],
  "behover": "<vad som skulle avgöra det, t.ex. 'foto på stämpeln', eller tom sträng>", "svar": "<1–2 meningar på svenska>"}`;
+
+// ── Referensbiblioteket: verifierade sålda poster med stämpeltext och bottenfoto (tabellen referens, fylls av tools/referens_hamta.py) ──
+const REF_FABRIKER: [RegExp, string][] = [
+  [/up+sala[\s-]*ekeby|\bekeby\b|\bUE\b/i, "Upsala-Ekeby"], [/gusta[fv]sberg/i, "Gustavsberg"], [/r[öo]rstrand/i, "Rörstrand"],
+  [/\barabia\b/i, "Arabia"], [/royal copenhagen|kongelig/i, "Royal Copenhagen"], [/bing\s*&\s*gr[øo]ndahl|\bb\s*&\s*g\b/i, "Bing & Grøndahl"],
+  [/\bsaxbo\b/i, "Saxbo"], [/palshus/i, "Palshus"], [/k[äa]hler/i, "Kähler"], [/bo ?fajans/i, "Bo Fajans"], [/\bgefle\b/i, "Gefle"],
+  [/h[öo]gan[äa]s/i, "Höganäs"], [/\blaholm\b/i, "Laholm"], [/nittsj[öo]/i, "Nittsjö"], [/tilgmans/i, "Tilgmans"], [/\bjie\b|gantofta/i, "Jie Gantofta"],
+  [/karlskrona/i, "Karlskrona"], [/aling[s]?[åa]s/i, "Alingsås"], [/\bboda\b/i, "Boda"], [/\bkosta\b/i, "Kosta"], [/orrefors/i, "Orrefors"],
+  [/gullaskruf/i, "Gullaskruf"], [/åfors|\bafors\b/i, "Åfors"], [/reijmyre/i, "Reijmyre"], [/nuutaj[äa]rvi|notsj[öo]/i, "Nuutajärvi"], [/\biittala\b/i, "Iittala"], [/holmegaard/i, "Holmegaard"],
+];
+const refFabrik = (t: string): string | null => (REF_FABRIKER.find(([re]) => re.test(t)) ?? [null, null])[1];
+const REF_ARTAL = /^(18[5-9]\d|19\d\d|20[0-3]\d)$/;
+// Modellnummer i en läst stämpel: "UE 1034/9 A69" → 1034/9; årtal räknas inte.
+function refModeller(t: string): string[] {
+  const ut = new Set<string>();
+  for (const m of t.matchAll(/\b(\d{3,5}(?:\/\d{1,4})?)\b/g)) if (m[1].includes("/") || !REF_ARTAL.test(m[1])) ut.add(m[1]);
+  return [...ut].slice(0, 4);
+}
+type Ref = { id: number; titel: string; fabrik: string; formgivare: string | null; modell: string | null; stampeltext: string | null; bild_url: string | null;
+             url: string; pris: number | null; slutade: string | null; salt: boolean; parti: boolean; ref?: string };
+// Kandidater: fabrik + modellnummer först (även 1034/9 → 1034/…, 1034), sedan modellnumret ensamt, sedan fabrik + formgivare.
+// deno-lint-ignore no-explicit-any
+async function slaUppReferenser(supabase: any, fabrik: string | null, modeller: string[], formgivare: string | null): Promise<Ref[]> {
+  const KOL = "id,titel,fabrik,formgivare,modell,stampeltext,bild_url,url,pris,slutade,salt,parti";
+  const ut: Ref[] = [];
+  const lagg = (rader: Ref[] | null) => { for (const r of rader ?? []) if (!ut.some((x) => x.id === r.id)) ut.push(r); };
+  const fraga = () => supabase.from("referens").select(KOL).order("parti").order("salt", { ascending: false }).order("slutade", { ascending: false }).limit(8);
+  try {
+    for (const m of modeller) {
+      const bas = m.split("/")[0];
+      if (fabrik) {
+        lagg((await fraga().eq("fabrik", fabrik).eq("modell", m)).data);
+        if (bas !== m) lagg((await fraga().eq("fabrik", fabrik).like("modell", bas + "/%")).data);
+        if (bas !== m || ut.length < 3) lagg((await fraga().eq("fabrik", fabrik).eq("modell", bas)).data);
+      }
+      if (ut.length < 3 && m.length >= 4) lagg((await fraga().eq("modell", m)).data);
+    }
+    if (ut.length < 3 && fabrik && formgivare) lagg((await fraga().eq("fabrik", fabrik).ilike("formgivare", formgivare)).data);
+  } catch (e) { console.error("referens", e); }
+  // Bäst först: rätt fabrik, inte parti, såld, med stämpeltext och bild.
+  const poang = (r: Ref) => (r.fabrik === fabrik ? 4 : 0) + (r.parti ? 0 : 3) + (r.salt ? 1 : 0) + (r.stampeltext ? 1 : 0) + (r.bild_url ? 1 : 0);
+  return ut.sort((a, b) => poang(b) - poang(a)).slice(0, 6);
+}
 
 // Modellen tänker alltid först (adaptivt tänkande), och tänkandet räknas in i max_tokens – därför generöst tak,
 // och effort styr hur mycket den tänker: "low" för texter, "medium" för stämplar och identifiering.
@@ -571,6 +616,26 @@ Fyndjakts identifiering: ${String(kropp.identifierat ?? "-").slice(0, 200)}` });
         { type: "text", text: "Läs märkningen." + (kommentar ? ` Ägaren säger: "${kommentar}".` : "") }], 8000, "medium");
     }
     if (stampelLas) innehall.push({ type: "text", text: "Stämpeln är redan läst separat (lita på läsningen, men kontrollera mot bild 2):\n" + JSON.stringify(stampelLas) });
+    // Referensbiblioteket: slå upp läsningen och visa Claude riktiga bottenfoton att jämföra med – i stället för minnet.
+    let referenser: Ref[] = [];
+    const tolkn = ((stampelLas?.tolkningar as Record<string, string>[] | undefined) ?? []);
+    const lasText = [stampelLas?.ordagrant, ...tolkn.map((t) => `${t.tillverkare ?? ""} ${t.modell ?? ""}`), kommentar].filter(Boolean).join(" ");
+    if (lasText.trim()) {
+      const t0 = tolkn[0] ?? {};
+      const fabrik = refFabrik(String(t0.tillverkare ?? "")) ?? refFabrik(lasText);
+      referenser = await slaUppReferenser(supabase, fabrik, refModeller(lasText), String(t0.formgivare ?? "").trim() || null);
+      referenser.forEach((r, i) => { r.ref = `R${i + 1}`; });
+      const medBild = referenser.filter((r) => r.bild_url).slice(0, 3);
+      const bilderRef = await Promise.all(medBild.map((r) => hamtaBild(r.bild_url!)));
+      if (referenser.length) {
+        const rader = referenser.map((r) => `${r.ref}: ${r.fabrik}${r.formgivare ? ", " + r.formgivare : ""}${r.modell ? ", modell " + r.modell : ""}` +
+          `${r.stampeltext ? ` – "${r.stampeltext}"` : ""}${r.parti ? " (parti – bilden kan visa ett annat föremål)" : ""}${r.pris ? `, såld ${r.pris} kr ${(r.slutade ?? "").slice(0, 4)}` : ""}`);
+        innehall.push({ type: "text", text: `REFERENSER ur biblioteket (verifierade poster från auktionshus; bottenfoto följer för de första):\n${rader.join("\n")}` });
+        medBild.forEach((r, i) => { const b = bilderRef[i]; if (b) innehall.push({ type: "text", text: `Referensfoto ${r.ref} (botten/stämpel):` }, bildblock(b.data, b.mediatyp)); });
+        innehall.push({ type: "text", text: "Jämför stämpeln på bild 2 med referensfotona: samma fabriksmärke, samma slags märkning (präglad, tryckt, ristad), samma siffror? " +
+          "Ange referens_match (t.ex. \"R1\") bara när märkningen verkligen stämmer, annars null. Matchar en referens går dess fabrik, formgivare och modell före din egen gissning." });
+      }
+    }
     innehall.push({ type: "text", text: (kropp.stampel
       ? `Bild 1 är föremålet, bild 2 är stämpeln/botten${bilder.length > 2 ? `, bild 3–${bilder.length} är detaljer du bett om` : ""}. Läs stämpeln tecken för tecken innan du bestämmer tillverkare, formgivare och modell. Vad är det, och vad är det värt?`
       : `${bilder.length > 1 ? bilder.length + " bilder av samma föremål" : "Bara en bild på föremålet"} – be om stämpelbild i nasta_kontroll om det behövs. Vad är det, och vad är det värt?`) +
@@ -579,6 +644,7 @@ Fyndjakts identifiering: ${String(kropp.identifierat ?? "-").slice(0, 200)}` });
     if (!res || (!res.namn && !res.tillverkare)) return svar({ fel: "Claude gav inget användbart svar – försök igen" }, 502, origin);
     const min = tal(res.marknad_min), max = tal(res.marknad_max);
     const str = (v: unknown, n: number) => String(v ?? "").slice(0, n);
+    const match = referenser.find((r) => r.ref === String(res.referens_match ?? "")) ?? null;
     return svar({
       namn: str(res.namn, 120), tillverkare: str(res.tillverkare, 80) || "Okänd", formgivare: str(res.formgivare, 80), serie: str(res.serie, 80),
       period: str(res.period, 40), material: str(res.material, 60), kategori: str(res.kategori, 40) || "Keramik & porslin",
@@ -589,6 +655,11 @@ Fyndjakts identifiering: ${String(kropp.identifierat ?? "-").slice(0, 200)}` });
       har_redan: res.har_redan ? str(res.har_redan, 80) : null, kompletterar: str(res.kompletterar, 300), sokord: str(res.sokord, 60),
       nasta_kontroll: (Array.isArray(res.nasta_kontroll) ? res.nasta_kontroll : []).map((t: unknown) => String(t).slice(0, 160)).slice(0, 4),
       resonemang: str(res.resonemang, 600),
+      // En matchande referens är starkt stöd: säkerheten blir minst 80 %.
+      ...(match ? { sakerhet: Math.max(0.8, Math.min(1, Number(res.sakerhet) || 0)) } : {}),
+      referenser: referenser.map((r) => ({ ref: r.ref, id: r.id, titel: str(r.titel, 140), fabrik: r.fabrik, formgivare: r.formgivare, modell: r.modell,
+        stampeltext: r.stampeltext ? str(r.stampeltext, 200) : null, bild_url: r.bild_url, url: r.url, pris: r.pris, slutade: r.slutade, parti: r.parti })),
+      referens_match: match ? match.ref : null, referens_varfor: str(res.referens_varfor, 200),
       stampel_las: stampelLas ? { ordagrant: str(stampelLas.ordagrant, 200), typ: str(stampelLas.typ, 40), osakra_tecken: str(stampelLas.osakra_tecken, 200),
         tolkningar: (Array.isArray(stampelLas.tolkningar) ? stampelLas.tolkningar : []).slice(0, 3).map((t: Record<string, unknown>) => ({
           tillverkare: str(t.tillverkare, 80), formgivare: str(t.formgivare, 80), modell: str(t.modell, 80), sakerhet: Math.max(0, Math.min(1, Number(t.sakerhet) || 0)), varfor: str(t.varfor, 200) })),

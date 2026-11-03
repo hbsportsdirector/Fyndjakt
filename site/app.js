@@ -200,6 +200,7 @@ const App = (() => {
     butik: `<p><b>Tre steg:</b> fota föremålet, fota gärna stämpeln (undersidan), skriv priset. Beskedet kommer av sig självt när båda finns.</p>
       <p><b>KÖP</b> = priset är under köptaket. Köptaket är en tredjedel av typiskt slutpris när du köper för att sälja, men 60 % när föremålet passar din smak (den du skrivit under Inställningar) – då är det samling, inte flipp.</p>
       <p><b>FOTA STÄMPELN FÖRST</b> betyder att Claude är för osäker på vad det är. <b>KÖP INTE</b> visar alltid varför – för dyrt, nyproduktion eller för lågt värde.</p>
+      <p><b>Referenser:</b> när stämpeln lästs slås den upp i referensbiblioteket (tusentals sålda föremål från auktionshus med katalogtext om stämpeln och foto på botten). Claude får de närmaste referenserna och jämför ditt foto med deras – matchar en (markerad ✓) går dess fabrik, formgivare och modell före gissningen, och säkerheten blir minst 80 %. Biblioteket fylls på från hemmadatorn (docs/referens_hemma.md).</p>
       <p>Under beskedet ser du nettot per säljkanal och om något liknande redan finns i samlingen. <b>🛒 Köpt</b> sparar föremålet med bilderna: du anger pris, butik och om du ska behålla eller sälja. Det får ett FJ-nummer (skriv det på en lapp under föremålet) och Claude skriver beskrivning och säljannons att kopiera.</p>`,
     prisguide: `<p>En lista över vad vanliga loppisfynd brukar gå för, med råd: <b>Köp</b> (säljer med marginal), <b>Kolla</b> (beror på skick, variant eller stämpel) och <b>Undvik</b> (för lågt andrahandsvärde).</p>
       <p>Sök på objekt, fabrik eller formgivare. "Köp max" är högsta inköp som lämnar vinst när det säljs för det lägre priset på Tradera.</p>`,
@@ -212,6 +213,28 @@ const App = (() => {
     const d = delar[id];
     const p = panel(el("div", { class: "hjalp-text" }, el("div", { class: "huvud" }, el("h2", {}, (d ? d.ikon + " " : "") + (d ? d.namn : "Hjälp")),
       el("button", { class: "knapp liten", type: "button", onclick: () => p.stang() }, "Stäng")), el("div", { html: HJALP[id] || "" })), { mitten: true });
+  }
+  // Referenser ur biblioteket: bottenfoton som Claude jämförde stämpeln med; den som matchade är markerad.
+  // r = svaret från typ butik (referenser, referens_match, referens_varfor). valj(ref) ger en "Använd"-knapp per referens.
+  function referensRuta(r, { valj } = {}) {
+    const refs = r.referenser || [];
+    const box = el("div", { class: "referenser" });
+    const match = refs.find(x => x.ref === r.referens_match);
+    box.append(el("div", { class: "etik" }, match ? `✓ Stämpeln matchar referens ${match.ref}` : `Jämförde med ${refs.length} referens${refs.length === 1 ? "" : "er"} – ingen säker träff`));
+    const remsa = el("div", { class: "refs" });
+    for (const x of refs) {
+      const a = el("a", { class: "ref" + (x.ref === r.referens_match ? " match" : ""), href: x.url, target: "_blank", rel: "noopener" });
+      const bild = el("div", { class: "ref-bild" }, el("span", { class: "nr" }, x.ref + (x.ref === r.referens_match ? " ✓" : "")));
+      if (x.bild_url) bild.prepend(el("img", { src: x.bild_url, alt: "", loading: "lazy" }));
+      a.append(bild, el("div", { class: "txt" }, el("b", {}, [x.formgivare, x.modell && "modell " + x.modell].filter(Boolean).join(" · ") || x.fabrik),
+        [x.fabrik, x.pris ? kr(x.pris) + (x.slutade ? " " + String(x.slutade).slice(0, 4) : "") : "osåld", x.parti ? "parti" : ""].filter(Boolean).join(" · ")));
+      remsa.append(a);
+      if (valj) { const b = el("button", { class: "knapp liten", type: "button", onclick: e => { e.preventDefault(); valj(x); } }, "Använd"); a.querySelector(".txt").append(b); }
+    }
+    box.append(remsa);
+    if (r.referens_varfor) box.append(el("p", { class: "ref-varfor" }, r.referens_varfor));
+    box.append(el("p", { class: "ref-varfor" }, "Referenserna är sålda poster från auktionshus (Auctionet) med katalogtext om stämpeln. Tryck på en för att se auktionen."));
+    return box;
   }
   // Rubrikraden i en vy, med ?-knapp. Returnerar elementet så att delen kan lägga till egna knappar.
   function huvud(id, titel, sub) {
@@ -406,5 +429,5 @@ const App = (() => {
 
   return { KONFIG, konto, del, pa, sand, visa, rakna, start, mobil, $, kr, esc, el, toast, datum, idag, slug, nyttId, fjNr, norm, plats, renderKlar, sparaPlats,
            skalaNer, dataUrlTillBase64, kannIgen, bildUrlar, bildUrl, laddaUppBild, taBortBild, hamtaAlla, panel, lightbox, fraga,
-           sheet, hjalp, huvud, uppdateraBanner, laddaKonto };
+           sheet, hjalp, huvud, referensRuta, uppdateraBanner, laddaKonto };
 })();

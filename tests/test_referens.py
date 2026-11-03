@@ -69,3 +69,7 @@ def test_parti_och_objektord_i_versaler():
     assert r3["formgivare"] == "Lisa Larson" and r3["parti"] is False
     r4 = referens.tolka_post(post("SAXBO: Egg-shaped stoneware vase.", 'Model no. "1", signed ESN'))
     assert r4["modell"] is None and r4["parti"] is False
+    r5 = referens.tolka_post(post("HÄNKELVAS, Ingrid Atterberg, Upsala-Ekeby, 1950-tal och i gott skick.", "Märkt 1034/188."))
+    assert r5["parti"] is False and r5["modell"] == "1034/188"
+    r6 = referens.tolka_post(post("VAS och SKÅL, Saxbo samt Tobo.", "Stämplade."))
+    assert r6["parti"] is True

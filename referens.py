@@ -84,7 +84,7 @@ STAMPEL = re.compile(
 # Modellnummer: "nr 342", "Model No. 2084", "1034/9", "UE 1067", "modell 4145". Inte årtal.
 MODELL = re.compile(r"(?:\bnr\.?|\bno\.?|\bn:o|modell(?:nummer)?|model(?:l)?(?:\s*no\.?)?|dekor|form(?:nr|nummer)?|#|\bUE)\s*\.?\s*(\d{3,5}(?:[/-]\d{1,4})?|\d{2}/\d{1,4})\b", re.I)
 # Parti: flera föremål i samma post – sista bilden är då inte säkert stämpeln på det namngivna föremålet.
-PARTI = re.compile(r"\b(parti|delar|parts|pieces|\d+\s*st\b|stycken|bland annat|bl\.?\s?a\.?|samt|och|and|\d+\s*(?:vaser|skålar|fat|figuriner|delar))\b", re.I)
+PARTI = re.compile(r"\b(parti|delar|parts|pieces|\d+\s*st\b|stycken|bland annat|bl\.?\s?a\.?|\d+\s*(?:vaser|skålar|fat|figuriner|delar|tallrikar|koppar))\b|\b(?:samt|och|and)\s+[A-ZÅÄÖ]{3,}", re.I)
 MODELL_SNED = re.compile(r"\b(\d{3,4}/\d{1,4})\b")
 ARTAL = re.compile(r"^(18[5-9]\d|19\d\d|20[0-3]\d)$")   # årtal 1850–2039 är inte modellnummer
 FABRIK_NR = re.compile(r"(?:ekeby|gusta[fv]sberg|r[öo]rstrand|gefle|h[öo]gan[äa]s|laholm|nittsj[öo]|bo ?fajans|karlskrona|tilgmans|kosta|boda)\s+(?:sweden\s+)?(\d{3,5}(?:[/-]\d{1,4})?)\b", re.I)
