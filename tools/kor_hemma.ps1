@@ -24,6 +24,7 @@ try {
     if (-not [Environment]::GetEnvironmentVariable($n)) { Logga "Saknar miljövariabeln $n – se docs/hemma.md."; exit 1 }
   }
   if (-not $env:SAJT_URL) { $env:SAJT_URL = "https://hbsportsdirector.github.io/Fyndjakt/" }
+  $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"   # svenska tecken och pilar i utskrifterna, även till loggfilen
 
   # Python 3.14, 3.13 eller 3.12 om någon finns (den allra nyaste versionen saknar färdiga paket för lxml, pillow och cryptography).
   $py = "python"; $pyArgs = @()

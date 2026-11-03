@@ -297,6 +297,13 @@ def snabb_installningar(cfg: dict) -> dict:
 
 
 def main() -> int:
+    # Windows skriver till loggfiler med cp1252 – då faller "→" och "–" i utskrifterna. Skriv alltid UTF-8, ersätt det
+    # som ändå inte går, så att en utskrift aldrig stoppar en körning.
+    for strom in (sys.stdout, sys.stderr):
+        try:
+            strom.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
     p = argparse.ArgumentParser()
     p.add_argument("--torr", action="store_true", help="Ingen AI, inga notiser, inget sparas")
     p.add_argument("--snabb", action="store_true", help="Snabbkörning: bara Tradera och Myrorna, liten budget, ingen rapport")
