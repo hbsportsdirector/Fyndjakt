@@ -87,7 +87,7 @@ class Databas:
         """Stoppar direkt om nyckeln inte stämmer – i stället för efter första sidan."""
         r = requests.post(f"{self.url}/rest/v1/rpc/fyndjakt_kolla_nyckel", json={"token": self.token},
                           headers={"apikey": self.nyckel, "Authorization": f"Bearer {self.nyckel}", "Content-Type": "application/json"}, timeout=60)
-        if r.status_code != 200 or "nyckel" in r.text:
+        if not (200 <= r.status_code < 300) or "ogiltig" in r.text:   # rätt nyckel ger 204 (inget innehåll)
             import hashlib
             t = self.token
             sys.exit("Supabase svarade 'ogiltig nyckel' – FYNDJAKT_BOT_TOKEN i det här fönstret stämmer inte med någon hash i databasen.\n"
