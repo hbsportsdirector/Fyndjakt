@@ -312,12 +312,33 @@ def tolka(text: str, antal: int) -> dict[int, dict]:
 
 
 def identifiera(annonser: list, modell: str, klient, storlek: int = bedomning.GRUPPSTORLEK,
-                max_vant: int = 40 * 60, intervall: int = 30) -> dict[str, dict]:
-    """{annonsnyckel: identifiering}. Allt i en batch (halva priset); det som saknas försöks igen nästa körning."""
+                max_vant: int = 40 * 60, intervall: int = 30, direkt: bool = False) -> dict[str, dict]:
+    """{annonsnyckel: identifiering}. Allt i en batch (halva priset); det som saknas försöks igen nästa körning.
+    direkt=True (snabbkörningen): vanliga anrop, fyra åt gången – klart på minuter i stället för att stå i batch-kö."""
     if not annonser:
         return {}
     forbered_bilder([u for a in annonser for u in bilder_for(a)])
     grupper = {f"f{i // storlek}": annonser[i:i + storlek] for i in range(0, len(annonser), storlek)}
+    if direkt:
+        from concurrent.futures import ThreadPoolExecutor
+
+        def kor(cid: str) -> dict:
+            bit = grupper[cid]
+            try:
+                svar = klient.messages.create(**forfragan(bit, modell))
+            except Exception as e:
+                if "credit balance" in str(e).lower():
+                    raise bedomning.SlutPaKrediter(str(e))
+                print(f"  Flipp-identifiering misslyckades för en grupp: {e}")
+                return {}
+            bedomning.registrera("Flipp-identifiering", svar)
+            return {bit[nr - 1].nyckel: info for nr, info in tolka(bedomning._text(svar), len(bit)).items()}
+        ut = {}
+        with ThreadPoolExecutor(4) as pool:
+            for d in pool.map(kor, list(grupper)):
+                ut.update(d)
+        print(f"  Flipp-identifiering klar (direkt): {len(ut)} av {len(annonser)}.")
+        return ut
     batch = klient.messages.batches.create(
         requests=[{"custom_id": cid, "params": forfragan(bit, modell)} for cid, bit in grupper.items()])
     print(f"  Flipp: {len(annonser)} annonser i {len(grupper)} grupper skickade för identifiering …")
@@ -445,7 +466,7 @@ def bedom(kandidater: list, db, cfg: dict, klient, berika=None, statistik: dict 
         per_spar.setdefault(a.spar, []).append(a)
     for sid, lista in per_spar.items():  # spårets egen modell (flipp: Sonnet), annars den vanliga
         ident.update(identifiera(lista, cfg["spar"][sid].get("modell") or cfg["modell"], klient,
-                                 cfg.get("gruppstorlek", bedomning.GRUPPSTORLEK)))
+                                 cfg.get("gruppstorlek", bedomning.GRUPPSTORLEK), direkt=not cfg.get("batch", True)))
     storlek = {a.nyckel: storlek_for(a, ident.get(a.nyckel)) for a in kandidater}
     jmf = jamfor_alla([(i["jamforsok"], i.get("typ", ""), storlek.get(k)) for k, i in ident.items()])
     tio, sparade, nypr, utan_typ_ = [], 0, 0, 0

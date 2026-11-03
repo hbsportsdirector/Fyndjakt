@@ -1493,3 +1493,26 @@ def test_snabb_urval_flipp_och_bevakade_ord():
                     "flipp": {"flipp": True, "sokningar": {"K": ["Upsala-Ekeby"]}}}}
     assert main.snabb_urval(cfg) == {("hemmet", "persisk matta"), ("hemmet", "chesterfield"), ("samlingen", "Stig Lindberg Tahiti")}
     assert main.snabb_urval({"spar": {"x": {"sokningar": {"K": ["a"]}}}}) == {("x", "a")}   # ingen lista: bara flipp
+
+
+def test_flipp_identifiera_direkt_utan_batch(monkeypatch):
+    """Snabbkörningen: identifieringen går som vanliga anrop (fyra åt gången), inte via batch-kön."""
+    from types import SimpleNamespace as NS
+    import flipp
+    monkeypatch.setattr(flipp, "forbered_bilder", lambda urlar: None)
+    ann = [auctionet.tolka(dict(AUCTIONET_POST, id=i, title=f"Vas {i}")) for i in range(5)]
+    anrop = []
+
+    class Klient:
+        class messages:
+            @staticmethod
+            def create(**kw):
+                anrop.append(kw)
+                n = len([c for c in kw["messages"][0]["content"] if c.get("type") == "text" and c["text"].startswith("Annons")]) or 5
+                svar = "[" + ", ".join(f'{{"nr": {i}, "jamforsok": "Vas {i}", "identifierat": "x", "varning": ""}}' for i in range(1, n + 1)) + "]"
+                return NS(content=[NS(type="text", text=svar)], usage=None)
+            class batches:
+                @staticmethod
+                def create(**kw): raise AssertionError("batch ska inte användas i direktläge")
+    ut = flipp.identifiera(ann, "m", Klient(), storlek=2, direkt=True)
+    assert len(anrop) == 3 and len(ut) == 5 and ut[ann[0].nyckel]["jamforsok"].startswith("Vas")
