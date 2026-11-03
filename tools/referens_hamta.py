@@ -9,6 +9,7 @@ Kör:  python tools/referens_hamta.py            (alla fraser i tools/referens_f
       python tools/referens_hamta.py "Saxbo"    (bara den frasen)
       python tools/referens_hamta.py --max-sidor 20   (högst 20 sidor à 48 per fras – bra för ett första varv)
 Miljö: FYNDJAKT_BOT_TOKEN (samma nyckel som nattkörningen). URL och publik nyckel läses ur config.yaml.
+Behöver bara paketet requests (python -m pip install requests).
 """
 import argparse
 import json
@@ -17,8 +18,9 @@ import sys
 import time
 from pathlib import Path
 
+import re
+
 import requests
-import yaml
 
 ROT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROT))
@@ -49,11 +51,17 @@ def spara_lage(lage: dict) -> None:
     LAGE.write_text(json.dumps(lage, ensure_ascii=False, indent=1), encoding="utf-8")
 
 
+def las_supabase() -> tuple[str | None, str | None]:
+    """supabase.url och supabase.nyckel ur config.yaml – utan yaml-paketet, som saknar färdigt bygge för nya Python-versioner."""
+    text = (ROT / "config.yaml").read_text(encoding="utf-8")
+    block = re.search(r"^supabase:\n((?:[ \t]+.*\n?)+)", text, re.M)
+    hitta = lambda namn: (re.search(rf"^\s+{namn}:\s*(\S+)", block.group(1), re.M) if block else None)
+    return (hitta("url").group(1) if hitta("url") else None), (hitta("nyckel").group(1) if hitta("nyckel") else None)
+
+
 class Databas:
     def __init__(self):
-        cfg = yaml.safe_load((ROT / "config.yaml").read_text(encoding="utf-8"))
-        sb = cfg.get("supabase") or {}
-        self.url, self.nyckel = sb.get("url"), sb.get("nyckel")
+        self.url, self.nyckel = las_supabase()
         self.token = os.environ.get("FYNDJAKT_BOT_TOKEN", "").strip()
         if not (self.url and self.nyckel and self.token):
             sys.exit("Saknar FYNDJAKT_BOT_TOKEN (miljövariabel) eller supabase.url/nyckel i config.yaml.")

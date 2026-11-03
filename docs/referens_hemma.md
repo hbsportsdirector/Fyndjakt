@@ -11,7 +11,9 @@ avbrytas när som helst och startas om – den fortsätter där den var.
 
 **Windows 11 (EVO-X1):**
 
-1. Python: hämta från <https://www.python.org/downloads/windows/> (3.12 eller senare). Kryssa i **"Add python.exe to PATH"** i installationens första ruta.
+1. Python: hämta från <https://www.python.org/downloads/windows/>. Kryssa i **"Add python.exe to PATH"** i installationens första ruta.
+   Hämtaren fungerar med vilken version som helst (den behöver bara paketet `requests`). Ska datorn senare även köra
+   nattkörningen behövs 3.12 eller 3.13 – de nyaste versionerna saknar färdiga paket för lxml, pillow och cryptography.
 2. Git: hämta från <https://git-scm.com/download/win>, standardval rakt igenom.
 3. Öppna **PowerShell** och hämta koden:
 
@@ -19,10 +21,12 @@ avbrytas när som helst och startas om – den fortsätter där den var.
 cd $HOME
 git clone https://github.com/hbsportsdirector/Fyndjakt.git
 cd Fyndjakt
-pip install -r requirements.txt
+python -m pip install requests
 ```
 
 **Linux:** `sudo apt install python3 python3-pip git`, sedan samma tre rader.
+
+(`python -m pip install -r requirements.txt` behövs först när datorn ska köra hela Fyndjakt, inte för hämtaren.)
 
 ## 2. Bot-nyckeln (en gång)
 
