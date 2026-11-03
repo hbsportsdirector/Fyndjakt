@@ -400,9 +400,11 @@
         const r = st_.res, f = id => (falt_[id] && falt_[id].value.trim()) || "";
         spar.disabled = true; status.textContent = "Sparar …";
         const auk = st_.auk, it = befintlig;
+        const ref = r.referens_match && (r.referenser || []).find(x => x.ref === r.referens_match);
         const rad = `Identifierad ${App.datum(App.idag())} av Claude (säkerhet ${Math.round((r.sakerhet || 0) * 100)} %)` +
           (r.stampel_las && r.stampel_las.ordagrant ? `, stämpel: ”${r.stampel_las.ordagrant}”` : r.stampel_last ? `, stämpel: ”${r.stampel_last}”` : "") + "." +
-          (st_.kommentar ? " Rättelse: " + st_.kommentar + "." : "") + (auk && auk.topp.length ? ` Auctionet: ${auk.topp[0][0]} på ${auk.topp[0][1]} av ${auk.salda.length} sålda.` : "");
+          (st_.kommentar ? " Rättelse: " + st_.kommentar + "." : "") + (auk && auk.topp.length ? ` Auctionet: ${auk.topp[0][0]} på ${auk.topp[0][1]} av ${auk.salda.length} sålda.` : "") +
+          (ref ? ` Stämpeln matchar referens ${[ref.fabrik, ref.formgivare, ref.modell && "modell " + ref.modell].filter(Boolean).join(", ")}${ref.kalla === "egen" ? " (eget föremål " + ref.titel + ")" : ": " + ref.url}.` : "");
         const andring = { namn: f("namn") || it.namn, tillverkare: f("tillverkare") || "Okänd", formgivare: f("formgivare") || null, serie: f("serie"),
           period: f("period") || null, stampel: f("stampel") || null, sokord: r.sokord || it.sokord || "",
           marknad_min: r.marknad_min, marknad_max: r.marknad_max, marknad_sakerhet: Math.round((r.sakerhet || 0) * 100) + " %", saker: (r.sakerhet || 0) >= 0.7 ? "säker" : "trolig",
