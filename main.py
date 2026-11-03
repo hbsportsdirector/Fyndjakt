@@ -309,6 +309,7 @@ def fran_rad(r: dict) -> Annons:
 
 
 # Hur lång tid varje del tog – skrivs ut sist och sparas i rapporten, så att en långsam körning går att förklara.
+KORNING_START = time.time()
 TID: dict[str, float] = {}
 _T0 = [__import__("time").monotonic()]
 
@@ -637,7 +638,8 @@ def main() -> int:
         import smak
         egna_fynd = sajt.anvandarfynd(db, cfg)
         smak.publicera(cfg, egna_fynd)
-        STATISTIK["Notiser"] = smak.notifiera(cfg, export, egna_fynd)
+        # Timkörningen notifierar bara om det den själv hittade; kvällskörningen om allt nytt sedan förra kvällen.
+        STATISTIK["Notiser"] = smak.notifiera(cfg, export, egna_fynd, fonster=(time.time() - KORNING_START + 120) if args.snabb else None)
         if STATISTIK.get("Varning"):
             smak.varna_admin(cfg, export, STATISTIK["Varning"])
     except Exception as e:

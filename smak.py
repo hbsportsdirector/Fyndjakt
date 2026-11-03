@@ -306,15 +306,17 @@ def tillampa(cfg: dict, export: dict | None) -> None:
     print(f"Min smak: {antal[0]} reaktioner, {antal[1]} anteckningar och {len(samling)} föremål ur samlingen inlästa.")
 
 
-def notifiera(cfg: dict, export: dict | None, fynd: dict) -> dict:
+def notifiera(cfg: dict, export: dict | None, fynd: dict, fonster: float | None = None) -> dict:
     """Skickar morgonnotis till varje användare som slagit på notiser och har nya toppfynd.
+    fonster (sekunder) begränsar till fynd sedda nyligen – timkörningen skickar bara det den själv hittade.
     Prenumerationer som inte längre finns (t.ex. avinstallerad app) tas bort."""
     import webbnotis
     if not export or not export.get("vapid") or not export.get("push"):
         return {"skickade": 0}
     skickade, borta, fel = 0, [], 0
     for pren in export["push"]:
-        innehall = webbnotis.morgonnotis((fynd.get(pren["user_id"]) or {}).get("poster", []))
+        poster = (fynd.get(pren["user_id"]) or {}).get("poster", [])
+        innehall = webbnotis.morgonnotis(poster, fonster=fonster) if fonster else webbnotis.morgonnotis(poster)
         if not innehall:
             continue
         try:

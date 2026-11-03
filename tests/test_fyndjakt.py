@@ -1,4 +1,5 @@
 """Tester som körs helt offline: python -m pytest tests"""
+import calendar
 import sys
 import time
 from pathlib import Path
@@ -1516,3 +1517,13 @@ def test_flipp_identifiera_direkt_utan_batch(monkeypatch):
                 def create(**kw): raise AssertionError("batch ska inte användas i direktläge")
     ut = flipp.identifiera(ann, "m", Klient(), storlek=2, direkt=True)
     assert len(anrop) == 3 and len(ut) == 5 and ut[ann[0].nyckel]["jamforsok"].startswith("Vas")
+
+
+def test_morgonnotis_med_kort_fonster():
+    """Timkörningen: bara fynd sedda inom fönstret – inte gårdagens, som redan notifierats."""
+    import webbnotis as w
+    nu = calendar.timegm(time.strptime("2026-11-04 10:00:00", "%Y-%m-%d %H:%M:%S"))
+    poster = [{"sedd": "2026-11-04 09:50:00", "betyg": 9, "titel": "Ny"}, {"sedd": "2026-11-04 02:00:00", "betyg": 10, "titel": "Gammal"}]
+    assert w.morgonnotis(poster, nu)["title"] == "2 nya toppfynd i Fyndjakt"
+    assert w.morgonnotis(poster, nu, fonster=3600)["body"].endswith("Ny")
+    assert w.morgonnotis(poster[1:], nu, fonster=3600) is None

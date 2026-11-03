@@ -90,8 +90,9 @@ def skicka(prenumeration: dict, innehall: dict, privat_b64: str) -> int:
     return r.status_code
 
 
-def morgonnotis(poster: list[dict], nu: float | None = None) -> dict | None:
-    """Notisen för en användare: nya fynd (senaste ~dygnet) med 9–10 i betyg. None om inget nytt."""
+def morgonnotis(poster: list[dict], nu: float | None = None, fonster: float = 30 * 3600) -> dict | None:
+    """Notisen för en användare: nya fynd (sedda inom `fonster` sekunder, normalt ~dygnet) med 9–10 i betyg.
+    Timkörningen hemma skickar med ett kort fönster – bara det som hittades i just den körningen. None om inget nytt."""
     nu = nu or time.time()
     nya = []
     for p in poster:
@@ -99,7 +100,7 @@ def morgonnotis(poster: list[dict], nu: float | None = None) -> dict | None:
             sedd = calendar.timegm(time.strptime(p.get("sedd") or "", "%Y-%m-%d %H:%M:%S"))  # sparat i UTC
         except ValueError:
             continue
-        if nu - sedd < 30 * 3600 and (p.get("betyg") or 0) >= 9:
+        if nu - sedd < fonster and (p.get("betyg") or 0) >= 9:
             nya.append(p)
     if not nya:
         return None
