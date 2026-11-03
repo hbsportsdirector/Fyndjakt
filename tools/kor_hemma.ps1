@@ -11,7 +11,7 @@ $rot = Split-Path -Parent $PSScriptRoot
 Set-Location $rot
 $logg = Join-Path $rot "data\hemma.log"
 $las = Join-Path $rot "data\hemma.lock"
-function Logga($t) { $rad = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') $t"; Write-Host $rad; Add-Content -Path $logg -Value $rad }
+function Logga($t) { $rad = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') $t"; Write-Host $rad; Add-Content -Path $logg -Value $rad -Encoding UTF8 }
 
 # Lås: en körning i taget. Ett lås äldre än fyra timmar räknas som kvarglömt.
 if (Test-Path $las) {
@@ -36,11 +36,11 @@ try {
   # Senaste koden – även om data-filerna är ändrade sedan förra körningen (autostash lägger undan och tillbaka).
   git pull -q --rebase --autostash origin main 2>&1 | ForEach-Object { Logga "git: $_" }
   # Nya paket sedan sist? Snabbt när allt redan finns.
-  & $py @pyArgs -m pip install -q -r requirements.txt 2>&1 | Select-Object -Last 3 | ForEach-Object { Logga "pip: $_" }
+  & $py @pyArgs -m pip install -q -r requirements.txt 2>&1 | ForEach-Object { "$_" } | Where-Object { $_ -notmatch "^\[notice\]|RemoteException" } | Select-Object -Last 3 | ForEach-Object { Logga "pip: $_" }
 
   $flaggor = @()
   if ($Snabb) { $flaggor += "--snabb" }
-  & $py @pyArgs main.py @flaggor 2>&1 | Tee-Object -FilePath $logg -Append | Out-Null
+  & $py @pyArgs main.py @flaggor 2>&1 | ForEach-Object { "$_" } | Out-File -FilePath $logg -Append -Encoding UTF8
   $kod = $LASTEXITCODE
   Logga "main.py avslutades med kod $kod"
 

@@ -1483,4 +1483,4 @@ def test_snabb_installningar_begransar_kallor_och_budget():
     main.snabb_installningar(cfg)
     assert cfg["kallor"] == {"auctionet": False, "bukowskis": False, "myrorna": True, "stadsmissionen": False, "tradera": True}
     assert cfg["max_bedomningar_per_korning"] == 60 and cfg["max_fran_kon_per_korning"] == 0 and cfg["max_prisjamforelser_per_korning"] == 30
-    assert cfg["spar"]["flipp"]["max_bedomningar"] == 60
+    assert cfg["spar"]["flipp"]["max_bedomningar"] == 60 and cfg["batch"] is False

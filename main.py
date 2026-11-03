@@ -280,6 +280,22 @@ def fran_rad(r: dict) -> Annons:
                   sokord=r.get("sokord") or "", spar=r["spar"], prefix=prefix)
 
 
+# Hur lång tid varje del tog – skrivs ut sist och sparas i rapporten, så att en långsam körning går att förklara.
+TID: dict[str, float] = {}
+_T0 = [__import__("time").monotonic()]
+
+
+def _tid(namn: str) -> None:
+    import time
+    nu = time.monotonic()
+    TID[namn] = round((nu - _T0[0]) / 60, 1)
+    _T0[0] = nu
+
+
+def tid_text() -> str:
+    return "Tid: " + ", ".join(f"{k} {v:g} min" for k, v in TID.items()) + f" – totalt {sum(TID.values()):g} min."
+
+
 # Snabbkörning (varje timme hemma): bara det som dyker upp löpande – Tradera och Myrorna – med liten budget, utan att
 # beta av kön från tidigare nätter. Räknas inte som nattens körning (ingen rapport), så GitHub kör ändå om datorn är av.
 SNABB_KALLOR = {"tradera", "myrorna"}
@@ -290,6 +306,7 @@ def snabb_installningar(cfg: dict) -> dict:
     cfg["max_bedomningar_per_korning"] = int(cfg.get("snabb_max_bedomningar", 60))
     cfg["max_fran_kon_per_korning"] = 0
     cfg["max_prisjamforelser_per_korning"] = int(cfg.get("snabb_max_prisjamforelser", 30))
+    cfg["batch"] = False   # batch-läget är billigare men kan stå i kö i 40 minuter – för en timkörning går vi direkt
     for sp in cfg["spar"].values():
         if sp.get("flipp") and "max_bedomningar" in sp:
             sp["max_bedomningar"] = min(int(sp["max_bedomningar"]), cfg["max_bedomningar_per_korning"])
@@ -338,7 +355,9 @@ def main() -> int:
     import sokordsvard
     pausade = sokordsvard.pausa(cfg, db, export)
     STATISTIK["Pausade sökord"] = len(pausade)
+    _tid("förberedelser")
     annonser = hamta_alla(cfg, pausade)
+    _tid("hämtning")
     nystart = {k: str(v) for k, v in (cfg.get("smak_nystart") or {}).items() if k in cfg["spar"]}
     vantar = db.vantande(nystart)
     nya = [a for a in annonser if a.nyckel in vantar or not db.finns(a.nyckel)]
@@ -560,7 +579,9 @@ def main() -> int:
         STATISTIK["Tradera-orter ifyllda"] = tradera_orter(db)
     except Exception as e:
         print(f"  Kunde inte fylla i Tradera-orter: {e}")
+    _tid("bedömning")
     prisjamfor(db, cfg)
+    _tid("prisjämförelse")
 
     # Hemsidan byggs om varje gång, även om inget nytt hittades (utgångna annonser försvinner).
     sajt.bygg(db, cfg)
@@ -584,6 +605,9 @@ def main() -> int:
             print(f"Kunde inte spara miniatyrer: {e}")
             STATISTIK["Miniatyrer"] = {"fel": str(e)[:200]}
 
+    _tid("uppladdning")
+    print(tid_text())
+    STATISTIK["Tid (min)"] = dict(TID)
     traffar.sort(key=lambda t: t[0], reverse=True)
     if notis.aktiverad():
         for betyg, a, motivering in traffar:
