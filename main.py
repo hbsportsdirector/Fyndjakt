@@ -102,11 +102,53 @@ def hamta_alla(cfg: dict, pausade: set | None = None) -> list[Annons]:
             print("Tradera: ingen nyckel satt (TRADERA_APP_ID/TRADERA_APP_KEY) – hoppar över.")
 
     alla: dict[str, Annons] = {}
-    cache: dict[tuple, list[Annons]] = {}  # samma sökning i flera användares spår görs bara en gång
     # Spåret med mest specifika sökord (namngivna formgivare) söks först och "äger" föremål som
     # båda spåren hittar – annars hamnar t.ex. en Skultuna-ljusstake under inredningen.
     # Varje användare har sin egen uppsättning; samma annons kan alltså finnas hos flera användare.
     ordning = sorted(cfg["spar"].items(), key=lambda kv: kv[1].get("prioritet", 0), reverse=True)
+
+    # 1. Samla alla sökningar per källa (samma sökning i flera spår görs bara en gång).
+    uppdrag: dict[str, list[tuple]] = {namn: [] for namn, _, _ in aktiva}
+    sedda_nycklar: set[tuple] = set()
+    for sid, spar in ordning:
+        sidor = min(spar.get("sidor", std_sidor), std_sidor)
+        for namn, _, _ in aktiva:
+            for kategori, fragor in spar["sokningar"].items():
+                for fraga in fragor:
+                    if pausade and (sid, fraga) in pausade:
+                        continue  # gav aldrig något – pausat (kan slås på igen i appen)
+                    nyckel = (namn, fraga.lower(), sidor)
+                    if nyckel not in sedda_nycklar:
+                        sedda_nycklar.add(nyckel)
+                        uppdrag[namn].append((nyckel, fraga, kategori, sidor))
+
+    # 2. Varje källa hämtas i egen tråd, med sin egen paus mellan anropen – fem källor tar då lika lång tid som den
+    #    långsammaste i stället för summan av alla.
+    def hamta_kalla(namn: str, sok, tar_sidor: bool, lista: list[tuple]) -> tuple[dict, dict]:
+        cache: dict[tuple, list[Annons]] = {}
+        st = {"sokningar": 0, "traffar": 0, "fel": 0, "felexempel": []}
+        for nyckel, fraga, kategori, sidor in lista:
+            st["sokningar"] += 1
+            try:
+                cache[nyckel] = sok(fraga, kategori, sidor=sidor) if tar_sidor else sok(fraga, kategori)
+            except Exception as e:  # en trasig sökning ska inte stoppa resten
+                print(f"  {namn} '{fraga}': fel – {e}")
+                st["fel"] += 1
+                if len(st["felexempel"]) < 5:
+                    st["felexempel"].append(f"{fraga}: {type(e).__name__}: {str(e)[:200]}")
+                cache[nyckel] = []
+                continue
+            st["traffar"] += len(cache[nyckel])
+        return cache, st
+
+    from concurrent.futures import ThreadPoolExecutor
+    cache: dict[tuple, list[Annons]] = {}
+    with ThreadPoolExecutor(max(1, len(aktiva))) as pool:
+        for (namn, _, _), (c, st) in zip(aktiva, pool.map(lambda a: hamta_kalla(*a, uppdrag[a[0]]), aktiva)):
+            cache.update(c)
+            STATISTIK[namn] = st
+
+    # 3. Dela ut träffarna till spåren i prioritetsordning (samma ordning som sökningarna samlades in).
     for sid, spar in ordning:
         agare = agare_av(spar)
         prefix = f"{agare[:8]}|" if agare else ""
@@ -114,26 +156,12 @@ def hamta_alla(cfg: dict, pausade: set | None = None) -> list[Annons]:
             prefix += f"{sid}|"  # eget exemplar – flipp-spåret tar aldrig annonser från smakspåren (eller tvärtom)
         sidor = min(spar.get("sidor", std_sidor), std_sidor)
         print(f"\n— {spar['namn']} —")
-        for namn, sok, tar_sidor in aktiva:
+        for namn, _, _ in aktiva:
             for kategori, fragor in spar["sokningar"].items():
                 for fraga in fragor:
                     if pausade and (sid, fraga) in pausade:
-                        continue  # gav aldrig något – pausat (kan slås på igen i appen)
-                    st = STATISTIK.setdefault(namn, {"sokningar": 0, "traffar": 0, "fel": 0, "felexempel": []})
-                    nyckel = (namn, fraga.lower(), sidor)
-                    if nyckel not in cache:
-                        st["sokningar"] += 1
-                        try:
-                            cache[nyckel] = sok(fraga, kategori, sidor=sidor) if tar_sidor else sok(fraga, kategori)
-                        except Exception as e:  # en trasig sökning ska inte stoppa resten
-                            print(f"  {namn} '{fraga}': fel – {e}")
-                            st["fel"] += 1
-                            if len(st["felexempel"]) < 5:
-                                st["felexempel"].append(f"{fraga}: {type(e).__name__}: {str(e)[:200]}")
-                            cache[nyckel] = []
-                            continue
-                        st["traffar"] += len(cache[nyckel])
-                    traffar = cache[nyckel]
+                        continue
+                    traffar = cache.get((namn, fraga.lower(), sidor), [])
                     for a in traffar:
                         b = replace(a, sokord=a.sokord or fraga, spar=sid, kategori=kategori, prefix=prefix)
                         alla.setdefault(b.nyckel, b)  # första spåret (per användare) som hittar den äger den
@@ -313,6 +341,25 @@ def snabb_installningar(cfg: dict) -> dict:
     return cfg
 
 
+# Snabbkörningens sökord: bara de som är värda att leta på varje timme – sökord som gett fynd, sökord i flippspår,
+# och sökord som är för nya för att dömas (under SNABB_NYTT bedömda). Resten tas av kvällskörningen.
+SNABB_NYTT = 10
+
+
+def snabb_urval(cfg: dict, stat: dict) -> set[tuple]:
+    """{(spår, sökord)} att HOPPA ÖVER i snabbkörningen."""
+    bort = set()
+    for sid, spar in cfg["spar"].items():
+        if spar.get("flipp"):
+            continue
+        for fragor in spar.get("sokningar", {}).values():
+            for fraga in fragor:
+                bedomda, fynd = stat.get((sid, fraga), (0, 0))
+                if fynd == 0 and bedomda >= SNABB_NYTT:
+                    bort.add((sid, fraga))
+    return bort
+
+
 def main() -> int:
     # Windows skriver till loggfiler med cp1252 – då faller "→" och "–" i utskrifterna. Skriv alltid UTF-8, ersätt det
     # som ändå inte går, så att en utskrift aldrig stoppar en körning.
@@ -355,6 +402,10 @@ def main() -> int:
     import sokordsvard
     pausade = sokordsvard.pausa(cfg, db, export)
     STATISTIK["Pausade sökord"] = len(pausade)
+    if args.snabb:
+        bort = snabb_urval(cfg, sokordsvard.statistik(db))
+        pausade = set(pausade) | bort
+        print(f"Snabbkörning: hoppar över {len(bort)} sökord som aldrig gett fynd – de tas av kvällskörningen.")
     _tid("förberedelser")
     annonser = hamta_alla(cfg, pausade)
     _tid("hämtning")
