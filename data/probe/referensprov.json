@@ -1,0 +1,742 @@
+{
+ "stat": {
+  "poster": 6428,
+  "salda": 5491,
+  "minst_2_bilder": 6378,
+  "med_stampeltext": 2989,
+  "stampeltext_och_2_bilder": 2980,
+  "salda_stampeltext_2_bilder": 2572
+ },
+ "per_ar": {
+  "2011": {
+   "poster": 4,
+   "salda": 3
+  },
+  "2012": {
+   "poster": 53,
+   "salda": 51,
+   "med_stampeltext": 21,
+   "stampeltext_och_2_bilder": 20
+  },
+  "2013": {
+   "poster": 88,
+   "salda": 79,
+   "med_stampeltext": 25,
+   "stampeltext_och_2_bilder": 22
+  },
+  "2014": {
+   "poster": 204,
+   "salda": 180,
+   "med_stampeltext": 74,
+   "stampeltext_och_2_bilder": 73
+  },
+  "2015": {
+   "poster": 334,
+   "salda": 275,
+   "med_stampeltext": 203,
+   "stampeltext_och_2_bilder": 203
+  },
+  "2016": {
+   "poster": 498,
+   "salda": 415,
+   "med_stampeltext": 213,
+   "stampeltext_och_2_bilder": 213
+  },
+  "2017": {
+   "poster": 347,
+   "salda": 290,
+   "med_stampeltext": 155,
+   "stampeltext_och_2_bilder": 153
+  },
+  "2018": {
+   "poster": 357,
+   "salda": 307,
+   "med_stampeltext": 139,
+   "stampeltext_och_2_bilder": 139
+  },
+  "2019": {
+   "poster": 472,
+   "salda": 406,
+   "med_stampeltext": 174,
+   "stampeltext_och_2_bilder": 173
+  },
+  "2020": {
+   "poster": 394,
+   "salda": 350,
+   "med_stampeltext": 175,
+   "stampeltext_och_2_bilder": 175
+  },
+  "2021": {
+   "poster": 552,
+   "salda": 482,
+   "med_stampeltext": 245,
+   "stampeltext_och_2_bilder": 245
+  },
+  "2022": {
+   "poster": 572,
+   "salda": 488,
+   "med_stampeltext": 242,
+   "stampeltext_och_2_bilder": 241
+  },
+  "2023": {
+   "poster": 603,
+   "salda": 517,
+   "med_stampeltext": 287,
+   "stampeltext_och_2_bilder": 287
+  },
+  "2024": {
+   "poster": 622,
+   "salda": 500,
+   "med_stampeltext": 294,
+   "stampeltext_och_2_bilder": 294
+  },
+  "2025": {
+   "poster": 619,
+   "salda": 535,
+   "med_stampeltext": 322,
+   "stampeltext_och_2_bilder": 322
+  },
+  "2026": {
+   "poster": 709,
+   "salda": 613,
+   "med_stampeltext": 420,
+   "stampeltext_och_2_bilder": 420
+  }
+ },
+ "bildkoll_per_ar": {
+  "2011": {
+   "forsta_200": 4,
+   "sista_200": 4
+  },
+  "2012": {
+   "forsta_200": 6,
+   "sista_200": 6
+  },
+  "2013": {
+   "forsta_200": 6,
+   "sista_200": 6
+  },
+  "2014": {
+   "forsta_200": 6,
+   "sista_200": 6
+  },
+  "2015": {
+   "forsta_200": 6,
+   "sista_200": 6
+  },
+  "2016": {
+   "forsta_200": 6,
+   "sista_200": 6
+  },
+  "2017": {
+   "forsta_200": 6,
+   "sista_200": 6
+  },
+  "2018": {
+   "forsta_200": 6,
+   "sista_200": 6
+  },
+  "2019": {
+   "forsta_200": 6,
+   "sista_200": 6
+  },
+  "2020": {
+   "forsta_200": 6,
+   "sista_200": 6
+  },
+  "2021": {
+   "forsta_200": 6,
+   "sista_200": 6
+  },
+  "2022": {
+   "forsta_200": 6,
+   "sista_200": 6
+  },
+  "2023": {
+   "forsta_200": 6,
+   "sista_200": 6
+  },
+  "2024": {
+   "forsta_200": 6,
+   "sista_200": 6
+  },
+  "2025": {
+   "forsta_200": 6,
+   "sista_200": 6
+  },
+  "2026": {
+   "forsta_200": 6,
+   "sista_200": 6
+  }
+ },
+ "vanligaste_modeller": [
+  {
+   "fabrik": "Saxbo",
+   "modell": "1950",
+   "antal": 16
+  },
+  {
+   "fabrik": "Palshus",
+   "modell": "1950",
+   "antal": 14
+  },
+  {
+   "fabrik": "Saxbo",
+   "modell": "1949",
+   "antal": 11
+  },
+  {
+   "fabrik": "Saxbo",
+   "modell": "1931",
+   "antal": 10
+  },
+  {
+   "fabrik": "Saxbo",
+   "modell": "1930",
+   "antal": 8
+  },
+  {
+   "fabrik": "Kosta",
+   "modell": "1716",
+   "antal": 6
+  },
+  {
+   "fabrik": "Orrefors",
+   "modell": "1925",
+   "antal": 5
+  },
+  {
+   "fabrik": "Gefle",
+   "modell": "2039",
+   "antal": 5
+  },
+  {
+   "fabrik": "Royal",
+   "modell": "1960",
+   "antal": 5
+  },
+  {
+   "fabrik": "Nittsjö",
+   "modell": "282",
+   "antal": 5
+  },
+  {
+   "fabrik": "Gustavsberg",
+   "modell": "1955",
+   "antal": 4
+  },
+  {
+   "fabrik": "Saxbo",
+   "modell": "1968",
+   "antal": 4
+  },
+  {
+   "fabrik": "Royal",
+   "modell": "1950",
+   "antal": 4
+  },
+  {
+   "fabrik": "Nittsjö",
+   "modell": "5439",
+   "antal": 4
+  },
+  {
+   "fabrik": "Upsala",
+   "modell": "4063",
+   "antal": 3
+  },
+  {
+   "fabrik": "Upsala",
+   "modell": "4155",
+   "antal": 3
+  },
+  {
+   "fabrik": "Gustavsberg",
+   "modell": "195",
+   "antal": 3
+  },
+  {
+   "fabrik": "Gustavsberg",
+   "modell": "1974",
+   "antal": 3
+  },
+  {
+   "fabrik": "Rörstrand",
+   "modell": "1904",
+   "antal": 3
+  },
+  {
+   "fabrik": "Rörstrand",
+   "modell": "1997",
+   "antal": 3
+  },
+  {
+   "fabrik": "Boda",
+   "modell": "140",
+   "antal": 3
+  },
+  {
+   "fabrik": "Kosta",
+   "modell": "349",
+   "antal": 3
+  },
+  {
+   "fabrik": "Kosta",
+   "modell": "1058",
+   "antal": 3
+  },
+  {
+   "fabrik": "Orrefors",
+   "modell": "312",
+   "antal": 3
+  },
+  {
+   "fabrik": "Orrefors",
+   "modell": "1323",
+   "antal": 3
+  },
+  {
+   "fabrik": "Saxbo",
+   "modell": "1958",
+   "antal": 3
+  },
+  {
+   "fabrik": "Palshus",
+   "modell": "1155",
+   "antal": 3
+  },
+  {
+   "fabrik": "Palshus",
+   "modell": "1950/60",
+   "antal": 3
+  },
+  {
+   "fabrik": "Bo",
+   "modell": "837",
+   "antal": 3
+  },
+  {
+   "fabrik": "Bo",
+   "modell": "107",
+   "antal": 3
+  },
+  {
+   "fabrik": "Höganäs",
+   "modell": "1900",
+   "antal": 3
+  },
+  {
+   "fabrik": "Höganäs",
+   "modell": "4141",
+   "antal": 3
+  },
+  {
+   "fabrik": "Upsala-Ekeby",
+   "modell": "0113",
+   "antal": 2
+  },
+  {
+   "fabrik": "Upsala-Ekeby",
+   "modell": "1081",
+   "antal": 2
+  },
+  {
+   "fabrik": "Upsala",
+   "modell": "2645",
+   "antal": 2
+  },
+  {
+   "fabrik": "Gustavsberg",
+   "modell": "1916",
+   "antal": 2
+  },
+  {
+   "fabrik": "Gustavsberg",
+   "modell": "1982",
+   "antal": 2
+  },
+  {
+   "fabrik": "Gustavsberg",
+   "modell": "232",
+   "antal": 2
+  },
+  {
+   "fabrik": "Gustavsberg",
+   "modell": "261",
+   "antal": 2
+  },
+  {
+   "fabrik": "Gustavsberg",
+   "modell": "1971",
+   "antal": 2
+  }
+ ],
+ "exempel": [
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "MARI SIMMULSON. Bowl, Uppsala Ekeby 1949, unique, earthenware.",
+   "stampel": "Signed Maris 1949 and stamped EKEBY",
+   "bilder": 8,
+   "ar": 2022,
+   "pris": null,
+   "url": "https://auctionet.com/en/events/340-modern-contemporary-spring-2022/365-mari-simmulson-bowl-uppsala-ekeby-1949-unique-earthenware"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "VASE, \"Grafika\" Ingrid Atterberg, Upsala-Ekeby.",
+   "stampel": "Signed",
+   "bilder": 4,
+   "ar": 2017,
+   "pris": null,
+   "url": "https://auctionet.com/en/639146-vase-grafika-ingrid-atterberg-upsala-ekeby"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "MARI SIMMULSON. Sculpture, Upsala Ekeby 1950s, in the form of Polynesian.",
+   "stampel": "signed No 11 Mari Simmulson, socle in wood, height 78 cm",
+   "bilder": 10,
+   "ar": 2025,
+   "pris": null,
+   "url": "https://auctionet.com/en/events/824-the-design-collection/181-mari-simmulson-sculpture-upsala-ekeby-1950s-in-the-form-of-polynesian"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "ANNA-LISA THOMSON. A unique bowl, so-called original work, chamotte pottery, Uppsala Ekeby",
+   "stampel": "signed EVERYTHING",
+   "bilder": 5,
+   "ar": 2021,
+   "pris": null,
+   "url": "https://auctionet.com/en/events/324-moderna-nutida-hosten-2021/362-anna-lisa-thomson-a-unique-bowl-so-called-original-work-chamotte-pottery-uppsala-ekeby-1940s"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "SKÅL, keramik, \"Mars\" Mari Simmulson, Upsala Ekeby, 1950-tal.",
+   "stampel": "Modellnummer 4145",
+   "bilder": 3,
+   "ar": 2016,
+   "pris": null,
+   "url": "https://auctionet.com/en/424902-bowl-ceramics-mars-mari-simmulson-upsala-ekeby-1950s"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "MARI SIMMULSON. Fad, glaseret stentøj, Upsala-Ekeby, model 4155, Sverige, 1954-1970.",
+   "stampel": "Signeret samt mærket med Værkstedsstempel",
+   "bilder": 9,
+   "ar": 2024,
+   "pris": null,
+   "url": "https://auctionet.com/en/3840704-mari-simmulson-a-platter-glazed-stoneware-upsala-ekeby-model-4155-sweden-1954-1970"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "MARI SIMULSSON. Sculpture, Upsala-Ekeby, earthenware, in the form of a seated Indonesian w",
+   "stampel": "Signed 13/50 mari simmulsson, height 47, width 40 x 32 cm",
+   "bilder": 10,
+   "ar": 2025,
+   "pris": null,
+   "url": "https://auctionet.com/en/events/824-the-design-collection/182-mari-simulsson-sculpture-upsala-ekeby-earthenware-in-the-form-of-a-seated-indonesian-woman-partly-polychrome-glaze"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "VICKE LINDSTRAND. Elefant, Upsala Ekeby.",
+   "stampel": "Etikettmärkt Upsala Ekeby",
+   "bilder": 5,
+   "ar": 2026,
+   "pris": null,
+   "url": "https://auctionet.com/en/5098043-vicke-lindstrand-elephant-upsala-ekeby"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "MARI SIMMULSON. figurin, Upsala Ekeby.",
+   "stampel": "monogramsignerd ms, Uppsala Ekeby, höjd ca 25 cm",
+   "bilder": 6,
+   "ar": 2020,
+   "pris": null,
+   "url": "https://auctionet.com/en/1437609-mari-simmulson-figurine-upsala-ekeby"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "VICKE LINDSTRAND. Snäckvas, Upsala-Ekeby.",
+   "stampel": "märkt Upsala-Ekeby nr 342, signerad VL, höjd 19 cm",
+   "bilder": 5,
+   "ar": 2018,
+   "pris": null,
+   "url": "https://auctionet.com/en/784036-vicke-lindstrand-shell-vase-upsala-ekeby"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "DOROTHY CLOUGH. Katt, Keramik, Upsala-Ekeby.",
+   "stampel": "Märkt på undersidan med Upsala-Ekeby DC",
+   "bilder": 5,
+   "ar": 2014,
+   "pris": null,
+   "url": "https://auctionet.com/en/226378-dorothy-clough-katt-keramik-upsala-ekeby"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "MARI SIMMULSON. Figurin, keramik, Upsala-Ekeby.",
+   "stampel": "Signerad med initialer och stämplad Upsala Ekeby",
+   "bilder": 7,
+   "ar": 2026,
+   "pris": null,
+   "url": "https://auctionet.com/en/5064249-mari-simmulson-figurine-ceramic-upsala-ekeby"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "DOROTHY CLOUGH. Upsala-Ekeby, katt, figurin.",
+   "stampel": "Signerad Upsala-Ekeby Gefle 860-2 D",
+   "bilder": 5,
+   "ar": 2022,
+   "pris": null,
+   "url": "https://auctionet.com/en/2088281-dorothy-clough-upsala-ekeby-cat-figurine"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "MARI SIMMULSON. Skålfat, kermik, Upsala-Ekeby.",
+   "stampel": "Märkt Mari Simmulsson, Upsala-Ekeby 1067, ca 36 x 24 cm",
+   "bilder": 3,
+   "ar": 2023,
+   "pris": null,
+   "url": "https://auctionet.com/en/3095036-mari-simmulson-dish-ceramics-upsala-ekeby"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "DOROTHY CLOUGH. Figuriner, katter, Upsala-Ekeby.",
+   "stampel": "Signerade D",
+   "bilder": 4,
+   "ar": 2022,
+   "pris": null,
+   "url": "https://auctionet.com/en/2310572-dorothy-clough-figurines-cats-upsala-ekeby"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "VASER, 2 st, Upsala Ekeby.",
+   "stampel": "märkning Upsala Ekeby, höjd 23 cm, bredd 7,5 cm",
+   "bilder": 7,
+   "ar": 2015,
+   "pris": null,
+   "url": "https://auctionet.com/en/288137-vaser-2-pcs-upsala-ekeby"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "VICKE LINDSTRAND. Figurin, keramik, björn, Upsala-Ekeby.",
+   "stampel": "signerad",
+   "bilder": 3,
+   "ar": 2018,
+   "pris": null,
+   "url": "https://auctionet.com/en/811546-vicke-lindstrand-figurine-ceramic-bear-upsala-ekeby"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "VICKE LINDSTRAND. Elefanter, två stycken, Upsala Ekeby.",
+   "stampel": "etikettmärkt Upsala-Ekeby",
+   "bilder": 5,
+   "ar": 2026,
+   "pris": null,
+   "url": "https://auctionet.com/en/5098057-vicke-lindstrand-elephants-two-upsala-ekeby"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "FAT, \"Tomtegubbar\", Uppsala Ekeby, Gefle.",
+   "stampel": "Märkt Tomtegubbar, Uppsala Ekeby, Gefle, 106210 29x33 cm",
+   "bilder": 3,
+   "ar": 2018,
+   "pris": null,
+   "url": "https://auctionet.com/en/870020-fat-tomtegubbar-uppsala-ekeby-gefle"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "ESTER WA. VÄGGPLATTA samt VAS, Upsala Ekeby.",
+   "stampel": "sign: Göran Andersson",
+   "bilder": 11,
+   "ar": 2021,
+   "pris": null,
+   "url": "https://auctionet.com/en/1707021-ester-wa-wall-plate-and-vase-upsala-ekeby"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "KERAMIK, 6 delar, Märta Willborg, Hjördis Olfors, Upsala Ekeby, Laholm.",
+   "stampel": "signerade",
+   "bilder": 8,
+   "ar": 2016,
+   "pris": null,
+   "url": "https://auctionet.com/en/503977-ceramics-6-parts-marta-willborg-hjordis-olfors-upsala-ekeby-laholm"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "VICKE LINDSTRAND. FIGURINER, FÖR UPSALA EKEBY.",
+   "stampel": "etikettmärkt Upsala Ekeby",
+   "bilder": 6,
+   "ar": 2019,
+   "pris": null,
+   "url": "https://auctionet.com/en/1111724-vicke-lindstrand-figures-for-upsala-ekeby"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "VASER, 3 st, bland annat Rörstrand och Upsala-Ekeby.",
+   "stampel": "signerad",
+   "bilder": 10,
+   "ar": 2024,
+   "pris": null,
+   "url": "https://auctionet.com/en/3816628-a-set-of-3-vases-including-rorstrand-and-upsala-ekeby"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "KERAMIK, 6 delar, Ekeby, Upsala-Ekeby m m.",
+   "stampel": "märkt 1777 Upsala-Ekeby Gefle 10 cm",
+   "bilder": 9,
+   "ar": 2019,
+   "pris": null,
+   "url": "https://auctionet.com/en/996508-ceramics-6-parts-ekeby-upsala-ekeby-etc"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "BERIT TERNELL. Vas, keramik, \"Manhattan\", Uppsala Ekeby.",
+   "stampel": "Etikettmärkt Uppsala Ekeby, stämplad UE",
+   "bilder": 5,
+   "ar": 2018,
+   "pris": null,
+   "url": "https://auctionet.com/en/807644-berit-ternell-vase-ceramics-manhattan-uppsala-ekeby"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "UPSALA EKEBY, häst,Dorothy Clough.",
+   "stampel": "Etikettmärkt Upsala Ekeby Sweden",
+   "bilder": 4,
+   "ar": 2024,
+   "pris": null,
+   "url": "https://auctionet.com/en/3651929-upsala-ekeby-horse-dorothy-clough"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "AMPEL, keramik, Upsala Ekeby, 1900-tal.",
+   "stampel": "Märkt UE Upsala-Ekeby Höjd ca: 12cm Diameter ca: 22cm",
+   "bilder": 5,
+   "ar": 2019,
+   "pris": null,
+   "url": "https://auctionet.com/en/1161227-ampel-ceramics-upsala-ekeby-1900s"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "ESTER WALLIN. Figurin, katter, lergods, Upsala Ekeby.",
+   "stampel": "etikettmärkt samt stämplat Upsala Ekeby 0113",
+   "bilder": 6,
+   "ar": 2022,
+   "pris": null,
+   "url": "https://auctionet.com/en/2130933-ester-wallin-figurine-cats-earthenware-upsala-ekeby"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "ANNA-LISA THOMSON. Golvvas, \"Paprika\", Upsala Ekeby.",
+   "stampel": "Modellnummer 1081",
+   "bilder": 5,
+   "ar": 2026,
+   "pris": null,
+   "url": "https://auctionet.com/en/5174143-anna-lisa-thomson-floor-vase-paprika-upsala-ekeby"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "MARI SIMMULSON. Fat, 2 st, keramik, Uppsala Ekeby.",
+   "stampel": "Signerad MS, märkt Uppsala Ekeby",
+   "bilder": 5,
+   "ar": 2018,
+   "pris": null,
+   "url": "https://auctionet.com/en/825132-mari-simmulson-dish-2-pcs-ceramic-uppsala-ekeby"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "FIGURINER, 5 st, elefanter, keramik, Gefle/Upsala-Ekeby, Fej Keramik, Sverige, 1900-tal.",
+   "stampel": "Signerad FEJ",
+   "bilder": 5,
+   "ar": 2019,
+   "pris": null,
+   "url": "https://auctionet.com/en/1038261-figurines-5-pcs-elephants-ceramics-gefle-upsala-ekeby-fej-keramik-sweden-1900s"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "VICKE LINDSTRAND. Snäckvas, lergods, Upsala Ekeby.",
+   "stampel": "Etikettmärkt Upsala Ekeby",
+   "bilder": 8,
+   "ar": 2026,
+   "pris": null,
+   "url": "https://auctionet.com/en/5470759-vicke-lindstrand-shell-vase-earthenware-upsala-ekeby"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "KERAMIK, 3 delar, Tilgmans och Upsala-Ekeby.",
+   "stampel": "signerad Sj",
+   "bilder": 4,
+   "ar": 2016,
+   "pris": null,
+   "url": "https://auctionet.com/en/404360-ceramics-3-parts-tilgmans-and-upsala-ekeby"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "FIGURIN i porslin. Collie. Uppsala Ekeby.",
+   "stampel": "Märkt UE, Uppsala Ekeby",
+   "bilder": 8,
+   "ar": 2014,
+   "pris": null,
+   "url": "https://auctionet.com/en/192569-figure-in-porcelain-collie-uppsala-ekeby"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "VAS, keramik, grön, Upsala Ekeby, 1900-tal.",
+   "stampel": "Etikettmärkt Upsala Ekeby",
+   "bilder": 4,
+   "ar": 2016,
+   "pris": null,
+   "url": "https://auctionet.com/en/446236-vase-ceramic-green-upsala-ekeby-1900s"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "VASER, 3 st, bland annat Upsala-Ekeby.",
+   "stampel": "märkt",
+   "bilder": 7,
+   "ar": 2025,
+   "pris": null,
+   "url": "https://auctionet.com/en/4338955-a-set-of-3-vases-including-upsala-ekeby"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "ANNA-LISA THOMSON. Golvvas, Upsala Ekeby, \"Paprika\".",
+   "stampel": "Modellnummer 1081",
+   "bilder": 5,
+   "ar": 2025,
+   "pris": null,
+   "url": "https://auctionet.com/en/4524011-anna-lisa-thomson-floor-vase-uppsala-ekeby-paprika"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "FIGURIN, keramik, katt, Dorothy Clough, Upsala-Ekeby.",
+   "stampel": "Etikettmärkt Uppsala Ekeby, Signerad DC",
+   "bilder": 5,
+   "ar": 2022,
+   "pris": null,
+   "url": "https://auctionet.com/en/2286472-figurine-ceramics-cat-dorothy-clough-upsala-ekeby"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "KERAMIKFÖREMÅL, 3 st, Uppsala Ekeby och Gefle.",
+   "stampel": "märkt 6030M",
+   "bilder": 4,
+   "ar": 2014,
+   "pris": null,
+   "url": "https://auctionet.com/en/118527-ceramic-objects-3-pcs-uppsala-ekeby-and-gefle"
+  },
+  {
+   "fras": "Upsala-Ekeby",
+   "titel": "VASER, ASSIETTER, KAROTT. 9 delar, Upsala-Ekeby.",
+   "stampel": "stämplade",
+   "bilder": 4,
+   "ar": 2023,
+   "pris": null,
+   "url": "https://auctionet.com/en/2783598-vases-plates-carrots-9-parts-upsala-ekeby"
+  }
+ ],
+ "bildfalt": [
+  "hd",
+  "mini",
+  "thumb",
+  "w640"
+ ]
+}
