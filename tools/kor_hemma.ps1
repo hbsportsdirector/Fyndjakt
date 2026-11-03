@@ -1,4 +1,4 @@
-# Fyndjakt hemma: kör nattjakten (eller en snabbkörning) på den egna datorn och sparar resultatet i repot.
+﻿# Fyndjakt hemma: kör nattjakten (eller en snabbkörning) på den egna datorn och sparar resultatet i repot.
 #
 #   powershell -ExecutionPolicy Bypass -File tools\kor_hemma.ps1          # hela körningen (som nattjobbet på GitHub)
 #   powershell -ExecutionPolicy Bypass -File tools\kor_hemma.ps1 -Snabb   # bara Tradera och Myrorna, liten budget

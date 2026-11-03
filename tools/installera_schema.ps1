@@ -1,4 +1,4 @@
-# Lägger in Fyndjakt i Windows schemaläggare: hel körning varje kväll 21:00 och snabbkörning varje timme 07–23.
+﻿# Lägger in Fyndjakt i Windows schemaläggare: hel körning varje kväll 21:00 och snabbkörning varje timme 07–23.
 # Kör en gång, som vanlig användare:
 #   powershell -ExecutionPolicy Bypass -File tools\installera_schema.ps1
 # Ta bort igen:
