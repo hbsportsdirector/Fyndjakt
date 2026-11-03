@@ -184,7 +184,7 @@ Svara ENBART med ett JSON-objekt:
  "nasta_kontroll": ["<konkreta saker att kontrollera på plats, max 4>"],
  "resonemang": "<högst 2 korta meningar på svenska om varför>",
  "referens_match": "<R1, R2 … när en referens ur biblioteket verkligen matchar stämpeln, annars null>",
- "referens_varfor": "<kort: vad som stämmer eller inte stämmer mot referenserna, eller tom sträng>"}
+ "referens_varfor": "<1–3 meningar: vad som stämmer eller inte stämmer mot referenserna, eller tom sträng>"}
 Var ärlig om osäkerhet: sänk sakerhet och säg vad som saknas (t.ex. 'fota botten'). Gissa aldrig en signatur eller tillverkare
 du inte kan belägga – skriv "Okänd".`;
 }
@@ -671,7 +671,7 @@ Fyndjakts identifiering: ${String(kropp.identifierat ?? "-").slice(0, 200)}` });
       ...(match ? { sakerhet: Math.max(0.8, Math.min(1, Number(res.sakerhet) || 0)) } : {}),
       referenser: referenser.map((r) => ({ ref: r.ref, id: r.id, kalla: r.kalla, kalla_id: r.kalla_id, titel: str(r.titel, 140), fabrik: r.fabrik, formgivare: r.formgivare, modell: r.modell,
         stampeltext: r.stampeltext ? str(r.stampeltext, 200) : null, bild_url: r.bild_url, url: r.url, pris: r.pris, slutade: r.slutade, parti: r.parti })),
-      referens_match: match ? match.ref : null, referens_varfor: str(res.referens_varfor, 200),
+      referens_match: match ? match.ref : null, referens_varfor: str(res.referens_varfor, 600),
       stampel_las: stampelLas ? { ordagrant: str(stampelLas.ordagrant, 200), typ: str(stampelLas.typ, 40), osakra_tecken: str(stampelLas.osakra_tecken, 200),
         tolkningar: (Array.isArray(stampelLas.tolkningar) ? stampelLas.tolkningar : []).slice(0, 3).map((t: Record<string, unknown>) => ({
           tillverkare: str(t.tillverkare, 80), formgivare: str(t.formgivare, 80), modell: str(t.modell, 80), sakerhet: Math.max(0, Math.min(1, Number(t.sakerhet) || 0)), varfor: str(t.varfor, 200) })),
