@@ -1342,7 +1342,7 @@ def test_vardering_tunt_underlag_andrar_inget():
     # Ett föremål som är ett parti: styckmedian × antal, rabatt för stora partier, märkt ungefärligt.
     tre = vardering.vardera({"namn": "Fat", "kategori": "Keramik & porslin", "antal": 3}, par, date(2026, 11, 3))
     assert tre["median"] == 1500 and tre["styckmedian"] == 500 and tre["parti"] == 3
-    assert tre["text"] == "Auctionet 3 nov 2026: 3 sålda, median 500 kr per styck × 3 delar ≈ 1 500 kr för partiet, ungefärligt."
+    assert tre["text"] == "Auctionet 3 nov 2026: 3 sålda partier, median 500 kr per styck × 3 delar ≈ 1 500 kr för partiet, ungefärligt."
     sextio = vardering.vardera({"namn": "Servis", "antal": 60}, par)
     assert sextio["median"] == 18000 and "× 0.6 (partirabatt)" in sextio["text"]
     # Ett parti jämförs helst med sålda partier: ensamma "Snapsglas" för 1 400 kr är i verkligheten tolv glas.
