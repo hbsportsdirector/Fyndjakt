@@ -1,7 +1,8 @@
 """Omvärdering av samlingen mot riktiga slutpriser på Auctionet.
 
 För varje föremål söks avslutade auktioner med föremålets sökord. Värdet blir medianen av de sålda, räknat per
-styck (partier delas med sitt antal). Står föremålets höjd i namnet eller anteckningen jämförs bara mot sålda i
+styck (sålda partier delas med sitt antal); för ett föremål som självt är ett parti blir värdet styckmedianen gånger
+antalet, med rabatt för stora partier, och märks ungefärligt. Står föremålets höjd i namnet eller anteckningen jämförs bara mot sålda i
 ungefär samma storlek – en stor Stella Polaris-vas är inte en liten. Andelen som gick osåld redovisas, för den
 säger hur lätt det är att få det sålt. Värdet uppdateras bara när det finns minst MIN_SALDA jämförelser;
 annars ligger det gamla kvar och föremålet hamnar på listan "tunt underlag".
@@ -53,12 +54,30 @@ def vardera(foremal: dict, poster: list[dict], idag: date | None = None) -> dict
     osalda = sum(1 for p in urval if not p["sald"])
     sammanfattning = prisjamforelse.sammanfatta(salda)
     andel_osald = round(osalda / len(urval), 2) if urval else None
+    n = int(foremal.get("antal") or 1)
     res = {"antal": len(salda), "osalda": osalda, "andel_osald": andel_osald, "storlek": storlek,
-           "storleksfiltrerat": filtrerat, "uppdatera": bool(sammanfattning and len(salda) >= MIN_SALDA)}
+           "storleksfiltrerat": filtrerat, "uppdatera": bool(sammanfattning and len(salda) >= MIN_SALDA),
+           "parti": n if n > 1 else None}
     if sammanfattning:
         res.update({k: sammanfattning[k] for k in ("median", "lag", "hog")})
+        if n > 1:
+            # Partiet: styckmedianen gånger antalet, med rabatt – många delar säljs billigare per styck än en.
+            res["styckmedian"] = sammanfattning["median"]
+            res["rabatt"] = parti_rabatt(n)
+            for k in ("median", "lag", "hog"):
+                res[k] = int(round(sammanfattning[k] * n * res["rabatt"]))
     res["text"] = text(res, idag)
     return res
+
+
+# Partier säljs billigare per styck ju fler delarna är: tre fat går nästan för tre gånger ett, en servis på 60
+# delar går inte för 60 gånger en tallrik. Uppskattade faktorer – värdet märks "ungefärligt".
+def parti_rabatt(antal: int) -> float:
+    return 1.0 if antal <= 3 else 0.8 if antal <= 12 else 0.6
+
+
+def rabatt_text(res: dict) -> str:
+    return f" × {res['rabatt']:g} (partirabatt)" if res.get("rabatt", 1) < 1 else ""
 
 
 def text(res: dict, idag: date) -> str:
@@ -69,7 +88,11 @@ def text(res: dict, idag: date) -> str:
         if res["osalda"]:
             delar.append(f"{res['osalda']} osålda")
         return ", ".join(delar) + "."
-    t = f"Auctionet {_datum(idag)}: {res['antal']} sålda, median {_kr(res['median'])} ({_kr(res['lag'])[:-3]}–{_kr(res['hog'])})"
+    if res.get("parti"):
+        t = (f"Auctionet {_datum(idag)}: {res['antal']} sålda, median {_kr(res['styckmedian'])} per styck × {res['parti']} delar"
+             f"{rabatt_text(res)} ≈ {_kr(res['median'])} för partiet, ungefärligt")
+    else:
+        t = f"Auctionet {_datum(idag)}: {res['antal']} sålda, median {_kr(res['median'])} ({_kr(res['lag'])[:-3]}–{_kr(res['hog'])})"
     if res["andel_osald"]:
         t += f", {round(res['andel_osald'] * 100)} % osålda"
     if res["storleksfiltrerat"]:
@@ -117,8 +140,8 @@ def beslut(foremal: dict, res: dict, fras: str) -> tuple[bool, str]:
         return False, "värdet är låst i anteckningen"
     if foremal.get("kategori") in INTE_AUTO:
         return False, "konst – unika verk, jämför själv"
-    if (foremal.get("antal") or 1) > 1:
-        return False, f"parti om {foremal['antal']} – jämförelsen gäller ett styck"
+    if (foremal.get("antal") or 1) > 3:
+        return False, f"parti om {foremal['antal']} – ungefärligt (styckmedian × antal med rabatt), granska"
     if osaker_attribution(foremal):
         return False, "osäker attribution (trolig/i stil med/okänd)"
     if not specifik(fras, foremal):
@@ -138,10 +161,10 @@ MAX_FORSLAG = 3.0   # mer än tre gånger eller mindre än en tredjedel: söknin
 
 
 def foreslas(res: dict, skal: str, gammal: int | None = None) -> bool:
-    """Blir värderingen ett förslag att granska på sajten? Inte för partier (jämförelsen gäller ett styck och
-    vore missvisande), låsta värden, när det inte finns något värde att föreslå – eller när förslaget är orimligt
-    långt från nuvarande värde (Tuna-ugnsform 400 → 24 kr, Gustavsberg-vas 400 → 8 500 kr)."""
-    if not (res.get("uppdatera") and res.get("median")) or skal.startswith(("parti", "värdet är låst")):
+    """Blir värderingen ett förslag att granska på sajten? Inte för låsta värden, när det inte finns något värde
+    att föreslå – eller när förslaget är orimligt långt från nuvarande värde (Tuna-ugnsform 400 → 24 kr,
+    Gustavsberg-vas 400 → 8 500 kr). Större partier blir alltid förslag (värdet är ungefärligt)."""
+    if not (res.get("uppdatera") and res.get("median")) or skal.startswith("värdet är låst"):
         return False
     return not gammal or 1 / MAX_FORSLAG <= res["median"] / gammal <= MAX_FORSLAG
 

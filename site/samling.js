@@ -113,7 +113,7 @@
   }
   function ejOmvarderatSkal(it) {
     if (/orört|lås(t)? värde/i.test(it.anteckning || "")) return "värdet är låst i anteckningen";
-    if ((+it.antal || 1) > 1) return `parti om ${it.antal} – jämförs inte automatiskt`;
+    if ((+it.antal || 1) > 3) return `parti om ${it.antal} – värderas ungefärligt (styckmedian × antal) och kommer som förslag`;
     if (forslagFor(it)) return "ett förslag väntar på dig";
     const sok = it.sokord ? ` (sökte ”${it.sokord}”)` : "";
     return `för få sålda att jämföra med på Auctionet${sok}` + (it.kategori === "Konst" ? "; konst ändras aldrig automatiskt" : "");

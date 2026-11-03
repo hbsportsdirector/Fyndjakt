@@ -1336,9 +1336,15 @@ def test_vardering_tunt_underlag_andrar_inget():
     res = vardering.vardera({"namn": "Träsnitt", "kategori": "Konst"}, poster, date(2026, 10, 30))
     assert not res["uppdatera"] and "median" not in res
     assert res["text"] == "Auctionet 30 okt 2026: för få sålda (1) – värdet är inte ändrat, 1 osålda."
-    # Partier räknas per styck.
+    # Sålda partier räknas per styck.
     par = [{"pris": 1000, "sald": True, "titel": f"Vaser, 2 st, Stella Polaris {i}", "text": ""} for i in range(3)]
     assert vardering.vardera({"namn": "Vas", "kategori": "Glas"}, par)["median"] == 500
+    # Ett föremål som är ett parti: styckmedian × antal, rabatt för stora partier, märkt ungefärligt.
+    tre = vardering.vardera({"namn": "Fat", "kategori": "Keramik & porslin", "antal": 3}, par, date(2026, 11, 3))
+    assert tre["median"] == 1500 and tre["styckmedian"] == 500 and tre["parti"] == 3
+    assert tre["text"] == "Auctionet 3 nov 2026: 3 sålda, median 500 kr per styck × 3 delar ≈ 1 500 kr för partiet, ungefärligt."
+    sextio = vardering.vardera({"namn": "Servis", "antal": 60}, par)
+    assert sextio["median"] == 18000 and "× 0.6 (partirabatt)" in sextio["text"]
 
 
 def test_omvardering_andrar_bara_det_som_ar_sakert():
@@ -1347,9 +1353,12 @@ def test_omvardering_andrar_bara_det_som_ar_sakert():
     res = lambda median, antal=20: {"uppdatera": True, "median": median, "antal": antal}
     stella = {"kategori": "Glas", "antal": 1, "tillverkare": "Vicke Lindstrand, Orrefors", "serie": "Stella Polaris", "auk_median": 300}
     assert vardering.beslut(stella, res(200), "Stella Polaris vas") == (True, "")
-    # Partier: det gamla värdet gäller hela partiet, jämförelsen ett styck.
+    # Stora partier ändras aldrig automatiskt (värdet är ungefärligt) men blir förslag; små partier (≤ 3) behandlas som ett föremål.
     odon = {"kategori": "Keramik & porslin", "antal": 60, "tillverkare": "Gustavsberg", "serie": "Odon", "auk_median": 4000}
-    assert vardering.beslut(odon, res(326), "Gustavsberg Odon")[1].startswith("parti om 60")
+    skal = vardering.beslut(odon, res(11736), "Gustavsberg Odon")[1]   # 326 kr/st × 60 × 0,6 – partiets värde, som vardera() nu lämnar
+    assert skal.startswith("parti om 60") and vardering.foreslas(res(11736), skal, 4000)
+    fat = {"kategori": "Keramik & porslin", "antal": 3, "tillverkare": "Rörstrand", "serie": "Valentine", "auk_median": 500}
+    assert vardering.beslut(fat, res(600), "Rörstrand Valentine fat") == (True, "")
     # Allmänt sökord som inte nämner tillverkare eller serie (och okänd tillverkare ändras aldrig automatiskt).
     skal = {"kategori": "Glas", "antal": 1, "tillverkare": "Okänd", "serie": "", "auk_median": 200}
     assert vardering.beslut(skal, res(250), "blå glasskål")[1].startswith("osäker attribution")
@@ -1386,7 +1395,7 @@ def test_vilka_som_blir_forslag():
     res = {"uppdatera": True, "median": 175, "antal": 42}
     assert vardering.foreslas(res, "stor ändring (×0.4) – kontrollera")
     assert vardering.foreslas(res, "konst – unika verk, jämför själv")
-    assert not vardering.foreslas(res, "parti om 60 – jämförelsen gäller ett styck")
+    assert vardering.foreslas(res, "parti om 60 – ungefärligt (styckmedian × antal med rabatt), granska")   # partier blir förslag
     assert not vardering.foreslas(res, "värdet är låst i anteckningen")
     assert not vardering.foreslas({"uppdatera": False, "antal": 1}, "för få sålda (1)")
     # Orimligt långt från nuvarande värde: sökningen har träffat fel sorts föremål – föreslås inte.

@@ -204,12 +204,10 @@
     // Värdet gäller hela posten – ett parti om 60 delar har ett värde för alla 60, inte per del.
     return it.auk_median ?? mitt(it.marknad_min, it.marknad_max);
   }
-  // Det pris man väntar sig få för annonsen (hela partiet): utgångspriset om satt; annars auktionsmedianen, som gäller
-  // ett styck, gånger antalet; annars Claudes uppskattning, som redan gäller alla föremålen.
+  // Det pris man väntar sig få för annonsen: utgångspriset om satt, annars värdet – som alltid gäller föremålet så som
+  // det säljs (ett parti värderas som helhet, både av omvärderingen och av Claude).
   function forvantat(it) {
     if (it.tradera_pris != null) return +it.tradera_pris;
-    const n = Math.max(1, +it.antal || 1);
-    if (it.auk_median) return Math.round(it.auk_median * n);
     const v = varde(it);
     return v == null ? null : Math.round(v);
   }
