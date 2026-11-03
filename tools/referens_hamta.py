@@ -88,8 +88,10 @@ class Databas:
         r = requests.post(f"{self.url}/rest/v1/rpc/fyndjakt_kolla_nyckel", json={"token": self.token},
                           headers={"apikey": self.nyckel, "Authorization": f"Bearer {self.nyckel}", "Content-Type": "application/json"}, timeout=60)
         if r.status_code != 200 or "nyckel" in r.text:
-            sys.exit("Supabase svarade 'ogiltig nyckel' – FYNDJAKT_BOT_TOKEN stämmer inte med någon hash i databasen.\n"
-                     "Hashen av din nyckel:  python -c \"import hashlib,os;print(hashlib.sha256(os.environ['FYNDJAKT_BOT_TOKEN'].strip().encode()).hexdigest())\"")
+            import hashlib
+            t = self.token
+            sys.exit("Supabase svarade 'ogiltig nyckel' – FYNDJAKT_BOT_TOKEN i det här fönstret stämmer inte med någon hash i databasen.\n"
+                     f"Nyckeln som används börjar med {t[:5]}… och är {len(t)} tecken. Skicka den här hashen till Claude, så läggs den in:\n  {hashlib.sha256(t.encode()).hexdigest()}")
         print("Nyckeln stämmer.")
 
     def antal(self) -> list[dict]:
