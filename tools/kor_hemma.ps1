@@ -25,9 +25,11 @@ try {
   }
   if (-not $env:SAJT_URL) { $env:SAJT_URL = "https://hbsportsdirector.github.io/Fyndjakt/" }
 
-  # Python 3.12 om den finns (de nyaste versionerna saknar färdiga paket för lxml, pillow och cryptography).
+  # Python 3.14, 3.13 eller 3.12 om någon finns (den allra nyaste versionen saknar färdiga paket för lxml, pillow och cryptography).
   $py = "python"; $pyArgs = @()
-  if (Get-Command py -ErrorAction SilentlyContinue) { $v = & py -3.12 -c "print(1)" 2>$null; if ($v -eq "1") { $py = "py"; $pyArgs = @("-3.12") } }
+  if (Get-Command py -ErrorAction SilentlyContinue) {
+    foreach ($ver in "-3.14", "-3.13", "-3.12") { $v = & py $ver -c "print(1)" 2>$null; if ($v -eq "1") { $py = "py"; $pyArgs = @($ver); break } }
+  }
 
   Logga ("Startar " + $(if ($Snabb) { "snabbkörning" } else { "hel körning" }) + " med $py $pyArgs")
   git pull -q --rebase origin main 2>&1 | ForEach-Object { Logga "git: $_" }

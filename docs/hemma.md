@@ -7,18 +7,18 @@ och Myrorna, där billiga saker försvinner inom några timmar. GitHub-jobbet fi
 
 Fynden hamnar i Supabase direkt, så appen i telefonen märker ingen skillnad utom att de kommer oftare.
 
-## 1. Python 3.12 (en gång)
+## 1. Python 3.14 (en gång)
 
 Fyndjakt behöver paket som ännu inte finns färdigbyggda för Python 3.15 (lxml, pillow, cryptography). Installera därför
-**Python 3.12** vid sidan om: <https://www.python.org/downloads/windows/> → "Python 3.12.x" → Windows installer (64-bit).
-Kryssa i "Add python.exe to PATH". Sedan, i PowerShell i `C:\Users\Per\Fyndjakt`:
+**Python 3.14** vid sidan om (3.12 får inga installationspaket längre): <https://www.python.org/downloads/windows/> →
+"Python 3.14.x" → Windows installer (64-bit). Kryssa i "Add python.exe to PATH". Sedan, i PowerShell i `C:\Users\Per\Fyndjakt`:
 
 ```powershell
 git pull
-py -3.12 -m pip install -r requirements.txt
+py -3.14 -m pip install -r requirements.txt
 ```
 
-`py -3.12` väljer rätt version även om 3.15 är standard. Skriptet använder den automatiskt.
+`py -3.14` väljer rätt version även om 3.15 är standard. Skriptet hittar den automatiskt (3.14, 3.13 eller 3.12).
 
 ## 2. Nycklarna (en gång)
 
@@ -40,7 +40,7 @@ visar aldrig sina). Tradera-nycklarna på <https://api.tradera.com> under din ap
 ## 3. Provkör
 
 ```powershell
-py -3.12 main.py --torr
+py -3.14 main.py --torr
 ```
 
 Torrkörningen hämtar annonser och skriver ut dem, utan Claude och utan att spara. Går den igenom är allt installerat.
