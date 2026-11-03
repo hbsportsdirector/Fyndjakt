@@ -32,7 +32,10 @@ try {
   }
 
   Logga ("Startar " + $(if ($Snabb) { "snabbkörning" } else { "hel körning" }) + " med $py $pyArgs")
-  git pull -q --rebase origin main 2>&1 | ForEach-Object { Logga "git: $_" }
+  # Senaste koden – även om data-filerna är ändrade sedan förra körningen (autostash lägger undan och tillbaka).
+  git pull -q --rebase --autostash origin main 2>&1 | ForEach-Object { Logga "git: $_" }
+  # Nya paket sedan sist? Snabbt när allt redan finns.
+  & $py @pyArgs -m pip install -q -r requirements.txt 2>&1 | Select-Object -Last 3 | ForEach-Object { Logga "pip: $_" }
 
   $flaggor = @()
   if ($Snabb) { $flaggor += "--snabb" }

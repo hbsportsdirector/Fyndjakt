@@ -118,7 +118,11 @@ def datum_kl(dt) -> str:
 
 
 def _nu() -> str:
-    return datum_kl(datetime.now(ZoneInfo("Europe/Stockholm")))
+    try:
+        nu = datetime.now(ZoneInfo("Europe/Stockholm"))
+    except Exception:   # Windows utan tzdata-paketet: datorns egen klocka står ändå i svensk tid
+        nu = datetime.now()
+    return datum_kl(nu)
 
 
 def anvandarfynd(db, cfg: dict) -> dict:
