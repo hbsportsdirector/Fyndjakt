@@ -110,8 +110,15 @@ def _sparlista(spar_cfg: dict) -> list[dict]:
             for sid, s in spar_cfg.items()]
 
 
+
+# "%-d" i strftime finns bara på Linux/macOS – Windows ger ValueError. Därför skrivs dag och månad för hand.
+def datum_kl(dt) -> str:
+    """'3/11 kl 14:35' – svensk kort form utan inledande nollor, på alla plattformar."""
+    return f"{dt.day}/{dt.month} kl {dt:%H:%M}"
+
+
 def _nu() -> str:
-    return datetime.now(ZoneInfo("Europe/Stockholm")).strftime("%-d/%-m kl %H:%M")
+    return datum_kl(datetime.now(ZoneInfo("Europe/Stockholm")))
 
 
 def anvandarfynd(db, cfg: dict) -> dict:

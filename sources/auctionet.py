@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 
 import requests
 
-from . import Annons
+from . import Annons, datum_tid
 
 API = "https://auctionet.com/api/v2/items.json"
 HEADERS = {"User-Agent": "Fyndjakt/1.0 (privat bevakning)"}
@@ -50,7 +50,7 @@ def tolka(post: dict, kategori: str = "") -> Annons | None:
 
     slutar = ""
     if slutar_ts:
-        slutar = datetime.fromtimestamp(slutar_ts, timezone.utc).astimezone().strftime("%-d/%-m %H:%M")
+        slutar = datum_tid(datetime.fromtimestamp(slutar_ts, timezone.utc).astimezone())
 
     plats = ", ".join(p for p in [post.get("house"), post.get("location")] if p)
     url = (post.get("url") or "").replace("auctionet.com/en/", "auctionet.com/sv/")

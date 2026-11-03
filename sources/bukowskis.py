@@ -8,7 +8,7 @@ from urllib.parse import quote, urljoin
 import requests
 from bs4 import BeautifulSoup
 
-from . import Annons
+from . import Annons, datum_tid
 
 BAS = "https://www.bukowskis.com"
 HEADERS = {"User-Agent": "Mozilla/5.0 (Fyndjakt; privat bevakning)", "Accept-Language": "sv-SE,sv;q=0.9"}
@@ -56,7 +56,7 @@ def tolka_kort(kort, kategori: str = "") -> Annons | None:
     nedrakning = kort.select_one("[data-end-date]")
     if nedrakning and nedrakning["data-end-date"].isdigit():
         slutar_ts = int(nedrakning["data-end-date"])
-        slutar = datetime.fromtimestamp(slutar_ts, timezone.utc).astimezone().strftime("%-d/%-m %H:%M")
+        slutar = datum_tid(datetime.fromtimestamp(slutar_ts, timezone.utc).astimezone())
         if slutar_ts < time.time():
             return None
 

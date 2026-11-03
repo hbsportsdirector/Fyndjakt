@@ -25,3 +25,8 @@ class Annons:
     @property
     def nyckel(self) -> str:
         return f"{self.prefix}{self.kalla}:{self.id}"
+
+
+def datum_tid(dt) -> str:
+    """'3/11 14:35' utan inledande nollor – "%-d" i strftime finns inte på Windows, så dag och månad skrivs för hand."""
+    return f"{dt.day}/{dt.month} {dt:%H:%M}"

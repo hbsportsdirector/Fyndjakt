@@ -7,7 +7,7 @@ from datetime import datetime
 import requests
 from bs4 import BeautifulSoup
 
-from . import Annons
+from . import Annons, datum_tid
 
 BAS = "https://www.myrorna.se"
 HEADERS = {"User-Agent": "Mozilla/5.0 (Fyndjakt; privat bevakning)", "Accept-Language": "sv-SE,sv;q=0.9"}
@@ -39,7 +39,7 @@ def tolka_kort(kort, kategori: str = "") -> Annons | None:
         try:
             dt = datetime.fromisoformat(nedrakning["data-end-date"])
             slutar_ts = int(dt.timestamp())
-            slutar = dt.astimezone().strftime("%-d/%-m %H:%M")
+            slutar = datum_tid(dt.astimezone())
             if slutar_ts < time.time():
                 return None
         except ValueError:

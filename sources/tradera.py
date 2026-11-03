@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 
 import requests
 
-from . import Annons
+from . import Annons, datum_tid
 
 API = "https://api.tradera.com/v4/search"
 
@@ -62,7 +62,7 @@ def tolka(post: dict, kategori: str = "") -> Annons | None:
             dt = datetime.fromisoformat(slut.replace("Z", "+00:00"))
             if dt.tzinfo is None:
                 dt = dt.replace(tzinfo=timezone.utc)
-            slutar = dt.astimezone().strftime("%-d/%-m %H:%M")
+            slutar = datum_tid(dt.astimezone())
             slutar_ts = int(dt.timestamp())
         except ValueError:
             pass
