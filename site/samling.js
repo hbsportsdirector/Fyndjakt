@@ -1053,14 +1053,29 @@
       bilder: () => bildMeny(it, om),
       annons: async (b) => { b.disabled = true; b.textContent = "Claude skriver …"; try { await skrivTexter(it); om(); toast("Annonsen är skriven"); } catch (e) { toast(e.message); b.disabled = false; b.textContent = "✍ Skriv"; } },
       matt: async () => {
-        const s_ = await App.fraga("Mått", { ok: "Lägg in i annonsen", falt: [
-          { id: "h", etikett: "Höjd eller längd (cm)", typ: "text", placeholder: "t.ex. 21 – eller 38 för ett avlångt fat" },
-          { id: "b", etikett: "Bredd eller diameter (cm)", typ: "text", placeholder: "t.ex. 12" },
-          { id: "x", etikett: "Annat (valfritt)", typ: "text", placeholder: "t.ex. 6 tallrikar à 24 cm" }] });
-        if (!s_) return;
         // Fat, brickor och tallrikar ligger ner: då är första måttet en längd, inte en höjd.
         const ligger = /\b(fat|bricka|tallrik|assiett|skärbräda|underlägg|platta)/i.test(it.namn || "");
-        const matt = [s_.h && `${ligger ? "längd" : "höjd"} ${s_.h} cm`, s_.b && `bredd/diameter ${s_.b} cm`, s_.x].filter(Boolean).join(", ");
+        const n = Math.min(8, Math.max(1, +it.antal || 1));
+        let matt = "";
+        if (n === 1) {
+          const s_ = await App.fraga("Mått", { ok: "Lägg in i annonsen", falt: [
+            { id: "h", etikett: "Höjd eller längd (cm)", typ: "text", placeholder: "t.ex. 21 – eller 38 för ett avlångt fat" },
+            { id: "b", etikett: "Bredd eller diameter (cm)", typ: "text", placeholder: "t.ex. 12" },
+            { id: "x", etikett: "Annat (valfritt)", typ: "text", placeholder: "t.ex. vikt 832 g" }] });
+          if (!s_) return;
+          matt = [s_.h && `${ligger ? "längd" : "höjd"} ${s_.h} cm`, s_.b && `bredd/diameter ${s_.b} cm`, s_.x].filter(Boolean).join(", ");
+        } else {
+          // Flera delar: ett mått per del ("38 × 17" eller "21 cm"). Lika delar slås ihop: "1 st 38 × 17 cm, 2 st 34 × 19 cm".
+          const s_ = await App.fraga(`Mått – ${n} delar`, { ok: "Lägg in i annonsen", falt: [
+            ...Array.from({ length: n }, (_, i) => ({ id: "d" + i, etikett: `Del ${i + 1} (${ligger ? "längd × bredd" : "höjd, ev. × bredd"})`, typ: "text", placeholder: i ? "samma som ovan om det är lika" : (ligger ? "t.ex. 38 × 17" : "t.ex. 21") })),
+            { id: "x", etikett: "Annat (valfritt)", typ: "text", placeholder: "t.ex. det stora fatet är det med reporna" }] });
+          if (!s_) return;
+          const varden = []; let senaste = "";
+          for (let i = 0; i < n; i++) { const v = String(s_["d" + i] || "").trim() || senaste; if (!v) continue; senaste = v; varden.push(v.replace(/\s*cm\s*$/i, "")); }
+          const grupper = [];
+          for (const v of varden) { const g = grupper.find(x => x.v === v); if (g) g.n += 1; else grupper.push({ v, n: 1 }); }
+          matt = [grupper.length ? grupper.map(g => `${g.n} st ${g.v} cm`).join(", ") : "", s_.x].filter(Boolean).join(", ");
+        }
         if (!matt) return;
         try { Object.assign(it, await spara(it.id, { annons_text: Logik.sattMatt(it.annons_text, matt), beskrivning: it.beskrivning ? Logik.sattMatt(it.beskrivning, matt) : it.beskrivning })); om(); toast("Måtten ligger i annonsen"); } catch (e) { toast(e.message); }
       },
