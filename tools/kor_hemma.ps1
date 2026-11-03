@@ -41,7 +41,8 @@ try {
 
   $flaggor = @()
   if ($Snabb) { $flaggor += "--snabb" }
-  & $py @pyArgs main.py @flaggor 2>&1 | ForEach-Object { "$_" } | Out-File -FilePath $logg -Append -Encoding UTF8
+  # -u: obuffrad utskrift, så att loggen fylls på medan körningen pågår (annars kommer allt först på slutet).
+  & $py @pyArgs -u main.py @flaggor 2>&1 | ForEach-Object { "$_" } | Out-File -FilePath $logg -Append -Encoding UTF8
   $kod = $LASTEXITCODE
   Logga "main.py avslutades med kod $kod"
 
