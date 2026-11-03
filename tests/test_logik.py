@@ -231,3 +231,15 @@ def test_salj_pengar_manad_och_ar():
     assert p["ar"]["antal"] == 2 and p["ar"]["salt"] == 1500 and p["ar"]["vinst"] == 1500 - 300 - 100
     assert p["ute"]["antal"] == 1 and p["ute"]["begart"] == 495   # Blocket: 400 × 1,25 avrundat
     assert p["vantar"] == {"antal": 1, "varde": 250}
+
+
+def test_forvantat_galler_hela_partiet():
+    assert L("L.forvantat({tradera_pris: 450, antal: 3})") == 450                       # satt utgångspris – för annonsen
+    assert L("L.forvantat({auk_median: 200, antal: 3})") == 600                         # auktionsmedianen gäller ett styck
+    assert L("L.forvantat({marknad_min: 300, marknad_max: 700, antal: 3})") == 500      # Claudes uppskattning gäller alla
+    assert L("L.forvantat({marknad_min: 300, marknad_max: 700})") == 500
+    assert L("L.forvantat({})") is None
+
+
+def test_satt_matt_ersatter_aven_claudes_platshallare():
+    assert L('L.sattMatt("Mått [ej angivna]: ett större och två mindre fat.", "längd 38 och 34 cm")') == "Mått längd 38 och 34 cm: ett större och två mindre fat."

@@ -105,8 +105,10 @@
   // Varifrån "Värde ca" kommer, och varför ett föremål inte har omvärderats (samma regler som vardering.beslut).
   function vardeKalla(it) {
     if (it.pris_uppdaterad) return "Auctionet " + App.datum(it.pris_uppdaterad);
-    const kalla = /Köpt via Fyndjakt/.test(it.anteckning || "") ? "Fyndjakts jämförelse när den köptes"
-      : /Bedömd i butiken/.test(it.anteckning || "") ? "butiksbedömningen" : "gamla Loppiskollen";
+    const text = (it.anteckning || "") + " " + (it.proveniens || "");
+    if (/Identifierad .*av Claude|Bedömd i butiken/.test(text))
+      return `Claudes uppskattning vid identifieringen${it.marknad_sakerhet ? ` (säkerhet ${it.marknad_sakerhet})` : ""}. Inte omvärderat mot Auctionet: ${ejOmvarderatSkal(it)}.` + (it.jfr ? " Underlaget står nedan." : "");
+    const kalla = /Köpt via Fyndjakt/.test(it.anteckning || "") ? "Fyndjakts jämförelse när den köptes" : "gamla Loppiskollen";
     return `Äldre värde från ${kalla} – ej kontrollerat. Inte omvärderat: ${ejOmvarderatSkal(it)}.` + (it.jfr ? " Underlaget står nedan." : "");
   }
   function ejOmvarderatSkal(it) {
@@ -686,7 +688,7 @@
     if (!e) { r.append(el("p", { style: "margin:6px 0" }, "Sätt ett pris (Redigera → Till salu) eller ett värde, så räknas säljplanen ut.")); ruta.append(r); return; }
     r.append(el("div", { class: "salj-kanal" }, el("span", { class: "muted" }, "Lägg ut på"), el("b", {}, plan.kanalNamn),
       el("span", { class: "muted" }, plan.kanal === "blocket" ? `begär ${kr(plan.start)} – ingen avgift` : `ca ${kr(plan.netto)} i handen om den går för ${kr(e)}`)));
-    if (plan.varfor) r.append(el("p", { class: "muted", style: "margin:2px 0 0;font-size:13px" }, "Varför: " + plan.varfor + "."));
+    if (plan.varfor) r.append(el("p", { class: "muted", style: "margin:2px 0 0;font-size:13px" }, "Varför: " + plan.varfor.replace(/[.\s]+$/, "") + "."));
     r.append(el("p", { style: "margin:6px 0" }, plan.text));
     if (it.upplagd) r.append(el("p", { class: "muted", style: "margin:0 0 6px" }, `Upplagd ${App.datum(it.upplagd)}${it.tradera_lagsta ? " · lägsta pris " + kr(it.tradera_lagsta) : ""}`));
     const steg = el("div", { class: "stege" });

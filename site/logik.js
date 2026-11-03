@@ -204,11 +204,14 @@
     // Värdet gäller hela posten – ett parti om 60 delar har ett värde för alla 60, inte per del.
     return it.auk_median ?? mitt(it.marknad_min, it.marknad_max);
   }
-  // Det pris man väntar sig få vid försäljning: Tradera-priset om satt, annars värdet per styck.
+  // Det pris man väntar sig få för annonsen (hela partiet): utgångspriset om satt; annars auktionsmedianen, som gäller
+  // ett styck, gånger antalet; annars Claudes uppskattning, som redan gäller alla föremålen.
   function forvantat(it) {
     if (it.tradera_pris != null) return +it.tradera_pris;
+    const n = Math.max(1, +it.antal || 1);
+    if (it.auk_median) return Math.round(it.auk_median * n);
     const v = varde(it);
-    return v == null ? null : Math.round(v / Math.max(1, +it.antal || 1));
+    return v == null ? null : Math.round(v);
   }
   // Till salu: vad som saknas innan annonsen kan läggas ut. steg = fixa → klar → upplagd.
   const KLAR_BILDER = 3;
@@ -228,7 +231,8 @@
   function sattMatt(text, matt) {
     const t = String(text || "");
     if (!matt) return t;
-    return /\[\s*mått\s*\]/i.test(t) ? t.replace(/\[\s*mått\s*\]/gi, matt) : (t ? t.replace(/\s*$/, "") + "\n" : "") + "Mått: " + matt + ".";
+    const platshallare = /\[\s*(?:mått|ej angiv\w*|saknas)\s*\]/gi;   // "[mått]" – eller Claudes "Mått [ej angivna]"
+    return platshallare.test(t) ? t.replace(platshallare, matt) : (t ? t.replace(/\s*$/, "") + "\n" : "") + "Mått: " + matt + ".";
   }
 
   // ── Sälj: kvällens lista, pengarna och lagret ──────────────────────
