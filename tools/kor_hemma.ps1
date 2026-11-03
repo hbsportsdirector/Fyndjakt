@@ -19,9 +19,10 @@ if (Test-Path $las) {
   Remove-Item $las -Force
 }
 New-Item -ItemType File -Path $las -Force | Out-Null
+$kod = 0
 try {
   foreach ($n in "ANTHROPIC_API_KEY", "FYNDJAKT_BOT_TOKEN") {
-    if (-not [Environment]::GetEnvironmentVariable($n)) { Logga "Saknar miljövariabeln $n – se docs/hemma.md."; exit 1 }
+    if (-not [Environment]::GetEnvironmentVariable($n)) { Logga "Saknar miljövariabeln $n – se docs/hemma.md."; $kod = 1; throw "saknad nyckel" }
   }
   if (-not $env:SAJT_URL) { $env:SAJT_URL = "https://hbsportsdirector.github.io/Fyndjakt/" }
   $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"   # svenska tecken och pilar i utskrifterna, även till loggfilen
@@ -60,7 +61,10 @@ try {
     }
     Logga $(if ($ok) { "Resultatet är sparat i repot." } else { "Kunde inte pusha – försöker nästa gång." })
   } else { Logga "Inget nytt att spara." }
-  exit $kod
+} catch {
+  if ($_.Exception.Message -ne "saknad nyckel") { Logga "Fel i skriptet: $_"; $kod = 1 }
 } finally {
+  # Låset ska alltid bort – 'exit' inne i try hoppar över finally i Windows PowerShell, därför avslutas skriptet först här.
   Remove-Item $las -Force -ErrorAction SilentlyContinue
 }
+exit $kod
