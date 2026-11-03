@@ -995,6 +995,8 @@
       const b = el("div", { class: "chatt-msg " + (m.roll === "claude" ? "claude" : "jag") }, el("div", { class: "chatt-text" }, m.text));
       if (m.lankar && m.lankar.length) b.append(el("div", { class: "muted", style: "font-size:12px;margin-top:4px" },
         ...m.lankar.map(l => el("div", {}, (l.ok ? "✓ läste " : "✗ kunde inte läsa ") + l.url.replace(/^https?:\/\/(www\.)?/, "").slice(0, 60)))));
+      if (m.uppslag && m.uppslag.length) b.append(el("div", { class: "muted", style: "font-size:12px;margin-top:4px" },
+        "📖 läste på: ", ...m.uppslag.flatMap((u, i) => [i ? ", " : "", el("a", { href: u.url, target: "_blank", rel: "noopener" }, `${u.titel} (Wikipedia ${u.sprak})`)])));
       if (m.forslag && !m.hanterat) {
         const rader = Object.entries(m.forslag).map(([k, v]) => el("div", {}, el("b", {}, (FALTNAMN[k] || k) + ": "),
           k !== "matt" && it[k] ? el("s", { class: "muted" }, it[k]) : null, k !== "matt" && it[k] ? " → " : "", v));
@@ -1030,7 +1032,7 @@
         const r = await App.kannIgen({ typ: "chatt", foremal: { ...it, nummer: App.fjNr(it), chatt: undefined, om: undefined },
           paths: [...new Set([...(it.bilder || []).slice(0, 2), ...(it.bilder || []).slice(-1)].map(b => b.path))].filter(Boolean),
           samtal: samtal.slice(-16).map(m => ({ roll: m.roll, text: m.text })) });
-        samtal.push({ roll: "claude", text: r.svar, forslag: r.forslag || null, varfor: r.varfor || "", lankar: r.lankar || [], t: Date.now() });
+        samtal.push({ roll: "claude", text: r.svar, forslag: r.forslag || null, varfor: r.varfor || "", lankar: r.lankar || [], uppslag: r.uppslag || [], t: Date.now() });
         samtal = samtal.slice(-40);
         Object.assign(it, await spara(it.id, { chatt: samtal }));
         status.textContent = "";

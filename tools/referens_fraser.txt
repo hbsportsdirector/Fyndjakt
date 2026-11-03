@@ -72,3 +72,17 @@ Laholm keramik
 Nittsjö keramik
 Tilgmans keramik
 Jie Gantofta
+
+# ── Öst- och västtyskt, holländskt, italienskt (tillagt 2026-11-03) ──
+Strehla keramik
+Haldensleben keramik
+Scheurich keramik
+Bay Keramik
+Carstens keramik
+Ruscha keramik
+Jasba keramik
+Dümler Breiden
+West Germany keramik vas
+Gouda keramik
+Bitossi keramik
+Rosenthal studio

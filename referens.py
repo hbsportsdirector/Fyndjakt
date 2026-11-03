@@ -39,6 +39,18 @@ FABRIKER = [
     (r"\bnuutaj[äa]rvi|notsj[öo]", "Nuutajärvi"),
     (r"\biittala\b", "Iittala"),
     (r"\bholmegaard", "Holmegaard"),
+    # Öst- och västtyskt, holländskt, italienskt – vanligt på loppis, sällan i nordiska stämpelguider.
+    (r"strehla", "Strehla"),
+    (r"haldensleben", "Haldensleben"),
+    (r"scheurich", "Scheurich"),
+    (r"bay[ -]?keramik|\bbay\b.{0,10}west ?germany", "Bay Keramik"),
+    (r"carstens", "Carstens"),
+    (r"\bruscha\b", "Ruscha"),
+    (r"\bjasba\b", "Jasba"),
+    (r"d[üu]mler", "Dümler & Breiden"),
+    (r"\bgouda\b|zuid-holland", "Gouda"),
+    (r"bitossi", "Bitossi"),
+    (r"rosenthal", "Rosenthal"),
 ]
 
 # Kända formgivare – används för att känna igen dem i texten och för att normalisera stavning.

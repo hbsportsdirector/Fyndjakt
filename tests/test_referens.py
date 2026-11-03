@@ -82,3 +82,10 @@ def test_arsintervall_och_stavningsvarianter():
     assert r2["formgivare"] == "Anna-Lisa Thomson" and r2["modell"] == "1081"
     r3 = referens.tolka_post(post("KRUS MED TAPPKRAN, Höganäs.", "Stämplad."))
     assert r3["formgivare"] is None
+
+
+def test_europeiska_fabriker():
+    r = referens.tolka_post(post("VAS, keramik, Strehla, DDR, 1970-tal.", "Stämplad Strehla 1414."))
+    assert r["fabrik"] == "Strehla" and r["modell"] == "1414"
+    r2 = referens.tolka_post(post("GOLVVAS, West Germany, Scheurich.", "Märkt 517-45 W. Germany."))
+    assert r2["fabrik"] == "Scheurich"
