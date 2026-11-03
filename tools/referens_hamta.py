@@ -83,6 +83,15 @@ class Databas:
             time.sleep(5 * (forsok + 1))
         raise SystemExit("Kunde inte spara till Supabase – avbryter (läget är sparat, kör igen senare).")
 
+    def kolla_nyckel(self) -> None:
+        """Stoppar direkt om nyckeln inte stämmer – i stället för efter första sidan."""
+        r = requests.post(f"{self.url}/rest/v1/rpc/fyndjakt_kolla_nyckel", json={"token": self.token},
+                          headers={"apikey": self.nyckel, "Authorization": f"Bearer {self.nyckel}", "Content-Type": "application/json"}, timeout=60)
+        if r.status_code != 200 or "nyckel" in r.text:
+            sys.exit("Supabase svarade 'ogiltig nyckel' – FYNDJAKT_BOT_TOKEN stämmer inte med någon hash i databasen.\n"
+                     "Hashen av din nyckel:  python -c \"import hashlib,os;print(hashlib.sha256(os.environ['FYNDJAKT_BOT_TOKEN'].strip().encode()).hexdigest())\"")
+        print("Nyckeln stämmer.")
+
     def antal(self) -> list[dict]:
         r = requests.post(f"{self.url}/rest/v1/rpc/referens_antal", json={},
                           headers={"apikey": self.nyckel, "Authorization": f"Bearer {self.nyckel}", "Content-Type": "application/json"}, timeout=60)
@@ -152,6 +161,7 @@ def main() -> None:
     ap.add_argument("--status", action="store_true", help="visa bara hur många referenser som finns per fabrik")
     a = ap.parse_args()
     db = Databas()
+    db.kolla_nyckel()
     if a.status:
         for r in db.antal():
             print(f"{r['fabrik']:<20} {r['antal']:>6} varav sålda {r['salda']:>6}, med modellnummer {r['med_modell']:>6}")
