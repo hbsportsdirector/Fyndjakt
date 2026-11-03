@@ -73,3 +73,12 @@ def test_parti_och_objektord_i_versaler():
     assert r5["parti"] is False and r5["modell"] == "1034/188"
     r6 = referens.tolka_post(post("VAS och SKÅL, Saxbo samt Tobo.", "Stämplade."))
     assert r6["parti"] is True
+
+
+def test_arsintervall_och_stavningsvarianter():
+    r = referens.tolka_post(post("GÖRAN ANDERSSON. Vas, Upsala-Ekeby.", "Modell 1960-67. Stämplad UE."))
+    assert r["modell"] is None
+    r2 = referens.tolka_post(post("ANNA-LISA THOMPSON. Skål, Upsala-Ekeby.", "Märkt 1081."))
+    assert r2["formgivare"] == "Anna-Lisa Thomson" and r2["modell"] == "1081"
+    r3 = referens.tolka_post(post("KRUS MED TAPPKRAN, Höganäs.", "Stämplad."))
+    assert r3["formgivare"] is None

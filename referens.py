@@ -60,14 +60,24 @@ _ALIAS = {"mari simmulsson": "Mari Simmulson", "mari simulsson": "Mari Simmulson
           "lisa larsson": "Lisa Larson", "eva staehr nielsen": "Eva Stæhr-Nielsen", "eva stæhr nielsen": "Eva Stæhr-Nielsen",
           "stig lindbergh": "Stig Lindberg", "bernt friberg": "Berndt Friberg", "berndt fridberg": "Berndt Friberg", "gunnar nylund": "Gunnar Nylund",
           "herta bengtson": "Hertha Bengtson", "hertha bengtsson": "Hertha Bengtson", "carl harry stalhane": "Carl-Harry Stålhane",
-          "vicke lindstrand": "Vicke Lindstrand", "viktor lindstrand": "Vicke Lindstrand", "eric höglund": "Erik Höglund"}
+          "vicke lindstrand": "Vicke Lindstrand", "viktor lindstrand": "Vicke Lindstrand", "eric höglund": "Erik Höglund",
+          # Stavningsvarianter som förekommer i auktionshusens kataloger (hittade i biblioteket 2026-11-03).
+          "gunnar nylynd": "Gunnar Nylund", "carl harry ståhlhane": "Carl-Harry Stålhane", "bertil valien": "Bertil Vallien", "marianne westmann": "Marianne Westman",
+          "ulrika hydman vallien": "Ulrica Hydman-Vallien", "mari simmulsen": "Mari Simmulson", "anna lisa thompson": "Anna-Lisa Thomson", "anna lisa thomsson": "Anna-Lisa Thomson",
+          "anna lisa thompsson": "Anna-Lisa Thomson", "ingrid atteberg": "Ingrid Atterberg", "karin björqvist": "Karin Björquist", "lillemor mannheimer": "Lillemor Mannerheim",
+          "hjördis oldsfors": "Hjördis Oldfors", "göran wärf": "Göran Wärff", "nils thorson": "Nils Thorsson", "ulla procope": "Ulla Procopé", "taisto kaasien": "Taisto Kaasinen",
+          "sven wejsfeldt": "Sven Wejsfelt", "eva jancke björck": "Eva Jancke-Björk", "eva janke björk": "Eva Jancke-Björk", "helmer ringstöm": "Helmer Ringström",
+          "per linneman schmidt": "Per Linnemann-Schmidt", "allan eberling": "Allan Ebeling", "jerk werkmeister": "Jerk Werkmäster", "jerk werkmester": "Jerk Werkmäster",
+          "signe persson melin": "Signe Persson-Melin", "erik morsnils": "Erik Mornils", "olle brozen": "Olle Brozén", "olle bronzén": "Olle Brozén", "lars thoren": "Lars Thorén",
+          "olof larson": "Olof Larsson", "mona morales schildt": "Mona Morales-Schildt", "dorothy clogh": "Dorothy Clough"}
 # Ord i en versal titelinledning som betyder "föremål", inte "person": "TEA SET, 24 parts", "SKÅLAR/FAT, stengods".
 OBJEKTORD = set("""vas vaser vase vases skål skålar bowl bowls fat dish dishes plate plates tallrik tallrikar figurin figuriner figurine
 figurines figur figurer figure figures skulptur skulpturer sculpture sculptures urna urnor urn kruka krukor pot pots kanna kannor jug pitcher
 lampa lampor lamp lampfot askfat ashtray servis service set tea coffee kaffeservis matservis servisdelar delar parts parti lot glas glass
 glasföremål keramik ceramic ceramics stengods stoneware porslin porcelain fajans faience flintgods earthenware karaff karaffer decanter
 ljusstake ljusstakar candlestick candlesticks väggplatta väggrelief relief platta plattor tile tiles skulpturer burk burkar jar jars
-kopp koppar cup cups mugg muggar mug mugs tekanna teapot bricka tray föremål objekt items pieces samling collection konstglas art""".split())
+kopp koppar cup cups mugg muggar mug mugs tekanna teapot bricka tray föremål objekt items pieces samling collection konstglas art
+krus tappkran kannor med och and with samt par pair bokstöd ljuslykta lykta fönsterfat väggur klocka dosa dosor ask askar skrin""".split())
 
 
 def _norm(s: str) -> str:
@@ -135,7 +145,7 @@ def modell_i(stampeltext: str, text: str) -> str | None:
         for monster in (MODELL, FABRIK_NR):
             for m in monster.finditer(kalla or ""):
                 n = m.group(1)
-                if not ARTAL.match(n.split("/")[0]):
+                if not ARTAL.match(re.split(r"[/-]", n)[0]):
                     return n
     # Sista utvägen: ett ensamt tre-/fyrsiffrigt tal i själva stämpelfrasen (inte i beskrivningen, där måtten står).
     for m in LOST_NR.finditer(stampeltext or ""):
