@@ -7,3 +7,6 @@ site/data/fynd.json
 tools/samling-migrering/
 # Referensbibliotekets läge per sökfras (tools/referens_hamta.py) – lokalt på datorn som hämtar
 data/referens_lage.json
+# Hemmakörningens logg och lås (tools/kor_hemma.ps1)
+data/hemma.log
+data/hemma.lock

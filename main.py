@@ -280,12 +280,32 @@ def fran_rad(r: dict) -> Annons:
                   sokord=r.get("sokord") or "", spar=r["spar"], prefix=prefix)
 
 
+# Snabbkörning (varje timme hemma): bara det som dyker upp löpande – Tradera och Myrorna – med liten budget, utan att
+# beta av kön från tidigare nätter. Räknas inte som nattens körning (ingen rapport), så GitHub kör ändå om datorn är av.
+SNABB_KALLOR = {"tradera", "myrorna"}
+
+
+def snabb_installningar(cfg: dict) -> dict:
+    cfg["kallor"] = {k: k in SNABB_KALLOR for k in ["auctionet", "bukowskis", "myrorna", "stadsmissionen", "tradera"]}
+    cfg["max_bedomningar_per_korning"] = int(cfg.get("snabb_max_bedomningar", 60))
+    cfg["max_fran_kon_per_korning"] = 0
+    cfg["max_prisjamforelser_per_korning"] = int(cfg.get("snabb_max_prisjamforelser", 30))
+    for sp in cfg["spar"].values():
+        if sp.get("flipp") and "max_bedomningar" in sp:
+            sp["max_bedomningar"] = min(int(sp["max_bedomningar"]), cfg["max_bedomningar_per_korning"])
+    return cfg
+
+
 def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--torr", action="store_true", help="Ingen AI, inga notiser, inget sparas")
+    p.add_argument("--snabb", action="store_true", help="Snabbkörning: bara Tradera och Myrorna, liten budget, ingen rapport")
     args = p.parse_args()
 
     cfg = las_config()
+    if args.snabb:
+        snabb_installningar(cfg)
+        print("Snabbkörning: Tradera och Myrorna, högst", cfg["max_bedomningar_per_korning"], "bedömningar.")
     export = None
     try:
         import smak
@@ -579,7 +599,8 @@ def main() -> int:
         print("Telegram är inte inställt – hoppar över notiser.")
 
     print(f"\nKlart: {len(kandidater)} bedömda, {len(traffar)} nya träffar.")
-    spara_rapport(len(annonser), len(nya), len(kandidater), len(traffar))
+    if not args.snabb:   # snabbkörningen är inte nattens körning – GitHub ska fortfarande köra den om datorn är av
+        spara_rapport(len(annonser), len(nya), len(kandidater), len(traffar))
     return 0
 
 

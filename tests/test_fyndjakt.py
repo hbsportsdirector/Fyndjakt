@@ -1475,3 +1475,12 @@ def test_tankande_modeller_far_marginal():
     from sources import Annons
     f = flipp.forfragan([Annons(kalla="tradera", id="1", titel="Vas", url="u")], "claude-sonnet-5-5")
     assert f["max_tokens"] > 4000 and f["output_config"]["effort"] == "medium"
+
+
+def test_snabb_installningar_begransar_kallor_och_budget():
+    cfg = {"kallor": {"auctionet": True, "tradera": True}, "max_bedomningar_per_korning": 800, "max_fran_kon_per_korning": 300,
+           "max_prisjamforelser_per_korning": 120, "spar": {"flipp": {"flipp": True, "max_bedomningar": 400}, "hemmet": {}}}
+    main.snabb_installningar(cfg)
+    assert cfg["kallor"] == {"auctionet": False, "bukowskis": False, "myrorna": True, "stadsmissionen": False, "tradera": True}
+    assert cfg["max_bedomningar_per_korning"] == 60 and cfg["max_fran_kon_per_korning"] == 0 and cfg["max_prisjamforelser_per_korning"] == 30
+    assert cfg["spar"]["flipp"]["max_bedomningar"] == 60
