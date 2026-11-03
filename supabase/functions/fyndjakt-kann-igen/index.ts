@@ -307,12 +307,12 @@ function refModeller(t: string): string[] {
   for (const m of t.matchAll(/\b(\d{3,5}(?:\/\d{1,4})?)\b/g)) if (m[1].includes("/") || !REF_ARTAL.test(m[1])) ut.add(m[1]);
   return [...ut].slice(0, 4);
 }
-type Ref = { id: number; titel: string; fabrik: string; formgivare: string | null; modell: string | null; stampeltext: string | null; bild_url: string | null;
-             url: string; pris: number | null; slutade: string | null; salt: boolean; parti: boolean; ref?: string };
+type Ref = { id: number; kalla: string; kalla_id: string; titel: string; fabrik: string; formgivare: string | null; modell: string | null; stampeltext: string | null;
+             bild_url: string | null; url: string | null; pris: number | null; slutade: string | null; salt: boolean; parti: boolean; ref?: string };
 // Kandidater: fabrik + modellnummer först (även 1034/9 → 1034/…, 1034), sedan modellnumret ensamt, sedan fabrik + formgivare.
 // deno-lint-ignore no-explicit-any
 async function slaUppReferenser(supabase: any, fabrik: string | null, modeller: string[], formgivare: string | null): Promise<Ref[]> {
-  const KOL = "id,titel,fabrik,formgivare,modell,stampeltext,bild_url,url,pris,slutade,salt,parti";
+  const KOL = "id,kalla,kalla_id,titel,fabrik,formgivare,modell,stampeltext,bild_url,url,pris,slutade,salt,parti";
   const ut: Ref[] = [];
   const lagg = (rader: Ref[] | null) => { for (const r of rader ?? []) if (!ut.some((x) => x.id === r.id)) ut.push(r); };
   const fraga = () => supabase.from("referens").select(KOL).order("parti").order("salt", { ascending: false }).order("slutade", { ascending: false }).limit(8);
@@ -328,8 +328,8 @@ async function slaUppReferenser(supabase: any, fabrik: string | null, modeller: 
     }
     if (ut.length < 3 && fabrik && formgivare) lagg((await fraga().eq("fabrik", fabrik).ilike("formgivare", formgivare)).data);
   } catch (e) { console.error("referens", e); }
-  // Bäst först: rätt fabrik, inte parti, såld, med stämpeltext och bild.
-  const poang = (r: Ref) => (r.fabrik === fabrik ? 4 : 0) + (r.parti ? 0 : 3) + (r.salt ? 1 : 0) + (r.stampeltext ? 1 : 0) + (r.bild_url ? 1 : 0);
+  // Bäst först: egna (din egen stämpelbild är facit), rätt fabrik, inte parti, såld, med stämpeltext och bild.
+  const poang = (r: Ref) => (r.kalla === "egen" ? 6 : 0) + (r.fabrik === fabrik ? 4 : 0) + (r.parti ? 0 : 3) + (r.salt ? 1 : 0) + (r.stampeltext ? 1 : 0) + (r.bild_url ? 1 : 0);
   return ut.sort((a, b) => poang(b) - poang(a)).slice(0, 6);
 }
 
@@ -369,6 +369,18 @@ async function hamtaBild(url: string): Promise<{ data: string; mediatyp: string;
     for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
     return { data: btoa(bin), mediatyp, bytes };
   } catch { return null; }
+}
+
+// En bild ur bucketen samling (egen referens) som base64, med anroparens behörighet.
+// deno-lint-ignore no-explicit-any
+async function hamtaUrBucket(supabase: any, path: string): Promise<{ data: string; mediatyp: string; bytes: Uint8Array } | null> {
+  if (!/^[\w-]+\/[\w-]+\/\d+\.jpg$/.test(path)) return null;
+  const { data } = await supabase.storage.from("samling").download(path);
+  if (!data || data.size > MAX_BYTES) return null;
+  const bytes = new Uint8Array(await data.arrayBuffer());
+  let bin = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return { data: btoa(bin), mediatyp: "image/jpeg", bytes };
 }
 
 function adminKlient() {
@@ -626,9 +638,9 @@ Fyndjakts identifiering: ${String(kropp.identifierat ?? "-").slice(0, 200)}` });
       referenser = await slaUppReferenser(supabase, fabrik, refModeller(lasText), String(t0.formgivare ?? "").trim() || null);
       referenser.forEach((r, i) => { r.ref = `R${i + 1}`; });
       const medBild = referenser.filter((r) => r.bild_url).slice(0, 3);
-      const bilderRef = await Promise.all(medBild.map((r) => hamtaBild(r.bild_url!)));
+      const bilderRef = await Promise.all(medBild.map((r) => r.bild_url!.startsWith("samling:") ? hamtaUrBucket(supabase, r.bild_url!.slice(8)) : hamtaBild(r.bild_url!)));
       if (referenser.length) {
-        const rader = referenser.map((r) => `${r.ref}: ${r.fabrik}${r.formgivare ? ", " + r.formgivare : ""}${r.modell ? ", modell " + r.modell : ""}` +
+        const rader = referenser.map((r) => `${r.ref}${r.kalla === "egen" ? " (ägarens eget föremål, bekräftat)" : ""}: ${r.fabrik}${r.formgivare ? ", " + r.formgivare : ""}${r.modell ? ", modell " + r.modell : ""}` +
           `${r.stampeltext ? ` – "${r.stampeltext}"` : ""}${r.parti ? " (parti – bilden kan visa ett annat föremål)" : ""}${r.pris ? `, såld ${r.pris} kr ${(r.slutade ?? "").slice(0, 4)}` : ""}`);
         innehall.push({ type: "text", text: `REFERENSER ur biblioteket (verifierade poster från auktionshus; bottenfoto följer för de första):\n${rader.join("\n")}` });
         medBild.forEach((r, i) => { const b = bilderRef[i]; if (b) innehall.push({ type: "text", text: `Referensfoto ${r.ref} (botten/stämpel):` }, bildblock(b.data, b.mediatyp)); });
@@ -657,7 +669,7 @@ Fyndjakts identifiering: ${String(kropp.identifierat ?? "-").slice(0, 200)}` });
       resonemang: str(res.resonemang, 600),
       // En matchande referens är starkt stöd: säkerheten blir minst 80 %.
       ...(match ? { sakerhet: Math.max(0.8, Math.min(1, Number(res.sakerhet) || 0)) } : {}),
-      referenser: referenser.map((r) => ({ ref: r.ref, id: r.id, titel: str(r.titel, 140), fabrik: r.fabrik, formgivare: r.formgivare, modell: r.modell,
+      referenser: referenser.map((r) => ({ ref: r.ref, id: r.id, kalla: r.kalla, kalla_id: r.kalla_id, titel: str(r.titel, 140), fabrik: r.fabrik, formgivare: r.formgivare, modell: r.modell,
         stampeltext: r.stampeltext ? str(r.stampeltext, 200) : null, bild_url: r.bild_url, url: r.url, pris: r.pris, slutade: r.slutade, parti: r.parti })),
       referens_match: match ? match.ref : null, referens_varfor: str(res.referens_varfor, 200),
       stampel_las: stampelLas ? { ordagrant: str(stampelLas.ordagrant, 200), typ: str(stampelLas.typ, 40), osakra_tecken: str(stampelLas.osakra_tecken, 200),

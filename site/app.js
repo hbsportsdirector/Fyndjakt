@@ -222,18 +222,23 @@ const App = (() => {
     const match = refs.find(x => x.ref === r.referens_match);
     box.append(el("div", { class: "etik" }, match ? `✓ Stämpeln matchar referens ${match.ref}` : `Jämförde med ${refs.length} referens${refs.length === 1 ? "" : "er"} – ingen säker träff`));
     const remsa = el("div", { class: "refs" });
+    const egnaBilder = [];   // 'samling:<path>' – egna stämpelbilder i bucketen, hämtas signerat
     for (const x of refs) {
-      const a = el("a", { class: "ref" + (x.ref === r.referens_match ? " match" : ""), href: x.url, target: "_blank", rel: "noopener" });
+      const egen = x.kalla === "egen";
+      const a = el("a", { class: "ref" + (x.ref === r.referens_match ? " match" : "") + (egen ? " egen" : ""), href: egen ? "#samling" : x.url, target: egen ? null : "_blank", rel: "noopener" });
+      if (egen) a.onclick = e => { e.preventDefault(); visa("samling"); if (delar.samling && delar.samling.oppnaDetalj) delar.samling.oppnaDetalj(x.kalla_id); };
       const bild = el("div", { class: "ref-bild" }, el("span", { class: "nr" }, x.ref + (x.ref === r.referens_match ? " ✓" : "")));
-      if (x.bild_url) bild.prepend(el("img", { src: x.bild_url, alt: "", loading: "lazy" }));
+      if (x.bild_url && String(x.bild_url).startsWith("samling:")) { const img = el("img", { alt: "", loading: "lazy" }); bild.prepend(img); egnaBilder.push([img, x.bild_url.slice(8)]); }
+      else if (x.bild_url) bild.prepend(el("img", { src: x.bild_url, alt: "", loading: "lazy" }));
       a.append(bild, el("div", { class: "txt" }, el("b", {}, [x.formgivare, x.modell && "modell " + x.modell].filter(Boolean).join(" · ") || x.fabrik),
-        [x.fabrik, x.pris ? kr(x.pris) + (x.slutade ? " " + String(x.slutade).slice(0, 4) : "") : "osåld", x.parti ? "parti" : ""].filter(Boolean).join(" · ")));
+        [egen ? "din samling" : x.fabrik, egen ? x.titel : x.pris ? kr(x.pris) + (x.slutade ? " " + String(x.slutade).slice(0, 4) : "") : "osåld", x.parti ? "parti" : ""].filter(Boolean).join(" · ")));
       remsa.append(a);
       if (valj) { const b = el("button", { class: "knapp liten", type: "button", onclick: e => { e.preventDefault(); valj(x); } }, "Använd"); a.querySelector(".txt").append(b); }
     }
     box.append(remsa);
+    if (egnaBilder.length) bildUrlar(egnaBilder.map(([, p]) => p)).then(u => egnaBilder.forEach(([img, p]) => { if (u[p]) img.src = u[p]; }));
     if (r.referens_varfor) box.append(el("p", { class: "ref-varfor" }, r.referens_varfor));
-    box.append(el("p", { class: "ref-varfor" }, "Referenserna är sålda poster från auktionshus (Auctionet) med katalogtext om stämpeln. Tryck på en för att se auktionen."));
+    box.append(el("p", { class: "ref-varfor" }, "Referenserna är sålda poster från auktionshus (Auctionet) med katalogtext om stämpeln, och dina egna föremål med stämpelbild. Tryck på en för att se den."));
     return box;
   }
   // Rubrikraden i en vy, med ?-knapp. Returnerar elementet så att delen kan lägga till egna knappar.
