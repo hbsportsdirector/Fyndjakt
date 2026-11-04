@@ -28,10 +28,15 @@ function LaggOvanpaGithub {
 }
 
 # Lås: en körning i taget. Ett lås äldre än fyra timmar räknas som kvarglömt.
-if (Test-Path $las) {
-  if ((Get-Date) - (Get-Item $las).LastWriteTime -lt (New-TimeSpan -Hours 4)) { Logga "Hoppar över – en körning pågår redan."; exit 0 }
-  Remove-Item $las -Force
+# Timkörningen hoppar över om något redan kör. Kvällskörningen väntar i stället (högst 45 minuter): timkörningen
+# startar också 21:00, och annars blev kvällens hela körning aldrig av när timkörningen hann först.
+$vantat = 0
+while ((Test-Path $las) -and ((Get-Date) - (Get-Item $las).LastWriteTime -lt (New-TimeSpan -Hours 4))) {
+  if ($Snabb -or $vantat -ge 45) { Logga "Hoppar över – en körning pågår redan."; exit 0 }
+  if ($vantat -eq 0) { Logga "Väntar på att timkörningen ska bli klar …" }
+  Start-Sleep -Seconds 60; $vantat++
 }
+if (Test-Path $las) { Remove-Item $las -Force }
 New-Item -ItemType File -Path $las -Force | Out-Null
 $kod = 0
 try {

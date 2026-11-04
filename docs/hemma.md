@@ -73,7 +73,8 @@ Prova direkt: `Start-ScheduledTask -TaskName 'Fyndjakt timme'`, och läs `data\h
 
 ## Att veta
 
-- Två körningar går aldrig samtidigt (lås i `data\hemma.lock`). Krockar timmen med kvällen hoppar timkörningen över.
+- Två körningar går aldrig samtidigt (lås i `data\hemma.lock`). Kör något redan hoppar timkörningen över, medan
+  kvällskörningen väntar upp till 45 minuter – timkörningen startar också 21:00.
 - Resultatet (`data/sedda.db` med mera) committas och pushas till main efter varje körning, så att GitHub-reserven ser
   samma läge. Skriptet ställer sig alltid på grenen `main` och hämtar senaste koden före varje körning. Krockar
   datafilerna med något som pushats under tiden tar det GitHubs kod och lägger sina egna datafiler ovanpå – inget
