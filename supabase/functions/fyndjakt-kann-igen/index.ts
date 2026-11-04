@@ -338,6 +338,9 @@ const REF_FABRIKER: [RegExp, string][] = [
   [/h[öo]gan[äa]s/i, "Höganäs"], [/\blaholm\b/i, "Laholm"], [/nittsj[öo]/i, "Nittsjö"], [/tilgmans/i, "Tilgmans"], [/\bjie\b|gantofta/i, "Jie Gantofta"],
   [/karlskrona/i, "Karlskrona"], [/aling[s]?[åa]s/i, "Alingsås"], [/\bboda\b/i, "Boda"], [/\bkosta\b/i, "Kosta"], [/orrefors/i, "Orrefors"],
   [/gullaskruf/i, "Gullaskruf"], [/åfors|\bafors\b/i, "Åfors"], [/reijmyre/i, "Reijmyre"], [/nuutaj[äa]rvi|notsj[öo]/i, "Nuutajärvi"], [/\biittala\b/i, "Iittala"], [/holmegaard/i, "Holmegaard"],
+  [/\bskrufs?\b/i, "Skruf"], [/lindshammar/i, "Lindshammar"], [/pukeberg/i, "Pukeberg"], [/\bsyco\b/i, "Syco"], [/\btobo\b/i, "Tobo"],
+  [/figgjo/i, "Figgjo"], [/stavangerflint/i, "Stavangerflint"], [/egersund/i, "Egersund"], [/s[öøo]holm/i, "Søholm"], [/michael andersen/i, "Michael Andersen"],
+  [/\bhjorth\b/i, "Hjorth"], [/kronjyden/i, "Kronjyden"], [/knabstrup/i, "Knabstrup"],
   [/strehla/i, "Strehla"], [/haldensleben/i, "Haldensleben"], [/scheurich/i, "Scheurich"], [/\bbay\b.{0,8}keramik|bay keramik/i, "Bay Keramik"], [/carstens/i, "Carstens"],
   [/\bruscha\b/i, "Ruscha"], [/\bjasba\b/i, "Jasba"], [/d[üu]mler/i, "Dümler & Breiden"], [/\bgouda\b|zuid-holland/i, "Gouda"], [/bitossi/i, "Bitossi"], [/rosenthal/i, "Rosenthal"],
 ];

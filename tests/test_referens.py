@@ -91,3 +91,11 @@ def test_europeiska_fabriker():
     assert r["fabrik"] == "Strehla" and r["modell"] == "1414"
     r2 = referens.tolka_post(post("GOLVVAS, West Germany, Scheurich.", "Märkt 517-45 W. Germany."))
     assert r2["fabrik"] == "Scheurich"
+
+
+def test_nordiska_fabriker_som_saknades():
+    for text, fabrik in [("VAS, Syco, Sverige.", "Syco"), ("SKÅL, Tobo.", "Tobo"), ("FAT, Figgjo, Norge.", "Figgjo"),
+                         ("VAS, Søholm, Bornholm.", "Søholm"), ("VAS, Michael Andersen & Søn, Bornholm.", "Michael Andersen"),
+                         ("VAS, L. Hjorth, Rønne.", "Hjorth"), ("SKÅL, glas, Skrufs glasbruk.", "Skruf"),
+                         ("VAS, Gullaskruf.", "Gullaskruf"), ("VAS, Pukeberg.", "Pukeberg")]:
+        assert referens.tolka_post(post(text, "Stämplad."))["fabrik"] == fabrik, text
