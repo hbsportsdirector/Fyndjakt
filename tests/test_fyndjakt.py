@@ -1536,3 +1536,18 @@ def test_morgonnotis_med_kort_fonster():
     assert w.morgonnotis(poster, nu)["title"] == "2 nya toppfynd i Fyndjakt"
     assert w.morgonnotis(poster, nu, fonster=3600)["body"].endswith("Ny")
     assert w.morgonnotis(poster[1:], nu, fonster=3600) is None
+
+
+def test_publicera_en_anvandare_per_anrop_och_forsoker_igen(monkeypatch):
+    import smak
+    anrop, svar = [], iter([500, 200, 200])
+    monkeypatch.setattr(smak, "_anslutning", lambda cfg: ("https://x", "nyckel", "token"))
+    monkeypatch.setattr("time.sleep", lambda s: None)
+
+    def post(url, json=None, **kw):
+        anrop.append(list(json["fynd"]))
+        kod = next(svar)
+        return SimpleNamespace(status_code=kod, json=lambda: 1, raise_for_status=lambda: None)
+    monkeypatch.setattr(smak.requests, "post", post)
+    smak.publicera({}, {"a": {"poster": []}, "b": {"poster": []}})
+    assert anrop == [["a"], ["a"], ["b"]]     # en användare per anrop, och "a" försöktes igen efter 500

@@ -45,10 +45,20 @@ def publicera(cfg: dict, fynd: dict) -> None:
     if not ans or not fynd:
         return
     url, nyckel, token = ans
-    r = requests.post(f"{url}/rest/v1/rpc/fyndjakt_publicera", json={"token": token, "fynd": fynd},
-                      headers={"apikey": nyckel, "Content-Type": "application/json"}, timeout=60)
-    r.raise_for_status()
-    print(f"Egna fynd upplagda för {r.json()} användare.")
+    # En användare per anrop: allas fynd i ett anrop är över 1 MB och slår i databasens tidsgräns (3 s) när den är
+    # belastad. Tillfälliga fel (500, 502, 503, 504) försöks igen.
+    import time
+    n = 0
+    for uid, data in fynd.items():
+        for forsok in range(4):
+            r = requests.post(f"{url}/rest/v1/rpc/fyndjakt_publicera", json={"token": token, "fynd": {uid: data}},
+                              headers={"apikey": nyckel, "Content-Type": "application/json"}, timeout=60)
+            if r.status_code not in (500, 502, 503, 504) or forsok == 3:
+                break
+            time.sleep(5 * (forsok + 1))
+        r.raise_for_status()
+        n += r.json() or 0
+    print(f"Egna fynd upplagda för {n} användare.")
 
 
 def admins(export: dict | None) -> set[str]:
