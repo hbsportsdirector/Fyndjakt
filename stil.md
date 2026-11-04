@@ -17,16 +17,19 @@ Jag HAR REDAN:
 - Klubbfåtölj
 - **2 st Chippendale library chairs** (cane back + ball-and-claw feet + snidade armstöd, köpta Veda Antik 2026-10-26, 2 500 kr/st)
 
-**AKTIV JAKT (högsta möbel-prio nu):**
-- **Vintage Chesterfield 3-sits soffa** i oxblodsläder, cognac eller mörkbrun. Original handtuftad knapp-rygg.
-  - Prisnivå: 10 000-25 000 kr för gott skick (vintage original)
-  - Märken att leta efter: Bevingade & Co (England premium), Delcor (England)
-  - Alternativ om Chesterfield blir för dyrt: Camelback-soffa (viktoriansk) med mahogny-trä som syns
+**AKTIV JAKT (högsta möbel-prio nu, uppdaterad 2026-11-05):**
+- **Howard & Sons Bridgewater-stil soffa i cognac/tan läder**, 3-sits. Djup och mjuk – den ska gå att se film i.
+  - Original Howard & Sons eller George Smith Signature: upp till 50 000 kr
+  - Kopior och efterföljare (Tetrad Prince/Monaco, Duresta Lansdowne/Garrick/Waldorf, Laura Ashley): upp till 25 000 kr
+  - Form: slät eller lätt randig rygg, lösa mjuka sittdynor (krav), gärna lösa ryggkuddar, scroll arms, kjol eller låga bun feet. Inga höga raka ben.
+  - Färg: cognac, tan eller kastanj. Mörkbrun går bra. Oxblod bara som reserv (rummet blir för rött). Aldrig honungsljus, svart, vit eller grå.
+  - Mått: 200–240 cm bred, 95–110 cm djup, högst 95 cm hög (takhöjd 240 cm).
+- Klassisk Chesterfield 3-sits i cognac/oxblod duger som reserv, men är inte toppval. **Monks Chesterfield är avförd** – för hård.
 
 **Vill även ha (lägre prio):**
 - Deacons chair, Captain's chair, Librarian's chair
 - Mindre skinnpallar/fotpallar
-- Chesterfield-ottoman (matchande soffan när den är köpt)
+- Skinnpall eller ottoman som matchar soffan när den är köpt
 
 **Modern dansk/skandinavisk design = ALLTID NEJ.** Även Fritz Hansen 8000, Hans Wegner, Arne Jacobsen, Finn Juhl, Børge Mogensen. Oavsett pris eller skick.
 

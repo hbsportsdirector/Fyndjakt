@@ -97,7 +97,8 @@ kallor:
 spar:
   # ── 1. Inredningen ────────────────────────────────────────────
   # Omskriven 2026-10-23 – Sherlock Holmes-inspirerat engelskt bibliotek i Åkersberga.
-  # Chesterfield + wingback + klubbfåtölj finns redan. Jaga mahogny-möbler, mässing och antikvariska detaljer.
+  # Wingback + klubbfåtölj finns redan. Soffjakt: Howard & Sons-stil i cognac/tan läder (2026-11-05).
+  # Jaga även mahogny-möbler, mässing och antikvariska detaljer.
   hemmet:
     namn: The Reading Room
     profilfil: stil.md
@@ -144,6 +145,11 @@ spar:
       - affisch
       - poster
       - högglans
+      - modulsoffa
+      - hörnsoffa
+      - divansoffa
+      - recliner
+      - rekliner
     har_redan_ord:
       - IKEA Billy
       - BILLY bokhylla
@@ -165,10 +171,22 @@ spar:
       - Persisk/orientalisk matta mörk: JA. Minst 160×240 cm.
       - Mörka tunga ridåer velur / bomullsvelour: JA.
       - Tartan/Pendleton pläd mörka toner: JA.
-      - Wingback, klubbfåtölj + 2 Chippendale library chairs finns redan. Chesterfield-SOFFA är kundens HÖGSTA möbel-jakt-prio (ej köpt än, trots tidigare felaktig info i profilen).
-      - Vintage Chesterfield 3-sits soffa i oxblodsläder/cognac/mörkbrun = JA. Original handtuftad knapp-rygg. 10000-25000 kr sweet spot. Bevingade & Co, Delcor-märken +1.
-      - **Monks-stil Chesterfield** (hög rygg med djup knapp-tuftning hela vägen upp, sakral/biblioteks-estetik, mer kyrkligt uttryck än klassisk låg Chesterfield) = 10 om oxblod/röd, 9 om cognac/brun. Högsta prio från 2026-10-26. Kolla rygghöjd på bilden - över 90 cm = Monks-stil.
-      - Chesterfield med LÅG rolled back i cognac/beige/tan = 7 (annars rätt, men inte film-vänlig). Oxblod/röd slår alla andra färger - 1 steg upp.
+      - Wingback, klubbfåtölj + 2 Chippendale library chairs finns redan. SOFFAN är kundens HÖGSTA möbel-jakt-prio (ej köpt än).
+      - SOFFJAKT (uppdaterad 2026-11-05): Howard & Sons Bridgewater-stil i cognac/tan läder är NY TOPPRIO. Djup engelsk
+        country house-soffa med slät eller lätt randig rygg, lösa mjuka sittdynor (KRAV), gärna lösa ryggkuddar, scroll arms,
+        kjol eller låga bun feet. Soffan ska vara mjuk nog för filmtittande.
+      - Monks Chesterfield är AVFÖRD som jakt – för hård för filmtittande. Klassisk Chesterfield 3-sits cognac/oxblod = 7 (backup).
+      - Soffbetyg: 10 = Howard & Sons Bridgewater original eller George Smith Signature, cognac/tan/kastanj, 3-sits, under 50 000 kr,
+        Stockholm/pendlingsavstånd. 9 = Tetrad Prince/Monaco eller Duresta Lansdowne/Garrick/Waldorf, 3-sits cognac/tan, under
+        25 000 kr. 8 = vintage "Howard-stil"/English country house sofa, slät rygg, lösa kuddar, cognac/tan läder, 3-sits.
+        7 = klassisk Chesterfield cognac/oxblod 3-sits. 5–6 = Howard-stil i fel färg. 0–3 = modern soffa, IKEA, modulsoffa,
+        hörnsoffa, tygsoffa, reclinersoffa, chaise longue ensam, modern dansk/skandinavisk design.
+      - Soffans färg: cognac/tan/kastanj = topp. Mörkbrun/mellanbrun = OK. Oxblod/burgundy = backup (rummet blir för rött).
+        Honungsljus/ljusbrun/blond = NEJ. Svart/vit/grå = NEJ. Färgen syns på bilden – lita på bilden före texten.
+      - Soffans form: slät eller lätt randig rygg = JA. Diamanttuftning över hela ryggen = Chesterfield (OK, inte toppval).
+        Höga raka ben = NEJ (för modernt). Svenska "Howardmodell" (Englesson, Jio, Bröderna Andersson) är oftast TYG – då max 3.
+      - Soffans mått: 3-sits 200–240 cm bred, djup 95–110 cm, höjd högst 95 cm (takhöjd 240 cm). Utanför måtten −2.
+      - Soffans pris: högst 50 000 kr för Howard & Sons original, högst 25 000 kr för kopior (Tetrad, Duresta, Laura Ashley m.fl.).
       - Fler Chippendale cane back library chairs = max 4 (kunden har par sedan 26 okt 2026).
       - IKEA Billy har kunden 7 st - inget fler Billy behövs.
       - Varm mässingston JA, silver/krom NEJ.
@@ -179,7 +197,9 @@ spar:
       kandelabrar) – inte ett urval. Saker som det alltid finns gott om till salu (orientaliska mattor,
       ljusstakar och kandelabrar i mässing, landskaps- och stillebenmålningar, litografier, taklampor)
       får 8 eller mer BARA om just den här sticker ut: ovanligt fin, ovanligt billig för vad den är, eller
-      ovanlig i sig. En som bara är "rätt sort i rätt storlek" är 6–7. Var sparsam med 9 och 10:
+      ovanlig i sig. En som bara är "rätt sort i rätt storlek" är 6–7. Var sparsam med 9 och 10.
+      SOFFOR bedöms ENBART efter soffbetygen i lärdomarna (Howard & Sons-stil i cognac/tan läder = topp; Chesterfield = 7).
+      Övriga saker:
       - 10: Antik engelsk mahogny-byrå original (1800-tal), partners desk med läderskiva perfekt skick,
             originalbankerslamp Emeralite/Faries, antik jordglob 1800-tal på trästativ.
       - 9: Chippendale-byrå, mahogny skrivbord med läderskiva, mahogny bokskåp med glasdörrar
@@ -194,7 +214,40 @@ spar:
       - 0–3: Modern designfåtölj (Fritz Hansen etc.), lampett, Billy, skandinavisk minimalism,
              vit lack, krom, shabby chic.
     max_pris: 15000
+    max_pris_per_kategori:
+      Soffor: 50000                  # Howard & Sons original upp till 50 000 kr, kopior bedöms mot 25 000 kr
     sokningar:
+      Soffor:
+        # ─── Howard & Sons Bridgewater-stil i cognac/tan läder – TOPPRIO 2026-11-05 ───
+        - Howard and Sons soffa
+        - Howard Bridgewater soffa
+        - Howard & Sons Ltd
+        - Howard soffa skinn
+        - Howard soffa läder
+        - George Smith Signature soffa
+        - George Smith soffa
+        - Tetrad Prince soffa
+        - Tetrad Monaco soffa
+        - Tetrad soffa
+        - Duresta Lansdowne soffa
+        - Duresta Garrick soffa
+        - Duresta Waldorf soffa
+        - Duresta soffa
+        - Laura Ashley Howard soffa
+        - engelsk klubbsoffa skinn
+        - antik scroll arm soffa skinn
+        - feather filled english sofa
+        - antique country house sofa leather
+        - djup engelsk skinnsoffa cognac
+        - djup engelsk skinnsoffa tan
+        - engelsk antik skinnsoffa kastanj
+        - scroll arm soffa läder
+        # ─── Chesterfield – backup (7), inte längre toppkandidat ───
+        - Chesterfield soffa cognac
+        - Chesterfield 3-sits läder
+        - Chesterfield soffa oxblod
+        - vintage Chesterfield
+        - antik Chesterfield
       Möbler mahogny chippendale:
         - mahogny byrå
         - chippendale byrå
@@ -232,39 +285,6 @@ spar:
         - Nils Jonsson palisander
         - Troeds palisander
       Sittmöbler:
-        # ─── Chesterfield soffor – HÖGSTA MÖBELJAKT-PRIO just nu ───
-        - Chesterfield soffa
-        - Chesterfield soffa oxblod
-        - Chesterfield soffa röd
-        - Chesterfield soffa antik röd
-        - Chesterfield soffa burgundy
-        - Chesterfield soffa cognac
-        - Chesterfield soffa läder
-        - Chesterfield 3-sits
-        - Chesterfield 3-sits läder
-        - Chesterfield 3-sits oxblod
-        - Chesterfield 3-sits röd
-        # ─── Monks-stil (hög rygg, djup knapp-tuftning upp) – TOPPRIO 2026-10-26 ───
-        - Chesterfield Monk
-        - Chesterfield Monks
-        - Monk Chesterfield
-        - Monks Chesterfield
-        - Chesterfield högrygg
-        - Chesterfield högryggad
-        - högryggad Chesterfield
-        - Chesterfield hög rygg
-        - vintage Chesterfield
-        - antik Chesterfield
-        - Chesterfield 1800-tal
-        - Bevingade Chesterfield
-        - Delcor Chesterfield
-        # ─── Alternativa engelska soffformer ───
-        - camelback soffa mahogny
-        - camelback soffa läder
-        - viktoriansk soffa läder
-        - edvardiansk soffa läder
-        - edvardiansk settee
-        - Knole soffa
         # ─── Fåtöljer och övrigt (låg prio – par finns redan) ───
         - captains chair
         - librarians chair

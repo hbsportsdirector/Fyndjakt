@@ -1551,3 +1551,12 @@ def test_publicera_en_anvandare_per_anrop_och_forsoker_igen(monkeypatch):
     monkeypatch.setattr(smak.requests, "post", post)
     smak.publicera({}, {"a": {"poster": []}, "b": {"poster": []}})
     assert anrop == [["a"], ["a"], ["b"]]     # en användare per anrop, och "a" försöktes igen efter 500
+
+
+def test_max_pris_per_kategori():
+    spar = {"max_pris": 15000, "max_pris_per_kategori": {"Soffor": 50000}}
+    soffa = main.replace(auctionet.tolka(AUCTIONET_POST, "Soffor"), pris=30000)
+    byra = main.replace(auctionet.tolka(AUCTIONET_POST, "Möbler"), pris=30000)
+    assert main.forfiltrera(soffa, {}, spar) is None
+    assert main.forfiltrera(byra, {}, spar) == "pris 30000 > 15000"
+    assert main.forfiltrera(main.replace(soffa, pris=60000), {}, spar) == "pris 60000 > 50000"

@@ -192,7 +192,8 @@ def forfiltrera(a: Annons, cfg: dict, spar: dict | None = None) -> str | None:
             return f"har redan ('{ord_}')"
     if cfg.get("bara_sverige") and a.valuta != "SEK":
         return f"utanför Sverige ({a.valuta})"
-    max_pris = spar.get("max_pris", cfg.get("max_pris")) or 0
+    # Eget tak per kategori går före spårets (soffor får kosta mer än resten av Reading Room).
+    max_pris = (spar.get("max_pris_per_kategori") or {}).get(a.kategori) or spar.get("max_pris", cfg.get("max_pris")) or 0
     if max_pris and a.pris and a.pris > max_pris:
         return f"pris {a.pris} > {max_pris}"
     return None
