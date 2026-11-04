@@ -86,3 +86,64 @@ West Germany keramik vas
 Gouda keramik
 Bitossi keramik
 Rosenthal studio
+
+# ── Uppdelning av de största fraserna (tillagt 2026-11-04) ───────
+# Auctionet stannar vid ~10 000 träffar per fras; Höganäs, Lisa Larson, Lindberg, Nylund och Boda slog i taket.
+# Smalare fraser når posterna bakom taket. Dubbletter mot det som redan finns rensas på Auctionets id.
+Lisa Larson katt
+Lisa Larson Lilla Zoo
+Lisa Larson ABC flickor
+Lisa Larson skulptur
+Lisa Larson Stora Zoo
+Stig Lindberg fat
+Stig Lindberg skål
+Stig Lindberg vas
+Stig Lindberg Berså
+Stig Lindberg Pungo
+Stig Lindberg Spisa Ribb
+Stig Lindberg Veckla
+Gunnar Nylund vas
+Gunnar Nylund skål
+Gunnar Nylund figurin
+Gunnar Nylund Nymölle
+Höganäs vas
+Höganäs krus
+Höganäs skål
+Höganäs fat
+Höganäs Saltglaserat
+Boda Höglund skål
+Boda Höglund ljusstake
+Kosta Boda skål
+Kosta Boda fat
+
+# ── Svenskt glas som saknades ─────────────────────────────────────
+Orrefors vas
+Orrefors Simon Gate
+Orrefors Edward Hald
+Gullaskruf
+Åfors glasbruk
+Reijmyre glasbruk
+Strömbergshyttan
+Skrufs glasbruk
+Bertil Vallien
+Ulrica Hydman-Vallien
+Monica Backström
+Lindshammar
+Pukeberg
+
+# ── Nordisk keramik som saknades ─────────────────────────────────
+Syco keramik
+Alingsås keramik
+Tobo keramik
+Rörstrand Mon Amie
+Rörstrand Picknick
+Gustavsberg Prunus
+Gustavsberg Salix
+Figgjo Norge
+Stavangerflint
+Egersund keramik
+Söholm Bornholm
+Michael Andersen Bornholm
+Hjorth Bornholm
+Knabstrup keramik
+Kronjyden Bornholm
