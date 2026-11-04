@@ -75,7 +75,9 @@ Prova direkt: `Start-ScheduledTask -TaskName 'Fyndjakt timme'`, och läs `data\h
 
 - Två körningar går aldrig samtidigt (lås i `data\hemma.lock`). Krockar timmen med kvällen hoppar timkörningen över.
 - Resultatet (`data/sedda.db` med mera) committas och pushas till main efter varje körning, så att GitHub-reserven ser
-  samma läge. Kommer det kodändringar under tiden görs `git pull --rebase` före varje körning.
+  samma läge. Skriptet ställer sig alltid på grenen `main` och hämtar senaste koden före varje körning. Krockar
+  datafilerna med något som pushats under tiden tar det GitHubs kod och lägger sina egna datafiler ovanpå – inget
+  rebase som kan lämna repot "utanför en gren".
 - Stäng av: `Unregister-ScheduledTask -TaskName "Fyndjakt kväll","Fyndjakt timme" -Confirm:$false`. GitHub tar då
   över nästa natt utan att något behöver ändras.
 - Kostnad: snabbkörningarna är små (högst 60 bedömningar à ca 2,5 öre), men de är 17 om dagen. Räkna med ungefär

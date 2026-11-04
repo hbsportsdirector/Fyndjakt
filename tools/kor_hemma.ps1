@@ -13,6 +13,20 @@ $logg = Join-Path $rot "data\hemma.log"
 $las = Join-Path $rot "data\hemma.lock"
 function Logga($t) { $rad = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') $t"; Write-Host $rad; Add-Content -Path $logg -Value $rad -Encoding UTF8 }
 
+# Datafilerna som körningen ändrar och som sparas i repot efteråt.
+$datafiler = "data/sedda.db", "data/senaste_korning.json", "data/smakanalys.json", "data/kategoriprofiler.json"
+
+# Lägger våra datafiler ovanpå GitHubs senaste main, utan rebase (ett rebase som krockar i sedda.db lämnar repot
+# "utanför en gren" och stoppar alla körningar efteråt). Våra filer är de färskaste, så de vinner.
+function LaggOvanpaGithub {
+  git fetch -q origin main 2>&1 | ForEach-Object { Logga "git: $_" }
+  $undan = Join-Path $env:TEMP "fyndjakt-data"
+  New-Item -ItemType Directory -Path $undan -Force | Out-Null
+  foreach ($f in $datafiler) { if (Test-Path $f) { Copy-Item $f (Join-Path $undan (Split-Path $f -Leaf)) -Force } }
+  git reset -q --hard origin/main 2>&1 | ForEach-Object { Logga "git: $_" }
+  foreach ($f in $datafiler) { $k = Join-Path $undan (Split-Path $f -Leaf); if (Test-Path $k) { Copy-Item $k $f -Force } }
+}
+
 # Lås: en körning i taget. Ett lås äldre än fyra timmar räknas som kvarglömt.
 if (Test-Path $las) {
   if ((Get-Date) - (Get-Item $las).LastWriteTime -lt (New-TimeSpan -Hours 4)) { Logga "Hoppar över – en körning pågår redan."; exit 0 }
@@ -34,8 +48,14 @@ try {
   }
 
   Logga ("Startar " + $(if ($Snabb) { "snabbkörning" } else { "hel körning" }) + " med $py $pyArgs")
+  # Ordning i repot först: ett halvfärdigt rebase eller ett läge "utanför en gren" (efter en krock i sedda.db) får
+  # inte stoppa körningarna. Vi ställer oss på main och tar ned senaste koden; datafilerna behåller vi.
+  if ((Test-Path ".git\rebase-merge") -or (Test-Path ".git\rebase-apply")) { git rebase --abort 2>&1 | Out-Null; Logga "git: avbröt ett halvfärdigt rebase." }
+  if ((git rev-parse --abbrev-ref HEAD) -ne "main") { git checkout -q -B main 2>&1 | Out-Null; Logga "git: nu på grenen main." }
+  git branch -q --set-upstream-to=origin/main main 2>$null
   # Senaste koden – även om data-filerna är ändrade sedan förra körningen (autostash lägger undan och tillbaka).
   git pull -q --rebase --autostash origin main 2>&1 | ForEach-Object { Logga "git: $_" }
+  if ($LASTEXITCODE -ne 0) { git rebase --abort 2>$null; LaggOvanpaGithub; Logga "git: kunde inte fläta ihop – tog GitHubs kod och behöll våra datafiler." }
   # Nya paket sedan sist? Snabbt när allt redan finns.
   & $py @pyArgs -m pip install -q -r requirements.txt 2>&1 | ForEach-Object { "$_" } | Where-Object { $_ -notmatch "^\[notice\]|RemoteException" } | Select-Object -Last 3 | ForEach-Object { Logga "pip: $_" }
 
@@ -47,21 +67,21 @@ try {
   Logga "main.py avslutades med kod $kod"
 
   # Spara sedda annonser och rapporten, precis som nattjobbet på GitHub gör.
-  git add data/sedda.db data/senaste_korning.json 2>$null
-  git add data/smakanalys.json data/kategoriprofiler.json 2>$null
-  git diff --cached --quiet
-  if ($LASTEXITCODE -ne 0) {
-    git -c user.name="fyndjakt-hemma" -c user.email="fyndjakt-hemma@users.noreply.github.com" commit -q -m $(if ($Snabb) { "Uppdatera sedda annonser (hemma, snabb)" } else { "Uppdatera sedda annonser (hemma)" })
-    $ok = $false
-    for ($i = 0; $i -lt 3 -and -not $ok; $i++) {
-      git push -q origin HEAD:main 2>&1 | ForEach-Object { Logga "git: $_" }
-      if ($LASTEXITCODE -eq 0) { $ok = $true; break }
-      git fetch -q origin main
-      git rebase -X theirs origin/main 2>&1 | ForEach-Object { Logga "git: $_" }
-      Start-Sleep -Seconds 5
-    }
-    Logga $(if ($ok) { "Resultatet är sparat i repot." } else { "Kunde inte pusha – försöker nästa gång." })
-  } else { Logga "Inget nytt att spara." }
+  $medd = $(if ($Snabb) { "Uppdatera sedda annonser (hemma, snabb)" } else { "Uppdatera sedda annonser (hemma)" })
+  $ok = $false
+  for ($i = 0; $i -lt 3 -and -not $ok; $i++) {
+    foreach ($f in $datafiler) { git add $f 2>$null }
+    git diff --cached --quiet; $nytt = ($LASTEXITCODE -ne 0)
+    $opushat = (git rev-list --count origin/main..HEAD) -ne "0"   # en commit från en tidigare körning som inte kom iväg
+    if (-not $nytt -and -not $opushat) { Logga "Inget nytt att spara."; $ok = $true; break }
+    if ($nytt) { git -c user.name="fyndjakt-hemma" -c user.email="fyndjakt-hemma@users.noreply.github.com" commit -q -m $medd }
+    git push -q origin HEAD:main 2>&1 | ForEach-Object { Logga "git: $_" }
+    if ($LASTEXITCODE -eq 0) { Logga "Resultatet är sparat i repot."; $ok = $true; break }
+    # Någon annan (GitHub-jobbet eller en kodändring) hann före: lägg våra datafiler ovanpå det nya och försök igen.
+    LaggOvanpaGithub
+    Start-Sleep -Seconds 5
+  }
+  if (-not $ok) { Logga "Kunde inte pusha – försöker nästa gång." }
 } catch {
   if ($_.Exception.Message -ne "saknad nyckel") { Logga "Fel i skriptet: $_"; $kod = 1 }
 } finally {
