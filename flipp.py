@@ -2,11 +2,11 @@
 
 För spår med `flipp: true` används Claude bara för att identifiera föremålet (fabrik/formgivare/serie),
 föreslå en sökfras för prisjämförelse och varna för nyproduktion, kopior och skador. Sedan hämtas vad
-jämförbara föremål klubbats för på Auctionet, och koden räknar på upplägget "köp var som helst, sälj via ett
-auktionshus på Auctionet":
+jämförbara föremål klubbats för på Auctionet, och koden räknar på upplägget "köp var som helst, sälj själv på
+Tradera med avhämtning" (så säljer ägaren):
 
     inköp = pris × (1 + köparprovision för källan) + frakt för källan
-    netto = typiskt slutpris (median) × (1 − säljarprovision) − avgift per föremål
+    netto = typiskt slutpris (median) − Traderas provision (10 %, minst 3 kr, högst 200 kr per såld annons)
     kvot  = inköp / netto:  ≤ 0,35 → 10    ≤ 0,50 → 8    ≤ 0,70 → 6    annars 0
 
 Blir vinsten (netto − inköp) under MIN_VINST ger det 0 – då är det inte värt besväret.
@@ -40,9 +40,14 @@ STORA_TYPER = ("karott", "kanna", "kannor", "servis")
 VARNINGSAVDRAG = 3
 STEG = [(0.35, 10), (0.50, 8), (0.70, 6)]   # kvot = inköp / netto
 
-# Kalkylen: sälj via ett auktionshus på Auctionet. Uppskattningar – provisioner och avgifter varierar mellan husen.
-SALJ_PROVISION = 0.20    # säljarprovision på klubbat pris
-SALJ_AVGIFT = 100        # avgifter per föremål (foto, hantering)
+# Kalkylen: sälj själv på Tradera, köparen hämtar. Traderas provision för privatpersoner: 10 % av slutpriset,
+# minst 3 kr och högst 200 kr per såld annons. Typiskt slutpris tas från Auctionets klubbade priser – Traderas
+# avslutade går inte att söka i API:et. Auctionet-köparen betalar 25 % ovanpå klubbat, så klubbat pris ligger nära
+# vad en Tradera-köpare betalar. Stämmer det inte med dina försäljningar: sänk SALJ_PRISNIVA.
+SALJ_PROVISION = 0.10    # Traderas provision på slutpriset
+SALJ_MIN, SALJ_MAX = 3, 200
+SALJ_PRISNIVA = 1.0      # Tradera-pris ÷ Auctionets klubbade pris
+SALJ_KANAL = "Tradera"
 KOP_PROVISION = {"auctionet": 0.25, "bukowskis": 0.25}   # köparprovision på budet
 KOP_FRAKT = {"tradera": 80}                             # frakt när köpet skickas (övriga hämtas)
 MIN_VINST = 300          # kr kvar efter alla kostnader – annars inte värt besväret
@@ -105,8 +110,9 @@ def inkop(pris: int, kalla: str = "") -> float:
 
 
 def netto(median: int) -> float:
-    """Vad man får ut när föremålet klubbas för medianen, efter säljarprovision och avgifter."""
-    return median * (1 - SALJ_PROVISION) - SALJ_AVGIFT
+    """Vad man får ut när föremålet säljs på Tradera för medianen, efter Traderas provision."""
+    pris = median * SALJ_PRISNIVA
+    return pris - min(SALJ_MAX, max(SALJ_MIN, pris * SALJ_PROVISION))
 
 
 def vinst(pris: int | None, median: int | None, kalla: str = "") -> int | None:
@@ -158,8 +164,8 @@ def _kr(n: int) -> str:
 
 
 def motivering(pris: int | None, pris_text: str, jmf: dict | None, varning: str = "", kalla: str = "") -> str:
-    """Maskinbyggd: "Utrop 150 kr, klubbas typiskt för 1 000 kr (12 jämförelser) – vinst ca 510 kr på Auctionet,
-    köp max 280 kr." """
+    """Maskinbyggd: "Utrop 150 kr, klubbas typiskt för 1 000 kr (12 jämförelser) – vinst ca 750 kr på Tradera,
+    köp max 450 kr." """
     jmf = jmf or {}
     if not jmf.get("median") or (jmf.get("antal") or 0) < MIN_JAMFORELSER:
         return f"För få jämförelser ({jmf.get('antal') or 0} sålda)."
@@ -172,9 +178,9 @@ def motivering(pris: int | None, pris_text: str, jmf: dict | None, varning: str 
             f"({per}{jmf['antal']} jämförelser){utan_typ}")
     km = kop_max(varde(jmf), kalla)
     if km:
-        text += f" – vinst ca {_kr(vinst(pris, varde(jmf), kalla))} på Auctionet, köp max {_kr(km)}."
+        text += f" – vinst ca {_kr(vinst(pris, varde(jmf), kalla))} på {SALJ_KANAL}, köp max {_kr(km)}."
     else:
-        text += " – för lågt värde för att löna sig att sälja på Auctionet."
+        text += f" – för lågt värde för att löna sig att sälja på {SALJ_KANAL}."
     if (varning or "").strip():
         text += f" Varning: {varning.strip()}."
     return text

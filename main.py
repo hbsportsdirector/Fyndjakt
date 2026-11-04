@@ -615,8 +615,16 @@ def main() -> int:
     # Flipp-spåret: Claude identifierar, Auctionet ger typiskt slutpris, koden sätter betyget.
     import flipp
     flipp_tio = []
+    # Aktuellt bud för fynden på sidan som inte kom med i sökningarna (timkörningen hämtar t.ex. inte Auctionet).
+    uppdaterade = []
     try:
-        STATISTIK["Flipp"] = {"priser uppdaterade": flipp.uppdatera_priser(annonser, db, cfg)}
+        import prisuppdatering
+        uppdaterade, STATISTIK["Priser"] = prisuppdatering.kor(db, cfg, {a.nyckel for a in annonser})
+    except Exception as e:  # får aldrig stoppa körningen
+        print(f"Kunde inte uppdatera priserna: {e}")
+    _tid("prisuppdatering")
+    try:
+        STATISTIK["Flipp"] = {"priser uppdaterade": flipp.uppdatera_priser(annonser + uppdaterade, db, cfg)}
         if flipp_kand and not STATISTIK.get("Varning"):
             flipp_tio = flipp.bedom(flipp_kand, db, cfg, bedomning._klient(), berika, STATISTIK["Flipp"])
             STATISTIK["Flipp"].update({"kandidater": len(flipp_kand), "betyg 10": len(flipp_tio)})

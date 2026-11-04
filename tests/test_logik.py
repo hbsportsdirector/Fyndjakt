@@ -167,8 +167,8 @@ def test_flipp_rakning_samma_som_python():
         for kalla in ("tradera", "auctionet", "bukowskis", "myrorna"):
             assert L(f"L.flippRakning({median}, '{kalla}').kopMax") == flipp.kop_max(median, kalla), (median, kalla)
     r = L("L.flippRakning(2582, 'tradera')")
-    assert r == {"slutpris": 2582, "netto": 1966, "tak": 983, "halva": True, "frakt": 80, "prov": 0, "efterFrakt": 902, "kopMax": 902}
-    assert L("L.flippRakning(400, 'myrorna').kopMax") is None   # lönar sig aldrig
+    assert r == {"slutpris": 2582, "provision": 200, "netto": 2382, "tak": 1191, "halva": True, "frakt": 80, "prov": 0, "efterFrakt": 1111, "kopMax": 1111}
+    assert L("L.flippRakning(300, 'myrorna').kopMax") is None   # lönar sig aldrig
 
 
 def test_saljplan_sager_var_den_ska_ligga():

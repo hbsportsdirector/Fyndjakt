@@ -77,17 +77,16 @@
   }
 
   // ── Fyndjakts "köp max" (samma räkning som flipp.py) ──────────────
-  // Sälj via ett auktionshus på Auctionet: netto = slutpris − 20 % − 100 kr. Köp max = högst halva nettot (och minst
-  // 300 kr vinst), minus frakt, delat med köparprovisionen där köpet görs.
-  const FLIPP = { saljProvision: 0.20, saljAvgift: 100, kvot: 0.5, minVinst: 300,
-                  kopProvision: { auctionet: 0.25, bukowskis: 0.25 }, frakt: { tradera: 80 } };
+  // Sälj själv på Tradera med avhämtning: netto = slutpris − Traderas provision (10 %, minst 3 kr, högst 200 kr).
+  // Köp max = högst halva nettot (och minst 300 kr vinst), minus frakt, delat med köparprovisionen där köpet görs.
+  const FLIPP = { kvot: 0.5, minVinst: 300, kopProvision: { auctionet: 0.25, bukowskis: 0.25 }, frakt: { tradera: 80 } };
   function flippRakning(slutpris, kalla) {
     if (!slutpris) return null;
-    const netto = slutpris * (1 - FLIPP.saljProvision) - FLIPP.saljAvgift;
+    const provision = avgift("tradera", slutpris), netto = slutpris - provision;
     const halva = netto * FLIPP.kvot, tak = Math.min(halva, netto - FLIPP.minVinst);
     const frakt = FLIPP.frakt[kalla] || 0, prov = FLIPP.kopProvision[kalla] || 0;
     const kopMax = Math.trunc((tak - frakt) / (1 + prov));
-    return { slutpris, netto: Math.round(netto), tak: Math.round(tak), halva: tak === halva, frakt, prov,
+    return { slutpris, provision: Math.round(provision), netto: Math.round(netto), tak: Math.round(tak), halva: tak === halva, frakt, prov,
              efterFrakt: Math.trunc(tak - frakt), kopMax: kopMax > 0 ? kopMax : null };
   }
 

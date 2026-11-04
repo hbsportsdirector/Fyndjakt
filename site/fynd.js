@@ -81,11 +81,15 @@
     tal.append(cell("Pris nu", p.pris ? kr(p.pris) : (p.pris_text || "–")));
     const slutpris = p.jmf_median ? p.jmf_median * (p.styck > 1 ? p.styck : 1) : null;
     tal.append(cell("Köp max", p.kop_max ? kr(p.kop_max) : p.jmf_median ? kr(Math.round(p.jmf_median * Logik.KOPTAK_FLIPP)) : "–", "kop"));
+    // Budet har gått förbi köp max sedan fyndet hittades: inte längre ett fynd – visa det tydligt.
+    const over = p.kop_max && p.pris && p.pris > p.kop_max;
+    if (over) tal.querySelector(".kop").classList.add("over");
     tal.append(cell("Säljs för", slutpris ? kr(slutpris) : "–"));
     // Storleken: en liten vas jämförs bara med sålda i samma höjd. "Osäker:" = jämförelsen kan blanda små och stora.
     const osaker = /^Osäker/.test(p.jmf_storlek || "");
     if (osaker) tal.querySelectorAll(".kop, div:last-child").forEach(c => c.querySelector("b").append(el("em", { class: "osaker-stampel" }, "osäker")));
     kropp.append(tal);
+    if (over) kropp.append(el("p", { class: "varning" }, `Budet har passerat köp max – bjud inte mer än ${kr(p.kop_max)}.`));
     if (p.jmf_storlek) kropp.append(el("p", { class: osaker ? "varning" : "muted", style: "font-size:13px;margin:4px 0 0" },
       osaker ? "⚠ Storleken: " + p.jmf_storlek.replace(/^Osäker:\s*/, "") + " – kolla höjden innan du räknar med köp max." : "📏 " + p.jmf_storlek + "."));
     // Hur köp max räknas – annars ser glappet mellan köp max och slutpris obegripligt ut.
@@ -110,16 +114,16 @@
     const salda = p.jmf_antal ? ` – medianen av ${p.jmf_antal} sålda på Auctionet` : "";
     if (!p.kop_max) return el("p", {}, `Liknande klubbas för ca ${kr(slutpris)}${st}${salda}. Köp max är en tredjedel av det: ${kr(Math.round(slutpris * Logik.KOPTAK_FLIPP))}.`);
     const r = Logik.flippRakning(slutpris, p.kalla);
-    if (!r.kopMax) return el("p", {}, `Liknande klubbas för ca ${kr(slutpris)}${st}${salda}. Efter auktionshusets provision (20 %) och avgift (100 kr) blir nettot bara ${kr(r.netto)} – det lönar sig inte att köpa för att sälja vidare.`);
+    if (!r.kopMax) return el("p", {}, `Liknande klubbas för ca ${kr(slutpris)}${st}${salda}. Efter Traderas provision blir nettot bara ${kr(r.netto)} – det lönar sig inte att köpa för att sälja vidare.`);
     const rad = (t, v, cls) => el("div", { class: cls || "" }, el("span", {}, t), el("b", {}, v));
     const ut = el("div", { class: "rakning-rader" },
       rad("Klubbas typiskt" + st, kr(r.slutpris)),
-      rad("− auktionshusets provision 20 % och avgift 100 kr", "= " + kr(r.netto) + " netto"),
+      rad(`− Traderas provision ${kr(r.provision)} (10 %, högst 200 kr)`, "= " + kr(r.netto) + " netto"),
       rad(r.halva ? "Betala högst halva nettot" : "Lämna minst 300 kr i vinst", kr(r.tak)));
     if (r.frakt) ut.append(rad(`− frakt ${kr(r.frakt)} från ${KALLNAMN[p.kalla] || p.kalla}`, kr(r.efterFrakt)));
     if (r.prov) ut.append(rad(`÷ köparprovision ${Math.round(r.prov * 100)} % på ${KALLNAMN[p.kalla] || p.kalla}`, ""));
     ut.append(rad("Köp max", kr(r.kopMax), "summa"));
-    return el("div", {}, el("p", { class: "muted" }, `Räknat på att du säljer vidare via ett auktionshus på Auctionet${salda}.${p.jmf_storlek ? " Storlek: " + p.jmf_storlek.replace(/^Osäker:\s*/, "") + "." : ""} Halva nettot är marginalen för risk, arbete och att priset kan bli lägre.`), ut);
+    return el("div", {}, el("p", { class: "muted" }, `Räknat på att du säljer vidare på Tradera med avhämtning${salda}. Priset nu uppdateras varje timme.${p.jmf_storlek ? " Storlek: " + p.jmf_storlek.replace(/^Osäker:\s*/, "") + "." : ""} Halva nettot är marginalen för risk, arbete och att priset kan bli lägre.`), ut);
   }
   // Länkar till de sålda auktionerna som jämförelsen bygger på + Auctionets sökning på avslutade.
   const MAN = ["jan", "feb", "mar", "apr", "maj", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];
