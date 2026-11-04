@@ -80,5 +80,8 @@ Prova direkt: `Start-ScheduledTask -TaskName 'Fyndjakt timme'`, och läs `data\h
   rebase som kan lämna repot "utanför en gren".
 - Stäng av: `Unregister-ScheduledTask -TaskName "Fyndjakt kväll","Fyndjakt timme" -Confirm:$false`. GitHub tar då
   över nästa natt utan att något behöver ändras.
+- `data/sedda.db` städas i början av varje körning: utgångna annonser töms på bilder och länkar efter två veckor,
+  rader äldre än 60 dagar tas bort, och filen krymps. Den bör hålla sig kring 40–60 MB (GitHub varnar över 50 MB,
+  men stoppar först vid 100).
 - Kostnad: snabbkörningarna är små (högst 60 bedömningar à ca 2,5 öre), men de är 17 om dagen. Räkna med ungefär
   samma Claude-kostnad per dag som en nattkörning till.

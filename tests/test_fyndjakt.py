@@ -111,8 +111,16 @@ def test_databas_och_traffar(tmp_path):
     t = db.traffar(6)
     assert [r["nyckel"] for r in t] == [bra.nyckel]
     assert t[0]["bilder"] == bra.bilder and t[0]["kategori"] == "Möbler"
-    db.rensa_gamla()
-    assert db.finns(bra.nyckel)
+    assert db.rensa_gamla() == {"tomda": 1, "borttagna": 0}   # den utgångna töms på bilder och länk men finns kvar
+    assert db.finns(bra.nyckel) and db.finns(gammal.nyckel)
+    rad = db.con.execute("SELECT bilder, url, motivering FROM sedda WHERE nyckel = ?", (gammal.nyckel,)).fetchone()
+    assert rad["bilder"] is None and rad["url"] is None and rad["motivering"] == "utgången"
+    assert db.traffar(6)[0]["bilder"] == bra.bilder   # den aktiva rörs inte
+    # Rader äldre än 60 dagar försvinner helt – men inte annonser som fortfarande pågår.
+    db.con.execute("UPDATE sedda SET sedd = datetime('now', '-70 days') WHERE nyckel IN (?, ?)", (gammal.nyckel, bra.nyckel))
+    db.con.commit()
+    assert db.rensa_gamla() == {"tomda": 0, "borttagna": 1}
+    assert db.finns(bra.nyckel) and not db.finns(gammal.nyckel)
 
 
 def test_gammal_databas_migreras(tmp_path):

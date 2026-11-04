@@ -394,7 +394,9 @@ def main() -> int:
         print(f"Min smak: kunde inte läsa reaktioner – {e}")
         STATISTIK["Min smak"] = {"fel": str(e)[:200]}
     db = Databas()
-    db.rensa_gamla()
+    stadat = db.rensa_gamla()
+    if stadat["tomda"] or stadat["borttagna"]:
+        print(f"Databasen städad: {stadat['tomda']} utgångna annonser tömda på bilder, {stadat['borttagna']} gamla rader borta.")
 
     print("Hämtar annonser …")
     import sokordsvard

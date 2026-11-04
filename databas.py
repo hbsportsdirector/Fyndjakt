@@ -174,6 +174,20 @@ class Databas:
                          (kvot, kop_max, identifierat, varning, jmf_sakerhet, akthet_sakerhet, vinst, styck, nyckel))
         self.con.commit()
 
-    def rensa_gamla(self, dagar: int = 120):
-        self.con.execute("DELETE FROM sedda WHERE sedd < datetime('now', ?)", (f"-{dagar} days",))
+    def rensa_gamla(self, dagar: int = 60, dagar_tunga: int = 14) -> dict:
+        """Håller filen liten – den ligger i git och GitHub stoppar filer över 100 MB.
+        Annonser som gått ut för mer än `dagar_tunga` dagar sedan visas inte längre: bilder, prisexempel och länk
+        tas bort (det tunga). Rader äldre än `dagar` dagar tas bort helt – så långt bakåt tittar tidigare_bedomning.
+        VACUUM krymper filen; annars behåller SQLite det frigjorda utrymmet."""
+        nu = int(time.time())
+        tunga = self.con.execute(
+            """UPDATE sedda SET bilder=NULL, jmf_exempel=NULL, url=NULL
+               WHERE (bilder IS NOT NULL OR jmf_exempel IS NOT NULL OR url IS NOT NULL)
+                 AND (slutar_ts < ? OR (slutar_ts IS NULL AND sedd < datetime('now', ?)))""",
+            (nu - dagar_tunga * 86400, f"-{dagar_tunga * 2} days")).rowcount
+        bort = self.con.execute("DELETE FROM sedda WHERE sedd < datetime('now', ?) AND (slutar_ts IS NULL OR slutar_ts < ?)",
+                                (f"-{dagar} days", nu)).rowcount
         self.con.commit()
+        if tunga or bort:
+            self.con.execute("VACUUM")
+        return {"tomda": tunga, "borttagna": bort}
