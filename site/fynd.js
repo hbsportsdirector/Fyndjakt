@@ -5,7 +5,7 @@
   const KALLNAMN = { auctionet: "Auctionet", tradera: "Tradera", bukowskis: "Bukowskis", myrorna: "Myrorna", stadsmissionen: "Stadsmissionen" };
   const REGORDNING = ["Stockholm", "Uppsala och Mälardalen", "Östergötland, Småland och Blekinge", "Västsverige och Värmland",
     "Skåne", "Norrland och Dalarna", "Övriga Sverige", "Okänd ort"];
-  const st = { spar: "alla", sort: "slutar", kalla: "", region: "", q: "", min: 0, visa: 60, allaPerSokord: false };
+  const st = { spar: "alla", sort: "slutar", kalla: "", region: "", q: "", min: 0, visa: 60, allaPerSokord: false, kopmax: "" };
   try { Object.assign(st, JSON.parse(localStorage.getItem("fynd-vy") || "{}")); } catch (e) {}
   const mini = new Map();   // nyckel → data-URL (fyndjakt_bilder)
   let rot, timer;
@@ -61,7 +61,13 @@
   function synligaUtanTak() {
     const nu = Date.now() / 1000;
     return poster().filter(p => !dold(p) && iSpar(p) && (!st.kalla || p.kalla === st.kalla) && (!st.region || p.region === st.region || p.region === "Okänd ort")
-      && (+p.betyg || 0) >= st.min && traffSok(p) && (!p.slutar_ts || p.slutar_ts > nu - 3600));
+      && (+p.betyg || 0) >= st.min && traffSok(p) && (!p.slutar_ts || p.slutar_ts > nu - 3600) && kopmaxOk(p));
+  }
+  // Köp max-filtret gäller fynd som har ett köp max (flippen). "under" = fortfarande köpvärda, "over" = budet har sprungit förbi.
+  function kopmaxOk(p) {
+    if (!st.kopmax) return true;
+    if (!p.kop_max || !p.pris) return false;
+    return st.kopmax === "under" ? p.pris <= p.kop_max : p.pris > p.kop_max;
   }
   function synliga() { return synligaUtanTak().filter(inomTaket); }
   const doldaAvTaket = () => (perSokord() ? synligaUtanTak().filter(p => !inomTaket(p)).length : 0);
@@ -73,7 +79,7 @@
       nyast: (a, b) => seddMs(b) - seddMs(a) || (b.betyg || 0) - (a.betyg || 0),
     }[st.sort] || ((a, b) => 0);
   }
-  function minnas() { try { localStorage.setItem("fynd-vy", JSON.stringify({ spar: st.spar, sort: st.sort, min: st.min, region: st.region })); } catch (e) {} }
+  function minnas() { try { localStorage.setItem("fynd-vy", JSON.stringify({ spar: st.spar, sort: st.sort, min: st.min, region: st.region, kopmax: st.kopmax })); } catch (e) {} }
 
   // ── Kort ───────────────────────────────────────────────────────────
   function kort(p) {
@@ -280,7 +286,7 @@
       if (!poster().length) tom.append(el("div", { class: "stor" }, "Inga fynd än"), el("p", {}, "Fyndjakt letar varje natt. Har du ingen bevakning än – skapa en under Inställningar, så letar appen direkt."),
         el("div", { class: "rad" }, el("button", { class: "knapp", type: "button", onclick: () => App.visa("installningar") }, "Till Inställningar")));
       else tom.append(el("div", { class: "stor" }, "Inget matchar"), el("p", {}, "Prova ett annat spår, ett annat ord eller nollställ filtret."),
-        el("div", { class: "rad" }, el("button", { class: "knapp", type: "button", onclick: () => { st.q = ""; st.kalla = ""; st.region = ""; st.min = 0; st.spar = "alla"; $("fynd-q").value = ""; byggChips(); render(); } }, "Visa alla fynd")));
+        el("div", { class: "rad" }, el("button", { class: "knapp", type: "button", onclick: () => { st.q = ""; st.kalla = ""; st.region = ""; st.min = 0; st.kopmax = ""; st.spar = "alla"; $("fynd-q").value = ""; byggChips(); render(); } }, "Visa alla fynd")));
       lista.append(tom);
     }
     if (snart.length) {
@@ -353,7 +359,7 @@
       b.onclick = () => { st.sort = v; st.visa = 60; byggChips(); render(); window.scrollTo(0, 0); };
       return b;
     }));
-    const aktiva = [st.kalla, st.region, st.min ? "m" : ""].filter(Boolean).length;
+    const aktiva = [st.kalla, st.region, st.min ? "m" : "", st.kopmax].filter(Boolean).length;
     const fk = $("fynd-filter"); fk.replaceChildren(...["⚙ Filter", aktiva ? el("span", { class: "n" }, String(aktiva)) : null].filter(Boolean));
     fk.classList.toggle("primar", aktiva > 0);
   }
@@ -364,12 +370,13 @@
     const kalla = sel("fa-kalla", "Källa", [["", "Alla källor"], ...[...new Set(poster().map(p => p.kalla))].sort().map(k => [k, KALLNAMN[k] || k])], st.kalla);
     const region = sel("fa-region", "Område", [["", "Hela Sverige"], ...REGORDNING.filter(r => finns.has(r)).map(r => [r, r])], st.region);
     const min = sel("fa-min", "Lägsta betyg", [["0", "Alla betyg"], ["6", "Betyg 6+"], ["8", "Betyg 8+"], ["10", "Bara 10"]], String(st.min));
+    const kopmax = sel("fa-kopmax", "Köp max", [["", "Alla fynd"], ["under", "Pris nu under köp max – går att köpa"], ["over", "Pris nu över köp max – budet har sprungit förbi"]], st.kopmax);
     const takN = +((konto.fynd || {}).per_sokord || 0);
     const tak = takN ? sel("fa-tak", "Per sökord", [["tak", `Högst ${takN} per sökord (bäst först)`], ["alla", "Alla"]], st.allaPerSokord ? "alla" : "tak") : null;
-    const ark = App.sheet("Sortera och filtrera", el("div", {}, sort, kalla, region, min, tak,
+    const ark = App.sheet("Sortera och filtrera", el("div", {}, sort, kalla, region, min, kopmax, tak,
       el("div", { class: "rad knappar-rad" },
-        el("button", { class: "knapp primar", type: "button", onclick: () => { st.sort = sort.querySelector("select").value; st.kalla = kalla.querySelector("select").value; st.region = region.querySelector("select").value; st.min = +min.querySelector("select").value; if (tak) st.allaPerSokord = tak.querySelector("select").value === "alla"; ark.stang(); byggChips(); render(); } }, "Visa fynden"),
-        el("button", { class: "knapp", type: "button", onclick: () => { st.sort = "slutar"; st.kalla = ""; st.region = ""; st.min = 0; st.allaPerSokord = false; ark.stang(); byggChips(); render(); } }, "Nollställ"))));
+        el("button", { class: "knapp primar", type: "button", onclick: () => { st.sort = sort.querySelector("select").value; st.kalla = kalla.querySelector("select").value; st.region = region.querySelector("select").value; st.min = +min.querySelector("select").value; st.kopmax = kopmax.querySelector("select").value; if (tak) st.allaPerSokord = tak.querySelector("select").value === "alla"; ark.stang(); byggChips(); render(); } }, "Visa fynden"),
+        el("button", { class: "knapp", type: "button", onclick: () => { st.sort = "slutar"; st.kalla = ""; st.region = ""; st.min = 0; st.kopmax = ""; st.allaPerSokord = false; ark.stang(); byggChips(); render(); } }, "Nollställ"))));
   }
 
   App.del("fynd", { namn: "Fynd", ikon: "🔎",
