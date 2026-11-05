@@ -29,8 +29,11 @@
   const norm = App.norm;
   // "Soffor": soffjakten i Reading Room samlad – soffkategorin plus äldre soffor som hittades under andra kategorier
   // (Chesterfield låg under Sittmöbler). Fåtöljer, pallar och "Pearsons of Chesterfield"-keramik räknas inte.
-  const SOFFORD = /soff|sofa|settee|loveseat|chesterfieldsoffa/i, INTE_SOFFA = /fåtölj|pall|ottoman|stol\b|kanna|mugg|kruka|skål/i;
-  const arSoffa = p => p.kategori === "Soffor" || (p.spar === "hemmet" && SOFFORD.test(p.titel || "") && !INTE_SOFFA.test(p.titel || ""));
+  // Loveseat-orden går före "fåtölj": "fåtölj 1,5-sits" och "snuggle chair" är loveseats, en vanlig fåtölj är det inte.
+  const LOVESEAT = /loveseat|love seat|settee|kanap[eé]|tvåsits|två-sits|2-sits|2 sits|1,5-sits|1\.5-sits|snuggle|cuddle chair|kärleks/i;
+  const SOFFORD = /soff|sofa/i, INTE_SOFFA = /fåtölj|pall|ottoman|stol\b|kanna|mugg|kruka|skål/i;
+  const arSoffa = p => { const t = p.titel || ""; return p.kategori === "Soffor" ||
+    (p.spar === "hemmet" && (LOVESEAT.test(t) || (SOFFORD.test(t) && !INTE_SOFFA.test(t)))); };
   function iSpar(p) {
     if (st.spar === "alla") return true;
     if (st.spar === "flipp") return flippSpar(p.spar);
