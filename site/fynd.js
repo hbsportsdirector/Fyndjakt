@@ -27,9 +27,14 @@
   }
   const SORTER = [["nyast", "Nyast först"], ["slutar", "Slutar snart"], ["kvot", "Bäst pris"], ["betyg", "Högst betyg"]];
   const norm = App.norm;
+  // "Soffor": soffjakten i Reading Room samlad – soffkategorin plus äldre soffor som hittades under andra kategorier
+  // (Chesterfield låg under Sittmöbler). Fåtöljer, pallar och "Pearsons of Chesterfield"-keramik räknas inte.
+  const SOFFORD = /soff|sofa|settee|loveseat|chesterfieldsoffa/i, INTE_SOFFA = /fåtölj|pall|ottoman|stol\b|kanna|mugg|kruka|skål/i;
+  const arSoffa = p => p.kategori === "Soffor" || (p.spar === "hemmet" && SOFFORD.test(p.titel || "") && !INTE_SOFFA.test(p.titel || ""));
   function iSpar(p) {
     if (st.spar === "alla") return true;
     if (st.spar === "flipp") return flippSpar(p.spar);
+    if (st.spar === "soffor") return arSoffa(p);
     return p.spar === st.spar;
   }
   function traffSok(p) {
@@ -264,8 +269,8 @@
   function render() {
     minnas();
     const alla = synliga();
-    // "Nyast först" visar allt i den ordning det hittades – utan att de som slutar snart lyfts ut överst.
-    const snart = st.sort === "nyast" ? [] : Logik.slutarSnart(alla);
+    // "Slutar inom 24 timmar" lyfts bara ut när man sorterar på det – annars gäller vald ordning hela vägen.
+    const snart = st.sort === "slutar" ? Logik.slutarSnart(alla) : [];
     const snartIds = new Set(snart.map(p => p.nyckel));
     let rader = alla.filter(p => !snartIds.has(p.nyckel)).sort(sorterare());
     const antalNya = st.sort === "nyast" ? rader.filter(nytt).length : 0;
@@ -334,12 +339,13 @@
     return `${alla.length} aktiva fynd${snart ? ` · ${snart} slutar inom 24 h` : ""}`;
   }
   function byggChips() {
-    const val = [["alla", "Alla"], ...spar().filter(s => !s.flipp).map(s => [s.id, s.namn]), ...(spar().some(s => s.flipp) ? [["flipp", "Flipp"]] : [])];
+    const val = [["alla", "Alla"], ...spar().filter(s => !s.flipp).map(s => [s.id, s.namn]),
+      ...(poster().some(arSoffa) ? [["soffor", "Soffor"]] : []), ...(spar().some(s => s.flipp) ? [["flipp", "Flipp"]] : [])];
     if (!val.some(([v]) => v === st.spar)) st.spar = "alla";
-    const antal = id => poster().filter(p => !dold(p) && (id === "alla" || (id === "flipp" ? flippSpar(p.spar) : p.spar === id))).length;
+    const antal = id => poster().filter(p => !dold(p) && (id === "alla" || (id === "flipp" ? flippSpar(p.spar) : id === "soffor" ? arSoffa(p) : p.spar === id))).length;
     $("fynd-chips").replaceChildren(...val.map(([v, t]) => {
       const b = el("button", { class: "chip", type: "button", "aria-pressed": String(st.spar === v) }, t, el("span", { class: "n" }, String(antal(v))));
-      b.onclick = () => { st.spar = v; st.visa = 60; byggChips(); render(); };
+      b.onclick = () => { st.spar = v; st.visa = 60; if (v === "soffor") st.sort = "betyg"; byggChips(); render(); };
       return b;
     }));
     $("fynd-sort").replaceChildren(...SORTER.map(([v, t]) => {
