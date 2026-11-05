@@ -690,3 +690,7 @@ a.salda-alla { display: inline-block; color: var(--brass); padding: 8px 0 2px; m
 .sj-rad .sj-text b { font-size: 15px; font-family: inherit; }
 .sj-pris { text-align: right; font-size: 14px; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
 .sj-ark .textblock { margin-top: 10px; }
+/* Fynd: sortering direkt under sökraden, och "Ny" för fynd från senaste dygnet */
+.sortchips { margin-top: 6px; padding-bottom: 2px; }
+.sortchips .chip.liten { padding: 5px 12px; font-size: 13px; }
+.kort .meta span.ny { color: var(--gron-ljus); font-weight: 600; }

@@ -14,6 +14,18 @@
   const poster = () => ((konto.fynd || {}).poster || []);
   const flippSpar = id => !!(spar().find(s => s.id === id) || {}).flipp;
   const kvot = p => Logik.kvot(p) ?? (p.kvot ?? null);
+  // När fyndet hittades ("sedd" är UTC, "ÅÅÅÅ-MM-DD HH:MM:SS"). Nytt = hittat senaste dygnet.
+  const seddMs = p => (p.sedd ? Date.parse(String(p.sedd).replace(" ", "T") + "Z") || 0 : 0);
+  const nytt = p => Date.now() - seddMs(p) < 86400000;
+  function hittadText(p) {
+    const ms = seddMs(p); if (!ms) return "";
+    const d = new Date(ms), h = (Date.now() - ms) / 3600000;
+    const kl = d.toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" });
+    if (h < 1) return "hittad nyss";
+    if (h < 24) return `hittad ${Math.floor(h)} h sedan`;
+    return `hittad ${d.getDate()}/${d.getMonth() + 1} ${kl}`;
+  }
+  const SORTER = [["nyast", "Nyast först"], ["slutar", "Slutar snart"], ["kvot", "Bäst pris"], ["betyg", "Högst betyg"]];
   const norm = App.norm;
   function iSpar(p) {
     if (st.spar === "alla") return true;
@@ -53,6 +65,7 @@
       slutar: (a, b) => (a.slutar_ts || 9e12) - (b.slutar_ts || 9e12),
       kvot: (a, b) => (kvot(a) ?? 9) - (kvot(b) ?? 9) || (b.betyg || 0) - (a.betyg || 0),
       betyg: (a, b) => (b.betyg || 0) - (a.betyg || 0) || (a.slutar_ts || 9e12) - (b.slutar_ts || 9e12),
+      nyast: (a, b) => seddMs(b) - seddMs(a) || (b.betyg || 0) - (a.betyg || 0),
     }[st.sort] || ((a, b) => 0);
   }
   function minnas() { try { localStorage.setItem("fynd-vy", JSON.stringify({ spar: st.spar, sort: st.sort, min: st.min, region: st.region })); } catch (e) {} }
@@ -64,7 +77,7 @@
     const src = mini.get(p.nyckel) || (p.bilder || [])[0];
     if (src) { const i = el("img", { src, alt: "", loading: "lazy", referrerpolicy: "no-referrer" }); i.onerror = () => { i.remove(); bild.prepend(el("div", { class: "ingen" }, "Ingen bild")); }; bild.append(i); }
     else bild.append(el("div", { class: "ingen" }, "Ingen bild"));
-    if (p.betyg != null) bild.append(el("span", { class: "marke" }, "★ " + p.betyg + "/10"));
+    if (p.betyg != null) bild.append(el("span", { class: "marke" }, "★ " + p.betyg + "/10" + (nytt(p) ? " · Ny" : "")));
     const kv = kvot(p);
     // Kvoten (pris ÷ typiskt): grönt = fyndläge, mässing = under typiskt pris, dämpat = inget särskilt.
     if (kv != null) bild.append(el("span", { class: "marke hoger kvot " + (kv <= 0.5 ? "fynd" : kv <= 0.8 ? "bra" : "neutral"), title: "Pris nu delat med typiskt slutpris" },
@@ -100,6 +113,7 @@
     const t = Logik.tidKvar(p);
     if (t != null) { const s = el("span", { class: t < 6 * 3600 ? "het" : t < 86400 ? "snart" : "", "data-ts": p.slutar_ts }); s.textContent = tidtext(t); meta.append(s); }
     meta.append(el("span", {}, KALLNAMN[p.kalla] || p.kalla));
+    if (hittadText(p)) meta.append(el("span", { class: nytt(p) ? "ny" : "" }, hittadText(p)));
     if (p.ort || p.plats) meta.append(el("span", {}, p.ort || p.plats));
     if (p.jmf_antal) meta.append(el("span", {}, p.jmf_antal + " jämförelser"));
     kropp.append(meta);
@@ -250,9 +264,11 @@
   function render() {
     minnas();
     const alla = synliga();
-    const snart = Logik.slutarSnart(alla);
+    // "Nyast först" visar allt i den ordning det hittades – utan att de som slutar snart lyfts ut överst.
+    const snart = st.sort === "nyast" ? [] : Logik.slutarSnart(alla);
     const snartIds = new Set(snart.map(p => p.nyckel));
     let rader = alla.filter(p => !snartIds.has(p.nyckel)).sort(sorterare());
+    const antalNya = st.sort === "nyast" ? rader.filter(nytt).length : 0;
     const lista = $("fynd-lista"); lista.replaceChildren();
     if (!alla.length) {
       const tom = el("div", { class: "tom" });
@@ -267,7 +283,21 @@
       lista.append(el("div", { class: "rutnat" }, ...snart.map(kort)));
       if (rader.length) lista.append(el("div", { class: "avsnitt-rubrik" }, el("h3", {}, "Övriga"), el("span", {}, rader.length + " st")));
     }
-    if (rader.length) {
+    if (st.sort === "nyast" && rader.length) {
+      // Nyast först: de från senaste dygnet under en egen rubrik, sedan resten under "Äldre".
+      const rubrik = (t, n) => el("div", { class: "avsnitt-rubrik" }, el("h3", {}, t), el("span", {}, n));
+      const visade = rader.slice(0, st.visa), nya = visade.filter(nytt), aldre = visade.filter(p => !nytt(p));
+      lista.append(rubrik("Nya senaste dygnet", antalNya ? antalNya + " st" : "inga nya sedan i går"));
+      if (nya.length) lista.append(el("div", { class: "rutnat" }, ...nya.map(kort)));
+      if (aldre.length) { lista.append(rubrik("Äldre", (rader.length - antalNya) + " st")); lista.append(el("div", { class: "rutnat" }, ...aldre.map(kort))); }
+      if (rader.length > st.visa) {
+        const mer = el("button", { class: "knapp visa-fler", type: "button" }, `Visa ${Math.min(60, rader.length - st.visa)} till (${rader.length - st.visa} kvar)`);
+        mer.onclick = () => { st.visa += 60; const y = window.scrollY; render(); window.scrollTo(0, y); };
+        lista.append(mer);
+      }
+      rader = [...nya, ...aldre, ...rader.slice(st.visa)];   // samma ordning som korten, för miniatyrerna nedan
+    }
+    if (rader.length && st.sort !== "nyast") {
       const g = el("div", { class: "rutnat" }, ...rader.slice(0, st.visa).map(kort));
       if (rader.length > st.visa) {
         const mer = el("button", { class: "knapp visa-fler", type: "button" }, `Visa ${Math.min(60, rader.length - st.visa)} till (${rader.length - st.visa} kvar)`);
@@ -283,7 +313,7 @@
       lista.append(tak);
     }
     $("fynd-antal").textContent = antalText();
-    App.rakna("fynd", snart.length || "");
+    App.rakna("fynd", Logik.slutarSnart(alla).length || "");
     laddaMini([...snart, ...rader.slice(0, st.visa)].map(p => p.nyckel)).then(() => {
       lista.querySelectorAll(".kort").forEach(k => {});
       // Byt in miniatyrerna där annonsbilden saknas eller inte gick att läsa.
@@ -312,6 +342,11 @@
       b.onclick = () => { st.spar = v; st.visa = 60; byggChips(); render(); };
       return b;
     }));
+    $("fynd-sort").replaceChildren(...SORTER.map(([v, t]) => {
+      const b = el("button", { class: "chip liten", type: "button", "aria-pressed": String(st.sort === v) }, t);
+      b.onclick = () => { st.sort = v; st.visa = 60; byggChips(); render(); window.scrollTo(0, 0); };
+      return b;
+    }));
     const aktiva = [st.kalla, st.region, st.min ? "m" : ""].filter(Boolean).length;
     const fk = $("fynd-filter"); fk.replaceChildren(...["⚙ Filter", aktiva ? el("span", { class: "n" }, String(aktiva)) : null].filter(Boolean));
     fk.classList.toggle("primar", aktiva > 0);
@@ -319,7 +354,7 @@
   function filterArk() {
     const finns = new Set(poster().map(p => p.region));
     const sel = (id, etikett, val, varde) => { const s = el("select", { id }, ...val.map(([v, t]) => new Option(t, v))); s.value = varde; return el("label", { class: "falt" }, etikett, s); };
-    const sort = sel("fa-sort", "Sortera", [["slutar", "Slutar snart först"], ["kvot", "Bäst pris (kvot) först"], ["betyg", "Högst betyg först"]], st.sort);
+    const sort = sel("fa-sort", "Sortera", SORTER, st.sort);
     const kalla = sel("fa-kalla", "Källa", [["", "Alla källor"], ...[...new Set(poster().map(p => p.kalla))].sort().map(k => [k, KALLNAMN[k] || k])], st.kalla);
     const region = sel("fa-region", "Område", [["", "Hela Sverige"], ...REGORDNING.filter(r => finns.has(r)).map(r => [r, r])], st.region);
     const min = sel("fa-min", "Lägsta betyg", [["0", "Alla betyg"], ["6", "Betyg 6+"], ["8", "Betyg 8+"], ["10", "Bara 10"]], String(st.min));
@@ -340,7 +375,8 @@
           el("div", { class: "rad", style: "margin-top:6px" },
             el("input", { id: "fynd-q", type: "search", placeholder: "Sök i fynden …", "aria-label": "Sök" }),
             el("button", { class: "knapp filter-knapp", type: "button", id: "fynd-filter", onclick: filterArk }, "⚙ Filter"),
-            el("span", { class: "muted hoger", id: "fynd-antal" }))),
+            el("span", { class: "muted hoger", id: "fynd-antal" })),
+          el("div", { class: "chips sortchips", id: "fynd-sort", "aria-label": "Sortera" })),
         el("div", { id: "fynd-lista" }));
       // Kom tillbaka till samma spår och lika många visade fynd som innan appen laddades om.
       const plats = App.plats("fynd");
