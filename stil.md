@@ -13,23 +13,23 @@ Jag inreder ett engelskt bibliotek / detektiv-sanctum (Sherlock Holmes-inspirera
 
 ### Soffor, fåtöljer – engelsk klubbstil
 Jag HAR REDAN:
-- Wingback-fåtölj
-- Klubbfåtölj
 - **2 st Chippendale library chairs** (cane back + ball-and-claw feet + snidade armstöd, köpta Veda Antik 2026-10-26, 2 500 kr/st)
 
-**AKTIV JAKT (högsta möbel-prio nu, uppdaterad 2026-11-05):**
-- **Howard & Sons Bridgewater-stil soffa i cognac/tan läder**, 3-sits. Djup och mjuk – den ska gå att se film i.
-  - Original Howard & Sons eller George Smith Signature: upp till 50 000 kr
-  - Kopior och efterföljare (Tetrad Prince/Monaco, Duresta Lansdowne/Garrick/Waldorf, Laura Ashley): upp till 25 000 kr
-  - Form: slät eller lätt randig rygg, lösa mjuka sittdynor (krav), gärna lösa ryggkuddar, scroll arms, kjol eller låga bun feet. Inga höga raka ben.
-  - Färg: cognac, tan eller kastanj. Mörkbrun går bra. Oxblod bara som reserv (rummet blir för rött). Aldrig honungsljus, svart, vit eller grå.
-  - Mått: 200–240 cm bred, 95–110 cm djup, högst 95 cm hög (takhöjd 240 cm).
-- Klassisk Chesterfield 3-sits i cognac/oxblod duger som reserv, men är inte toppval. **Monks Chesterfield är avförd** – för hård.
+**AKTIV JAKT (uppdaterad 2026-11-05 – pivot från 3-sits soffa till 2-sits loveseat):**
 
-**Vill även ha (lägre prio):**
+Jag behöver bara 4 sittplatser totalt. 2 Chippendale finns. Jag kompletterar med EN sittmöbel: en vintage Howard-stil **2-sits (loveseat/settee) i cognac/tan läder** – djup och mjuk för filmtittande med partner, också skön att sträcka ut sig på själv.
+
+- **Budget: 10 000–15 000 kr. Absolut tak 15 000 kr.** Gärna 5 000–10 000 kr.
+- Form: slät eller lätt randig rygg, lösa mjuka sittdynor (KRAV), gärna lösa ryggkuddar, scroll arms, kjol eller låga bun feet. Inga höga raka ben.
+- Färg: cognac, tan eller kastanj. Mörkbrun går bra. Oxblod bara som reserv (rummet blir för rött). Aldrig honungsljus, svart, vit eller grå.
+- Mått: 140–180 cm bred (2-sits), djup 95–110 cm, höjd högst 95 cm.
+- Märken att leta efter: **Howard & Sons Bridgewater, George Smith Signature, Tetrad Prince/Monaco, Duresta Lansdowne/Garrick/Waldorf, Laura Ashley Mortimer/Kingston/Burlington, Multyork Berkeley**.
+- Klassisk Chesterfield 2-sits i cognac duger som reserv, men är inte toppval. **Monks Chesterfield är avförd** – för hård för film.
+
+**Vill även ha (låg prio, max 2 000 kr):**
+- Vintage skinn-fotpall/ottoman i cognac/brun som komplement till loveseaten (sträcka ut benen vid solo-film)
 - Deacons chair, Captain's chair, Librarian's chair
-- Mindre skinnpallar/fotpallar
-- Skinnpall eller ottoman som matchar soffan när den är köpt
+- Chesterfield-ottoman
 
 **Modern dansk/skandinavisk design = ALLTID NEJ.** Även Fritz Hansen 8000, Hans Wegner, Arne Jacobsen, Finn Juhl, Børge Mogensen. Oavsett pris eller skick.
 
@@ -110,8 +110,6 @@ Jag HAR REDAN:
 **NEJ:** mid-century skandinavisk modernism, Bauhaus, minimalism, 70-tals brun-grön, 80–90-tals postmodern, 2000-tals "designfåtölj", shabby chic, lantligt-provencalskt.
 
 ## Redan har – ge 0–3 åt exakt samma typ
-- Wingback-fåtölj
-- Klubbfåtölj
 - 2 st Chippendale library chairs (cane back + ball-and-claw feet)
 - Dining-bord scarlet-lackad med glasskiva + 6 ljusa trä-stolar (bakom rumsavdelare)
 - **7 st IKEA Billy** – 3 i mitten som rumsavdelare + 4 på andra väggar. **INGEN mer Billy behövs.**
