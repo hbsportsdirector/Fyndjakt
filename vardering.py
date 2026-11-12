@@ -9,7 +9,6 @@ annars ligger det gamla kvar och föremålet hamnar på listan "tunt underlag".
 
 Körs av tools/vardera_samlingen.py (GitHub Actions, en gång i månaden).
 """
-import re
 from datetime import date
 
 import prisjamforelse

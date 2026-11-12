@@ -101,7 +101,7 @@ def main():
                 try:
                     r = requests.head(url, headers=H, timeout=20, allow_redirects=True)
                     bildkoll[ar][f"{vilken}_{r.status_code}"] += 1
-                except Exception as e:
+                except Exception:
                     bildkoll[ar][f"{vilken}_fel"] += 1
             time.sleep(0.3)
 

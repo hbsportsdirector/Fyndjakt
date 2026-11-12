@@ -187,7 +187,7 @@ def test_har_redan_och_bara_sverige():
 
 
 def test_sajt_max_per_sokord(tmp_path, monkeypatch):
-    import sajt, json, re
+    import sajt
     monkeypatch.setattr(sajt, "UT", tmp_path)
     db = Databas(tmp_path / "t.db")
     for i in range(5):
@@ -218,7 +218,7 @@ def test_sajt_visa_per_sokord_foljer_med_och_rang_satts(tmp_path, monkeypatch):
 
 
 def test_sajt_har_flikar_per_spar(tmp_path, monkeypatch):
-    import sajt, json, re
+    import sajt
     monkeypatch.setattr(sajt, "UT", tmp_path)
     db = Databas(tmp_path / "t.db")
     for i, sp in enumerate(["hemmet", "samlingen", "samlingen"]):
@@ -527,7 +527,7 @@ def test_tak_per_anvandare():
 
 
 def test_egna_fynd_syns_inte_publikt(tmp_path, monkeypatch):
-    import sajt, json, re
+    import sajt, json
     from dataclasses import replace
     monkeypatch.setattr(sajt, "UT", tmp_path)
     db = Databas(tmp_path / "t.db")
@@ -575,7 +575,7 @@ def test_batch_bedomning_med_reserv():
 
 
 def test_webbnotis_kryptering_och_vapid():
-    import base64, json, time
+    import json, time
     import webbnotis as w
     from cryptography.hazmat.primitives.asymmetric import ec
     ua = ec.generate_private_key(ec.SECP256R1())
@@ -1001,7 +1001,7 @@ def test_flipp_profil_gar_inte_via_smakinstruktionen(tmp_path, monkeypatch):
     """En hel körning: flipp-annonser får expertinstruktionen och prisbetyg, aldrig inredarens smakbedömning."""
     import json
     from types import SimpleNamespace as NS
-    import flipp, kategoriprofil, prisjamforelse, sajt
+    import kategoriprofil, prisjamforelse, sajt
     cfg = {"modell": "m", "min_betyg": 8, "sajt_min_betyg": 7, "egen_modell": False, "sallning": False,
            "spar": {"samlingen": {"namn": "Samlingen", "tillagg": "Gillar Berså.", "sokningar": {"Keramik": ["Berså"]}},
                     "flipp": {"namn": "Flipp", "flipp": True, "sokningar": {"Gustavsberg": ["Berså tekanna"]}}}}
