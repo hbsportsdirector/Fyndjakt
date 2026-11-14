@@ -1,118 +1,111 @@
 {
-  "tid": "2026-11-14T11:28:40",
-  "annonser_totalt": 11204,
-  "nya": 1778,
-  "bedomda": 315,
-  "nya_traffar": 14,
+  "tid": "2026-11-14T21:33:39",
+  "annonser_totalt": 11046,
+  "nya": 1549,
+  "bedomda": 184,
+  "nya_traffar": 32,
   "kallor": {
     "Smakanalys": {
       "nya": 0
     },
-    "Pausade sökord": 31,
+    "Pausade sökord": 34,
     "Auctionet": {
-      "sokningar": 352,
-      "traffar": 2775,
+      "sokningar": 349,
+      "traffar": 2609,
       "fel": 0,
       "felexempel": []
     },
     "Bukowskis": {
-      "sokningar": 352,
+      "sokningar": 349,
       "traffar": 0,
       "fel": 0,
       "felexempel": []
     },
     "Myrorna": {
-      "sokningar": 352,
-      "traffar": 4704,
+      "sokningar": 349,
+      "traffar": 4148,
       "fel": 0,
       "felexempel": []
     },
     "Stadsmissionen": {
-      "sokningar": 352,
-      "traffar": 433,
+      "sokningar": 349,
+      "traffar": 391,
       "fel": 0,
       "felexempel": []
     },
     "Tradera": {
-      "sokningar": 352,
-      "traffar": 8850,
+      "sokningar": 349,
+      "traffar": 8896,
       "fel": 0,
       "felexempel": []
     },
     "Väntande från tidigare": 0,
-    "Återanvända betyg": 45,
+    "Återanvända betyg": 78,
     "Egen modell": {
-      "bortsorterade": 180,
+      "bortsorterade": 31,
       "spår med modell": 5
     },
     "Från kön": 0,
     "Bedömning": {
-      "batch": 315,
+      "batch": 184,
       "direkt": 0
     },
     "Priser": {
-      "kollade": 159,
+      "kollade": 153,
       "nytt pris": 2,
       "avslutade": 0,
-      "missade": 2
+      "missade": 0
     },
     "Flipp": {
-      "priser uppdaterade": 17,
-      "bedömda": 13,
-      "nyproduktion": 3,
-      "jämförelse utan typ": 0,
-      "kandidater": 1205,
+      "priser uppdaterade": 24,
+      "bedömda": 63,
+      "nyproduktion": 19,
+      "jämförelse utan typ": 8,
+      "kandidater": 1227,
       "betyg 10": 0
     },
-    "Tradera-orter ifyllda": 5,
+    "Tradera-orter ifyllda": 4,
     "Prisjämförelse": {
-      "fynd": 27,
-      "med_data": 12
+      "fynd": 55,
+      "med_data": 14
     },
     "Notiser": {
       "skickade": 0
     },
     "Miniatyrer": {
-      "saknades": 22,
-      "nya": 22,
-      "hamtade": 8,
+      "saknades": 56,
+      "nya": 56,
+      "hamtade": 13,
       "misslyckade": 0,
-      "borttagna": 2
+      "borttagna": 17
     },
     "Tid (min)": {
-      "förberedelser": 0.2,
-      "hämtning": 27.0,
-      "prisuppdatering": 3.1,
-      "bedömning": 2.3,
-      "prisjämförelse": 1.0,
-      "uppladdning": 0.2
+      "förberedelser": 0.1,
+      "hämtning": 26.3,
+      "prisuppdatering": 2.6,
+      "bedömning": 3.0,
+      "prisjämförelse": 1.1,
+      "uppladdning": 0.3
     }
   },
   "kostnad": {
-    "Kategoriprofiler": {
-      "anrop": 1,
-      "in": 4966,
-      "ut": 853,
-      "usd": 0.0185,
-      "kr": 0.19
-    },
     "Bedömning batch": {
-      "anrop": 75,
-      "in": 447591,
-      "ut": 28075,
-      "usd": 0.294,
-      "kr": 3.09
+      "anrop": 46,
+      "in": 288042,
+      "ut": 18314,
+      "usd": 0.1898,
+      "kr": 1.99
     },
     "Flipp-identifiering": {
-      "anrop": 3,
-      "in": 19599,
-      "ut": 1731,
-      "usd": 0.0283,
-      "kr": 0.3
+      "anrop": 13,
+      "in": 86208,
+      "ut": 7959,
+      "usd": 0.126,
+      "kr": 1.32
     },
     "Totalt": {
-      "kr": 3.58
+      "kr": 3.32
     }
   },
-  "stadsmissionen_katalog": 1552
+  "stadsmissionen_katalog": 1543
 }
