@@ -206,6 +206,8 @@ spar:
         där ena dörren kan säljas separat. 0–3 = veckdörr/harmonikadörr, lamelldörr, modern dörr, slät dörr utan
         glas, 60–70-talsdörr i teak/fanér (kunden vill hålla 60-talet till materialet i hyllorna, inte i formerna),
         ytterdörr, dörr med karm som inte går att ta loss. Prisnivå: 200–2 000 kr, max 4 000 kr.
+        Ett skåp, vitrinskåp eller en klocka med glasdörr är INTE en dörr: bedöm det efter de vanliga möbelreglerna,
+        aldrig efter dörrreglerna.
     bedomningsregler: |
       Kunden inreder ett engelskt bibliotek (Sherlock Holmes-era, 1880-1920). Mahogny, läder,
       varm mässing, antikvarisk känsla. Kunden behöver EN av varje sak (en matta, ett skrivbord, ett par
@@ -384,17 +386,18 @@ spar:
         - antik förstoringsglas
       Dörrar spröjsade:
         # ─── Skjutdörr i rumsavdelaren (jakaranda + Billy) – tillagd 2026-11-14 ───
-        - spröjsad glasdörr
+        # Sökord som innehåller "glasdörr" gav mest vitrinskåp – därför bara ord som betyder en lös dörr.
+        - innerdörr glas
+        - innerdörr spröjs
         - spröjsad innerdörr
-        - gammal innerdörr glas
-        - glasdörr spröjs
         - halvglasad innerdörr
-        - fransk dörr glas
+        - gammal innerdörr
+        - antik innerdörr
+        - spegeldörr
+        - fyllningsdörr
+        - dörrblad glas
         - verandadörr spröjs
-        - antik glasdörr
-        - sekelskiftesdörr glas
-        - spegeldörr glas
-        - viktoriansk dörr glas
+        - balkongdörr spröjs
 
   # ── 2. Konst, glas och design ────────────────────────────────
   # Omskriven 2026-10-23 – fokus på mid-century skandinaviska kult-serier.
