@@ -1,86 +1,85 @@
 {
-  "tid": "2026-11-20T21:27:06",
-  "annonser_totalt": 9968,
-  "nya": 2559,
-  "bedomda": 591,
-  "nya_traffar": 24,
+  "tid": "2026-11-21T21:27:52",
+  "annonser_totalt": 10577,
+  "nya": 3304,
+  "bedomda": 950,
+  "nya_traffar": 25,
   "kallor": {
     "Smakanalys": {
       "nya": 0
     },
     "Pausade sökord": 34,
     "Auctionet": {
-      "sokningar": 349,
-      "traffar": 2696,
+      "sokningar": 357,
+      "traffar": 2560,
       "fel": 0,
       "felexempel": []
     },
     "Bukowskis": {
-      "sokningar": 349,
-      "traffar": 175,
+      "sokningar": 357,
+      "traffar": 169,
       "fel": 0,
       "felexempel": []
     },
     "Myrorna": {
-      "sokningar": 349,
-      "traffar": 2183,
+      "sokningar": 357,
+      "traffar": 4188,
       "fel": 0,
       "felexempel": []
     },
     "Stadsmissionen": {
-      "sokningar": 349,
-      "traffar": 423,
+      "sokningar": 357,
+      "traffar": 425,
       "fel": 0,
       "felexempel": []
     },
     "Tradera": {
-      "sokningar": 349,
-      "traffar": 8237,
+      "sokningar": 357,
+      "traffar": 8395,
       "fel": 0,
       "felexempel": []
     },
     "Väntande från tidigare": 0,
-    "Återanvända betyg": 100,
+    "Återanvända betyg": 148,
     "Egen modell": {
-      "bortsorterade": 57,
+      "bortsorterade": 262,
       "spår med modell": 5
     },
-    "Från kön": 0,
     "Bedömning": {
       "batch": 0,
-      "direkt": 591
+      "direkt": 950
     },
     "Varning": "Slut på krediter hos Anthropic – fyll på under Plans & Billing.",
     "Priser": {
-      "kollade": 153,
-      "nytt pris": 2,
+      "kollade": 151,
+      "nytt pris": 1,
       "avslutade": 0,
       "missade": 2
     },
     "Flipp": {
-      "priser uppdaterade": 17
+      "priser uppdaterade": 20
     },
-    "Tradera-orter ifyllda": 22,
+    "Tradera-orter ifyllda": 25,
     "Prisjämförelse": {
-      "fynd": 41,
-      "med_data": 13
+      "fynd": 47,
+      "med_data": 12
     },
     "Notiser": {
       "skickade": 0
     },
     "Miniatyrer": {
-      "saknades": 36,
-      "nya": 36,
-      "hamtade": 36,
+      "saknades": 42,
+      "nya": 42,
+      "hamtade": 42,
       "misslyckade": 0,
-      "borttagna": 28
+      "borttagna": 9
     },
     "Tid (min)": {
       "förberedelser": 0.1,
-      "hämtning": 24.7,
-      "prisuppdatering": 0.8,
+      "hämtning": 25.3,
+      "prisuppdatering": 1.0,
       "bedömning": 0.0,
-      "prisjämförelse": 0.9,
+      "prisjämförelse": 0.8,
       "uppladdning": 0.4
     }
   },
@@ -89,5 +88,5 @@
       "kr": 0.0
     }
   },
-  "stadsmissionen_katalog": 1598
+  "stadsmissionen_katalog": 1568
 }
