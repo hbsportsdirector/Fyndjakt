@@ -1,9 +1,9 @@
 {
-  "tid": "2026-11-23T20:35:32",
-  "annonser_totalt": 9652,
-  "nya": 3268,
+  "tid": "2026-11-23T21:39:22",
+  "annonser_totalt": 9668,
+  "nya": 3271,
   "bedomda": 950,
-  "nya_traffar": 20,
+  "nya_traffar": 19,
   "kallor": {
     "Smakanalys": {
       "nya": 0
@@ -11,7 +11,7 @@
     "Pausade sökord": 37,
     "Auctionet": {
       "sokningar": 354,
-      "traffar": 2535,
+      "traffar": 2532,
       "fel": 0,
       "felexempel": []
     },
@@ -35,14 +35,14 @@
     },
     "Tradera": {
       "sokningar": 354,
-      "traffar": 8233,
+      "traffar": 8234,
       "fel": 0,
       "felexempel": []
     },
     "Väntande från tidigare": 0,
-    "Återanvända betyg": 151,
+    "Återanvända betyg": 157,
     "Egen modell": {
-      "bortsorterade": 96,
+      "bortsorterade": 63,
       "spår med modell": 5
     },
     "Bedömning": {
@@ -51,36 +51,36 @@
     },
     "Varning": "Slut på krediter hos Anthropic – fyll på under Plans & Billing.",
     "Priser": {
-      "kollade": 151,
-      "nytt pris": 5,
+      "kollade": 152,
+      "nytt pris": 2,
       "avslutade": 0,
-      "missade": 2
+      "missade": 3
     },
     "Flipp": {
-      "priser uppdaterade": 13
+      "priser uppdaterade": 11
     },
-    "Tradera-orter ifyllda": 19,
+    "Tradera-orter ifyllda": 18,
     "Prisjämförelse": {
-      "fynd": 56,
-      "med_data": 22
+      "fynd": 42,
+      "med_data": 14
     },
     "Notiser": {
       "skickade": 0
     },
     "Miniatyrer": {
-      "saknades": 37,
-      "nya": 37,
-      "hamtade": 37,
+      "saknades": 2,
+      "nya": 2,
+      "hamtade": 2,
       "misslyckade": 0,
-      "borttagna": 7
+      "borttagna": 1
     },
     "Tid (min)": {
       "förberedelser": 0.1,
-      "hämtning": 26.2,
-      "prisuppdatering": 0.9,
+      "hämtning": 26.6,
+      "prisuppdatering": 1.1,
       "bedömning": 0.0,
-      "prisjämförelse": 1.5,
-      "uppladdning": 0.4
+      "prisjämförelse": 1.1,
+      "uppladdning": 0.1
     }
   },
   "kostnad": {
