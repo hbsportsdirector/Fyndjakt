@@ -1,9 +1,9 @@
 {
-  "tid": "2026-11-23T21:39:22",
-  "annonser_totalt": 9668,
-  "nya": 3271,
+  "tid": "2026-11-24T19:49:01",
+  "annonser_totalt": 4945,
+  "nya": 1681,
   "bedomda": 950,
-  "nya_traffar": 19,
+  "nya_traffar": 0,
   "kallor": {
     "Smakanalys": {
       "nya": 0
@@ -11,7 +11,7 @@
     "Pausade sökord": 37,
     "Auctionet": {
       "sokningar": 354,
-      "traffar": 2532,
+      "traffar": 2701,
       "fel": 0,
       "felexempel": []
     },
@@ -29,20 +29,20 @@
     },
     "Stadsmissionen": {
       "sokningar": 354,
-      "traffar": 412,
+      "traffar": 411,
       "fel": 0,
       "felexempel": []
     },
     "Tradera": {
       "sokningar": 354,
-      "traffar": 8234,
+      "traffar": 2952,
       "fel": 0,
       "felexempel": []
     },
     "Väntande från tidigare": 0,
-    "Återanvända betyg": 157,
+    "Återanvända betyg": 33,
     "Egen modell": {
-      "bortsorterade": 63,
+      "bortsorterade": 15,
       "spår med modell": 5
     },
     "Bedömning": {
@@ -51,36 +51,36 @@
     },
     "Varning": "Slut på krediter hos Anthropic – fyll på under Plans & Billing.",
     "Priser": {
-      "kollade": 152,
-      "nytt pris": 2,
+      "kollade": 153,
+      "nytt pris": 1,
       "avslutade": 0,
-      "missade": 3
+      "missade": 1
     },
     "Flipp": {
-      "priser uppdaterade": 11
+      "priser uppdaterade": 19
     },
-    "Tradera-orter ifyllda": 18,
+    "Tradera-orter ifyllda": 0,
     "Prisjämförelse": {
-      "fynd": 42,
-      "med_data": 14
+      "fynd": 6,
+      "med_data": 6
     },
     "Notiser": {
       "skickade": 0
     },
     "Miniatyrer": {
-      "saknades": 2,
-      "nya": 2,
-      "hamtade": 2,
+      "saknades": 1,
+      "nya": 1,
+      "hamtade": 1,
       "misslyckade": 0,
-      "borttagna": 1
+      "borttagna": 6
     },
     "Tid (min)": {
       "förberedelser": 0.1,
-      "hämtning": 26.6,
-      "prisuppdatering": 1.1,
+      "hämtning": 17.9,
+      "prisuppdatering": 1.2,
       "bedömning": 0.0,
-      "prisjämförelse": 1.1,
-      "uppladdning": 0.1
+      "prisjämförelse": 0.6,
+      "uppladdning": 0.2
     }
   },
   "kostnad": {
@@ -88,5 +88,5 @@
       "kr": 0.0
     }
   },
-  "stadsmissionen_katalog": 1571
+  "stadsmissionen_katalog": 1562
 }
