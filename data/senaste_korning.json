@@ -1,9 +1,9 @@
 {
-  "tid": "2026-11-26T21:27:19",
-  "annonser_totalt": 9876,
-  "nya": 1813,
-  "bedomda": 272,
-  "nya_traffar": 2,
+  "tid": "2026-11-27T18:45:41",
+  "annonser_totalt": 10106,
+  "nya": 2121,
+  "bedomda": 404,
+  "nya_traffar": 73,
   "kallor": {
     "Smakanalys": {
       "nya": 0
@@ -11,7 +11,7 @@
     "Pausade sökord": 39,
     "Auctionet": {
       "sokningar": 352,
-      "traffar": 2818,
+      "traffar": 3043,
       "fel": 0,
       "felexempel": []
     },
@@ -29,65 +29,83 @@
     },
     "Stadsmissionen": {
       "sokningar": 352,
-      "traffar": 370,
+      "traffar": 371,
       "fel": 0,
       "felexempel": []
     },
     "Tradera": {
       "sokningar": 352,
-      "traffar": 8210,
+      "traffar": 8310,
       "fel": 0,
       "felexempel": []
     },
     "Väntande från tidigare": 0,
-    "Återanvända betyg": 20,
+    "Återanvända betyg": 100,
     "Egen modell": {
-      "bortsorterade": 44,
+      "bortsorterade": 71,
       "spår med modell": 5
     },
     "Från kön": 0,
     "Bedömning": {
-      "batch": 0,
-      "direkt": 272
+      "batch": 404,
+      "direkt": 0
     },
-    "Varning": "Slut på krediter hos Anthropic – fyll på under Plans & Billing.",
     "Priser": {
-      "kollade": 152,
-      "nytt pris": 0,
+      "kollade": 151,
+      "nytt pris": 17,
       "avslutade": 0,
       "missade": 3
     },
     "Flipp": {
-      "priser uppdaterade": 5
+      "priser uppdaterade": 20,
+      "bedömda": 118,
+      "nyproduktion": 11,
+      "jämförelse utan typ": 23,
+      "kandidater": 1364,
+      "betyg 10": 5
     },
-    "Tradera-orter ifyllda": 2,
+    "Tradera-orter ifyllda": 6,
     "Prisjämförelse": {
-      "fynd": 39,
-      "med_data": 7
+      "fynd": 120,
+      "med_data": 49
     },
     "Notiser": {
       "skickade": 0
     },
     "Miniatyrer": {
-      "saknades": 5,
-      "nya": 5,
-      "hamtade": 5,
+      "saknades": 147,
+      "nya": 147,
+      "hamtade": 22,
       "misslyckade": 0,
-      "borttagna": 38
+      "borttagna": 15
     },
     "Tid (min)": {
-      "förberedelser": 0.2,
-      "hämtning": 25.8,
-      "prisuppdatering": 0.5,
-      "bedömning": 0.0,
-      "prisjämförelse": 0.6,
-      "uppladdning": 0.2
+      "förberedelser": 0.1,
+      "hämtning": 27.7,
+      "prisuppdatering": 2.0,
+      "bedömning": 3.7,
+      "prisjämförelse": 3.8,
+      "uppladdning": 0.4
     }
   },
   "kostnad": {
+    "Bedömning batch": {
+      "anrop": 92,
+      "in": 606266,
+      "ut": 41449,
+      "usd": 0.4068,
+      "kr": 4.27
+    },
+    "Flipp-identifiering": {
+      "anrop": 24,
+      "in": 172945,
+      "ut": 14062,
+      "usd": 0.2433,
+      "kr": 2.55
+    },
     "Totalt": {
-      "kr": 0.0
+      "kr": 6.83
     }
   },
-  "stadsmissionen_katalog": 1538
+  "stadsmissionen_katalog": 1559
 }
