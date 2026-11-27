@@ -42,7 +42,7 @@ def las_config() -> dict:
 def tillfalligt(cfg: dict, nu: float | None = None) -> bool:
     """Blocket `tillfalligt` i config.yaml höjer (eller sänker) gränser fram till `till` (UTC) och slutar sedan gälla
     av sig självt. Toppnivånycklar ersätts; `spar: {id: {...}}` ändrar enskilda spår. Returnerar True om det gällde."""
-    from datetime import datetime, timezone
+    from datetime import datetime
     t = cfg.pop("tillfalligt", None)
     if not t or not t.get("till"):
         return False
